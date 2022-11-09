@@ -3,8 +3,7 @@
 //
 #include "utils.hpp"
 #include "networking/udp_server.hpp"
-#include "networking/camera_server.hpp"
-#include "inference/inference_manager.hpp"
+#include "vision/Zed.hpp"
 
 
 int main() {

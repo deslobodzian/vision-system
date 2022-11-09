@@ -25,28 +25,21 @@
 extern "C" {
 	#include "apriltag.h"
 	#include "tag36h11.h"
-	#include "tag25h9.h"
-	#include "tag16h5.h"
-	#include "tagCircle21h7.h"
-	#include "tagCircle49h12.h"
-	#include "tagCustom48h12.h"
-	#include "tagStandard41h12.h"
-	#include "tagStandard52h13.h"
 	#include "common/getopt.h"
 }
 
-class AprilTagManager() {
+class AprilTagManager {
 
 private:
 	std::vector<std::thread> threads_;
 
 public:
-	void add_fiducial_thread(Zed & camera);
-	void add_fiducial_thread(MonocularCamera & camera);
-	void find_fiducials_monocular();
-	void find_fiducials_zed();
+	void add_detector_thread(Zed & camera);
+	void add_detector_thread(MonocularCamera & camera);
+	void detector_monocular(MonocularCamera & camera);
+	void detector_zed(Zed & zed);
 
-}
+};
 
 
 

@@ -19,10 +19,10 @@ bool MonocularCamera::open_camera() {
 //	    ", height=" + std::to_string(config_.camera_resolution.height) +
 //	    ", framerate="+ std::to_string(config_.frames_per_second) + 
 //	    "/1 ! videoconvert ! appsink";
-    cap_.open(config_.get_device_id(), CAP_V4L2);
-    cap_.set(CAP_PROP_FRAME_WIDTH, config_.get_camera_resolution().width);
-    cap_.set(CAP_PROP_FRAME_HEIGHT, config_.get_camera_resolution().height);
-    cap_.set(CAP_PROP_FPS, config_.get_fps());
+    cap_.open(config_.get_device_id(), cv::CAP_V4L2);
+    cap_.set(cv::CAP_PROP_FRAME_WIDTH, config_.get_camera_resolution().width);
+    cap_.set(cv::CAP_PROP_FRAME_HEIGHT, config_.get_camera_resolution().height);
+    cap_.set(cv::CAP_PROP_FPS, config_.get_fps());
     return cap_.isOpened();
 }
 
@@ -31,7 +31,7 @@ bool MonocularCamera::read_frame() {
     return frame_.empty();
 }
 
-Mat MonocularCamera::get_frame() {
+cv::Mat MonocularCamera::get_frame() {
     return frame_;
 }
 
@@ -40,15 +40,15 @@ void MonocularCamera::get_frame(cv::Mat& image) {
 }
 
 double MonocularCamera::yaw_angle_to_object(tracked_object &obj) {
-    Point object_center = (obj.object.br() + obj.object.tl()) / 2;
-    Point center(config_.get_camera_resolution().width / 2, config_.get_camera_resolution().width / 2);
+    cv::Point object_center = (obj.object.br() + obj.object.tl()) / 2;
+    cv::Point center(config_.get_camera_resolution().width / 2, config_.get_camera_resolution().width / 2);
     double focal_length = config_.get_camera_resolution().width / (2 * tan(config_.get_fov().horizontal / 2));
     return atan((center - object_center).x / focal_length);
 }
 
 double MonocularCamera::pitch_angle_to_object(tracked_object &obj) {
-    Point object_center = (obj.object.br() + obj.object.tl()) / 2;
-    Point center((int) config_.get_camera_resolution().height / 2, config_.get_camera_resolution().height / 2);
+    cv::Point object_center = (obj.object.br() + obj.object.tl()) / 2;
+    cv::Point center((int) config_.get_camera_resolution().height / 2, config_.get_camera_resolution().height / 2);
     double focal_length = config_.get_camera_resolution().height / (2 * tan(config_.get_fov().vertical / 2));
     return atan((center - object_center).x / focal_length);
 }
@@ -59,19 +59,19 @@ void MonocularCamera::add_measurements(std::vector<Measurement> &z) {
     }
 }
 
-void MonocularCamera::draw_rect(Rect rect) {
-    rectangle(frame_, rect, Scalar(0, 255, 255), 1);
+void MonocularCamera::draw_rect(cv::Rect rect) {
+    rectangle(frame_, rect, cv::Scalar(0, 255, 255), 1);
 }
 
-void MonocularCamera::draw_crosshair(Rect rect) {
-    Point object_center = (rect.br() + rect.tl()) / 2.0;
-    Point top = object_center + Point(0, 10);
-    Point bot = object_center - Point(0, 10);
-    Point left = object_center - Point(10, 0);
-    Point right = object_center + Point(10, 0);
+void MonocularCamera::draw_crosshair(cv::Rect rect) {
+    cv::Point object_center = (rect.br() + rect.tl()) / 2.0;
+    cv::Point top = object_center + cv::Point(0, 10);
+    cv::Point bot = object_center - cv::Point(0, 10);
+    cv::Point left = object_center - cv::Point(10, 0);
+    cv::Point right = object_center + cv::Point(10, 0);
 
-    line(frame_, top, bot, Scalar(0, 255, 0), 1);
-    line(frame_, left, right, Scalar(0, 255, 0), 1);
+    line(frame_, top, bot, cv::Scalar(0, 255, 0), 1);
+    line(frame_, left, right, cv::Scalar(0, 255, 0), 1);
 }
 
 void MonocularCamera::add_tracked_objects(std::vector<tracked_object> objs) {
@@ -109,7 +109,7 @@ void MonocularCamera::update_objects() {
 tracked_object MonocularCamera::get_object_at_index(int class_id, int index) {
     std::vector<tracked_object> temp = get_objects(class_id);
     if (temp.empty()) {
-        Rect r(Point(0,0), Point(1,1));
+        cv::Rect r(cv::Point(0,0), cv::Point(1,1));
         tracked_object empty(r, 99);
         return empty;
     }
@@ -127,7 +127,7 @@ tracked_object MonocularCamera::closest_object_to_camera(int class_id) {
             }
         }
     } else {
-        Rect r(Point(0,0), Point(1,1));
+        cv::Rect r(cv::Point(0,0), cv::Point(1,1));
         tracked_object empty(r, 99);
         return empty;
     }
@@ -138,7 +138,7 @@ tracked_object MonocularCamera::closest_object_to_camera(game_elements game_elem
     return closest_object_to_camera((int) game_element);
 }
 
-bool MonocularCamera::is_object_in_box(tracked_object &obj, Rect &box) {
+bool MonocularCamera::is_object_in_box(tracked_object &obj, cv::Rect &box) {
     int box_tl_x = box.tl().x;
     int box_tl_y = box.tl().y;
     int box_br_x = box.br().x;

@@ -15,8 +15,6 @@
 #include "map.hpp"
 #include "utils.hpp"
 
-using namespace cv;
-
 struct fov {
     double horizontal;
     double vertical;
@@ -92,9 +90,9 @@ public:
 };
 
 struct tracked_object {
-    Rect object;
+    cv::Rect object;
     int class_id;
-    tracked_object(const Rect& obj, int id) {
+    tracked_object(const cv::Rect& obj, int id) {
         object = obj;
         class_id = id;
     }
@@ -103,8 +101,8 @@ struct tracked_object {
 
 class MonocularCamera {
 private:
-    VideoCapture cap_;
-    Mat frame_;
+    cv::VideoCapture cap_;
+    cv::Mat frame_;
     int device_id_;
     CameraConfig config_;
     std::vector<tracked_object> objects_;
@@ -119,11 +117,11 @@ public:
     bool read_frame();
     int get_id();
 
-    Mat get_frame();
+    cv::Mat get_frame();
     void get_frame(cv::Mat& image);
 
-    void draw_rect(Rect rect);
-    void draw_crosshair(Rect rect);
+    void draw_rect(cv::Rect rect);
+    void draw_crosshair(cv::Rect rect);
     void draw_crosshair(tracked_object obj);
     void draw_tracked_objects();
 
@@ -132,7 +130,7 @@ public:
     double pitch_angle_to_object(tracked_object &obj);
     void add_measurements(std::vector<Measurement> &z);
     void update_objects();
-    bool is_object_in_box(tracked_object &obj, Rect &rect);
+    bool is_object_in_box(tracked_object &obj, cv::Rect &rect);
     std::vector<tracked_object> get_objects(int class_id);
     tracked_object closest_object_to_camera(int class_id);
     tracked_object closest_object_to_camera(game_elements game_element);

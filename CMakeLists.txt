@@ -15,14 +15,20 @@ find_package(CUDA ${ZED_CUDA_VERSION} REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
+find_package(PkgConfig)
+pkg_search_module(apriltag REQUIRED apriltag)
+set(apriltag_INCLUDE_DIRS "${apriltag_INCLUDE_DIRS}/apriltag")
+
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(${ZED_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${apriltag_INCLUDE_DIRS})
 
 link_directories(${OpenCV_LIBRARY_DIRS})
 link_directories(${ZED_LIBRARY_DIR})
 link_directories(${CUDA_LIBRARY_DIRS})
+link_directories(${apriltag_LIBDIR})
 
 FILE(GLOB_RECURSE SRC_FILES src/*.c*)
 FILE(GLOB_RECURSE HDR_FILES include/*.h*)
@@ -40,5 +46,6 @@ TARGET_LINK_LIBRARIES(
 	${PROJECT_NAME}
 	${ZED_LIBS}
 	${OpenCV_LIBRARIES}
+	${apriltag_LIBRARIES}
 	Eigen3::Eigen
 )

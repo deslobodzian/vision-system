@@ -119,7 +119,7 @@ void PoseEstimator::print_measurements(int camera_id) {
 
 
 void PoseEstimator::send_message() {
-    zed_.update_objects();
+//    zed_.update_objects();
     // Camera ID 0, will be the vision facing the intake.
     double blue_ball_yaw = -99;
     double red_ball_yaw = -99;

@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <thread>
-#include "inference/yolov5.hpp"
 #include "particle_filter.hpp"
 #include "map.hpp"
 #include "vision/Zed.hpp"
@@ -26,7 +25,6 @@ private:
     std::vector<std::thread> inference_threads_;
     std::thread pose_estimation_thread_;
     std::vector<MonocularCamera> monocular_cameras_;
-    std::vector<Yolov5> inference_engines_;
     std::vector<bool> threads_started_;
 public:
     PoseEstimator() = default;
