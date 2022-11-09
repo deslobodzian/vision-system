@@ -21,6 +21,8 @@
 #include "vision/Zed.hpp"
 #include "vision/monocular_camera.hpp"
 #include <opencv2/opencv.hpp>
+#include "apriltag_detector.hpp"
+#include "utils.hpp"
 
 extern "C" {
 	#include "apriltag.h"
@@ -34,10 +36,10 @@ private:
 	std::vector<std::thread> threads_;
 
 public:
-	void add_detector_thread(Zed & camera);
-	void add_detector_thread(MonocularCamera & camera);
-	void detector_monocular(MonocularCamera & camera);
-	void detector_zed(Zed & zed);
+	void add_detector_thread(Zed &camera);
+	void add_detector_thread(MonocularCamera &camera);
+	void detector_monocular(MonocularCamera &camera);
+	void detector_zed(Zed &zed);
 
 };
 

@@ -6,12 +6,16 @@
 #define VISION_SYSTEM_TARGET_INFO_HPP
 
 #include <sl/Camera.hpp>
+#include <opencv2/opencv.hpp>
+#include "apriltag_detector.hpp"
 #include <Eigen/Dense>
 #include "map.hpp"
 
-class TrackedObjectInfo {
+class TrackedTargetInfo {
 private:
-    game_elements element_;
+    std::string target_identity_;
+    cv::Point target_center_;
+    Corners corners_;
     double x_;
     double y_;
     double z_;
@@ -21,9 +25,8 @@ private:
     double vz_;
 
 public:
-    TrackedObjectInfo();
-    explicit TrackedObjectInfo(sl::ObjectData object);
-    ~TrackedObjectInfo();
+    TrackedTargetInfo();
+    ~TrackedTargetInfo();
 
     const double get_x();
     const double get_y();

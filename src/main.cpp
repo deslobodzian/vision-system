@@ -9,7 +9,7 @@
 int main() {
 
     // Instantiate Systems
-    UDPServer server;
+//    UDPServer server;
 
     // generate camera configs
     // resolution res(1920, 1080);
@@ -24,10 +24,21 @@ int main() {
     // opening zed camera. Do this before zed inference thread.
     zed_.open_camera();
     zed_.enable_tracking();
-    zed_.enable_object_detection();
+//    zed_.enable_object_detection();
 
+    DetectorConfig cfg = {
+            tag36h11,
+            0.0,
+            0.0,
+            1,
+            false,
+            true
+    };
+    TagDetector detector(cfg);
     while (true) {
-
+        zed_.fetch_measurements();
+        detector.fetch_detections(slMat_to_cvMat(zed_.get_left_image()));
+        info("Detected targets: " + std::to_string(detector.get_current_number_of_targets()));
     }
 }
 

@@ -70,45 +70,37 @@ bool Zed::enable_object_detection() {
     return true;
 }
 
+void Zed::fetch_measurements() {
+    if (successful_grab()) {
+        zed_.retrieveImage(measurements_.left_image, VIEW::LEFT);
+        measurements_.timestamp = measurements_.left_image.timestamp;
+        zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
+        zed_.getPosition(measurements_.camera_pose);
+    }
+}
+
 void Zed::input_custom_objects(std::vector<sl::CustomBoxObjectData> objects_in) {
     zed_.ingestCustomBoxObjects(objects_in);
 }
 
+Mat Zed::get_depth_map() const {
+    return measurements_.depth_map;
+}
 
-sl::Transform Zed::get_calibration_stereo_transform() {
+sl::Transform Zed::get_calibration_stereo_transform() const {
     return calibration_params_.stereo_transform;
 }
 
-sl::Mat Zed::get_left_image() {
-    if (successful_grab()) {
-        sl::Mat im;
-        zed_.retrieveImage(im, VIEW::LEFT);
-        return im;
-    }
-    return sl::Mat();
+sl::Mat Zed::get_left_image() const {
+    return measurements_.left_image;
 }
 
-void Zed::get_left_image(sl::Mat &image) {
-    if (successful_grab()) {
-        zed_.retrieveImage(image, VIEW::LEFT);
-    }
+sl::Pose Zed::get_camera_pose() const {
+    return measurements_.camera_pose;
 }
 
-sl::Mat Zed::get_right_image() {
-    if (successful_grab()) {
-        sl::Mat im;
-        zed_.retrieveImage(im, VIEW::RIGHT);
-        return im;
-    }
-    return sl::Mat();
-}
-
-sl::Pose Zed::get_camera_pose() {
-    zed_.getPosition(camera_pose_, sl::REFERENCE_FRAME::CAMERA);
-    if (successful_grab()) {
-        return camera_pose_;
-    }
-    return Pose();
+Timestamp Zed::get_measurement_timestamp() const {
+    return measurements_.timestamp;
 }
 
 void Zed::close() {

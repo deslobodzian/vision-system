@@ -17,25 +17,28 @@
 
 using namespace sl;
 
+typedef struct {
+    Timestamp timestamp;
+    Mat left_image;
+    Pose camera_pose;
+    Mat depth_map;
+} ZedMeasurements;
+
 class Zed {
+
 private:
      Camera zed_;
-     Pose camera_pose_;
-     sl::Mat image_;
+     ZedMeasurements measurements_;
 
      InitParameters init_params_;
      RuntimeParameters runtime_params_;
      ObjectDetectionParameters detection_params_;
      ObjectDetectionRuntimeParameters objectTracker_params_rt_;
 
-     Objects objects_;
-     SensorsData sensors_data_;
-     SensorsData::IMUData imu_data_;
      CalibrationParameters calibration_params_;
      Transform cam_to_robot_;
 
      float left_offset_to_center_;
-
      bool successful_grab();
 
 public:
@@ -45,17 +48,24 @@ public:
     bool open_camera();
     bool enable_tracking();
     bool enable_tracking(Eigen::Vector3d init_pose);
-
     bool enable_object_detection();
     void input_custom_objects(std::vector<sl::CustomBoxObjectData> objects_in);
-    sl::Transform get_calibration_stereo_transform();
 
-    sl::Mat get_left_image();
-    void get_left_image(sl::Mat &image);
+    void fetch_measurements();
 
-    sl::Mat get_right_image();
+    // gets the last fetched depth map.
+    sl::Mat get_depth_map() const;
 
-    Pose get_camera_pose();
+    sl::Transform get_calibration_stereo_transform() const;
+
+    // gets the last fetched left image.
+    sl::Mat get_left_image() const;
+
+    // gets the last fetched camera pose.
+    Pose get_camera_pose() const;
+
+    // gets the timestamp from the last fetched measurement information.
+    Timestamp get_measurement_timestamp() const;
 
     void close();
 

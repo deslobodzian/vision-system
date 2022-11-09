@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <iostream>
-#include "vision/tracked_object_info.hpp"
+#include "vision/tracked_target_info.hpp"
 #include "localization/particle_filter.hpp"
 #include <cmath>
 
