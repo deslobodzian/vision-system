@@ -20,24 +20,16 @@ private:
     double y_;
     double z_;
 
-    double vx_;
-    double vy_;
-    double vz_;
-
 public:
     TrackedTargetInfo();
     ~TrackedTargetInfo();
 
-    const double get_x();
-    const double get_y();
-    const double get_z();
-
-    const double get_vx();
-    const double get_vy();
-    const double get_vz();
+    double get_x() const;
+    double get_y() const;
+    double get_z() const;
 
     double get_distance(double x_offset, double y_offset, double z_offset);
-    double get_distance(sl::Transform offset);
+    double get_distance(const sl::Transform& offset);
     double get_yaw_angle();
     double get_pitch_angle();
     std::string to_packet();

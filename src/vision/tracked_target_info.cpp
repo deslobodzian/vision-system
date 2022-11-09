@@ -6,28 +6,16 @@
 TrackedTargetInfo::TrackedTargetInfo() {}
 
 
-const double TrackedTargetInfo::get_x() {
+double TrackedTargetInfo::get_x() const {
     return x_;
 }
 
-const double TrackedTargetInfo::get_y() {
+double TrackedTargetInfo::get_y() const {
     return y_;
 }
 
-const double TrackedTargetInfo::get_z() {
+double TrackedTargetInfo::get_z() const {
     return z_;
-}
-
-const double TrackedTargetInfo::get_vx() {
-    return vx_;
-}
-
-const double TrackedTargetInfo::get_vy() {
-    return vy_;
-}
-
-const double TrackedTargetInfo::get_vz() {
-    return vz_;
 }
 
 double TrackedTargetInfo::get_distance(double x_offset, double y_offset, double z_offset) {
@@ -37,7 +25,7 @@ double TrackedTargetInfo::get_distance(double x_offset, double y_offset, double 
     return sqrt(x + y + z);
 }
 
-double TrackedTargetInfo::get_distance(sl::Transform offset) {
+double TrackedTargetInfo::get_distance(const sl::Transform& offset) {
     return get_distance(offset.tx, offset.ty, offset.tz);
 }
 
@@ -53,10 +41,7 @@ std::string TrackedTargetInfo::to_packet() {
     return target_identity_ + ";" +
             std::to_string(x_) + ";" +
             std::to_string(y_) + ";" +
-            std::to_string(z_) + ";" +
-            std::to_string(vx_) + ";" +
-            std::to_string(vy_) + ";" +
-            std::to_string(vz_) + ";";
+            std::to_string(z_) + ";";
 }
 
 TrackedTargetInfo::~TrackedTargetInfo() {

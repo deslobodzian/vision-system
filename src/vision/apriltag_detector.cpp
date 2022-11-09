@@ -79,6 +79,23 @@ Corners TagDetector::get_detection_corners(apriltag_detection_t *det) {
     return {tr, tl, bl, br};
 }
 
+apriltag_pose_t TagDetector::get_estimated_target_pose(
+        IntrinsicParameters params,
+        apriltag_detection_t *det,
+        double tag_size) {
+    apriltag_detection_info_t info;
+    info.det = det;
+    info.tagsize = tag_size;
+    info.fx = params.fx;
+    info.fy = params.fy;
+    info.cx = params.cx;
+    info.cy = params.cy;
+
+    apriltag_pose_t pose;
+    double err = estimate_tag_pose(&info, &pose);
+    return pose;
+}
+
 apriltag_family_t* TagDetector::create_tag(tag_family tf) {
     switch(tf) {
         case tag36h11:

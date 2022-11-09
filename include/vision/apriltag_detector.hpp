@@ -6,6 +6,7 @@
 #define VISION_SYSTEM_APRILTAG_DETECTOR_HPP
 
 #include <opencv2/opencv.hpp>
+#include "vision/camera_config.hpp"
 
 extern "C" {
     #include "apriltag.h"
@@ -18,6 +19,7 @@ extern "C" {
     #include "tagStandard41h12.h"
     #include "tagStandard52h13.h"
     #include "common/getopt.h"
+    #include "apriltag_pose.h"
 }
 
 struct Corners {
@@ -67,8 +69,14 @@ public:
     int get_current_number_of_targets();
     bool has_targets();
     apriltag_detection_t* get_target_from_id(int id);
+
     cv::Point get_detection_center(apriltag_detection_t *det);
     Corners get_detection_corners(apriltag_detection_t *det);
+    apriltag_pose_t get_estimated_target_pose(
+            IntrinsicParameters params,
+            apriltag_detection_t *det,
+            double tag_size
+            );
 };
 
 #endif //VISION_SYSTEM_APRILTAG_DETECTOR_HPP
