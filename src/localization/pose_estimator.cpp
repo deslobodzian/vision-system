@@ -101,11 +101,6 @@ void PoseEstimator::init() {
 }
 
 void PoseEstimator::print_measurements(int camera_id) {
-    tracked_object obj = monocular_cameras_.at(camera_id).get_object_at_index(0, 0);
-    double measurement = monocular_cameras_.at(camera_id).yaw_angle_to_object(obj);
-    std::string message = "Camera[" + std::to_string(camera_id) + "] has found object: " +
-    std::to_string(obj.class_id) + " with angle {" + std::to_string(measurement);
-    info(message);
 }
 
 //void PoseEstimator::print_zed_measurements(int label) {
@@ -124,15 +119,6 @@ void PoseEstimator::send_message() {
     double blue_ball_yaw = -99;
     double red_ball_yaw = -99;
     if (num_monocular_cameras_ > 0) {
-        monocular_cameras_.at(0).update_objects();
-        tracked_object b_ball = monocular_cameras_.at(0).closest_object_to_camera(0);
-        tracked_object r_ball = monocular_cameras_.at(0).closest_object_to_camera(2);
-        if (b_ball.class_id != 99) {
-            blue_ball_yaw = monocular_cameras_.at(0).yaw_angle_to_object(b_ball);
-        }
-        if (r_ball.class_id != 99) {
-            red_ball_yaw = monocular_cameras_.at(0).yaw_angle_to_object(r_ball);
-        }
     }
 //    info("Closest red ball yaw" + std::to_string(red_ball_yaw));
 //    info("Closest blue ball yaw" + std::to_string(blue_ball_yaw));
@@ -162,7 +148,6 @@ Zed& PoseEstimator::get_zed() {
 }
 
 void PoseEstimator::display_frame(int camera_id) {
-	monocular_cameras_.at(camera_id).draw_tracked_objects();
 	cv::Mat frame = monocular_cameras_.at(camera_id).get_frame();
 	std::string id = "Camera " + std::to_string(camera_id);
 	if (!frame.empty()) {
