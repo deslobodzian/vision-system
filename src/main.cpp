@@ -49,6 +49,7 @@ int main() {
     TagDetector detector(cfg);
     while (true) {
         zed_.fetch_measurements();
+        life_cam_.read_frame();
 //        cv::Mat img = slMat_to_cvMat(zed_.get_left_image());
         cv::Mat img = life_cam_.get_frame();
         detector.fetch_detections(img);
