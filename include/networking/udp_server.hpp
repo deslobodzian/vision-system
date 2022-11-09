@@ -25,13 +25,13 @@ struct output_frame {
     };
 
     FRAME_TYPE type;
-    std::vector<TrackedObjectInfo> tracked_objects;
+    std::vector<TrackedTargetInfo> tracked_objects;
 
     output_frame() {
         type = DEFAULT;
     }
 
-    output_frame(std::vector<TrackedObjectInfo> tracked_objects) {
+    output_frame(std::vector<TrackedTargetInfo> tracked_objects) {
         type = TRACKED_OBJECTS;
         this->tracked_objects = tracked_objects;
     }
