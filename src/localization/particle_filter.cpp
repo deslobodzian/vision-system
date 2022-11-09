@@ -18,8 +18,8 @@ void ParticleFilter::init_particle_filter(Eigen::Vector3d init_pose, double posi
     x_est_ = Eigen::Vector3d::Zero();
     for (int i = 0; i < NUM_PARTICLES; ++i) {
         pose << random(init_pose(0) - (position_std * 3), init_pose(0) + (position_std * 3)),
-                random(init_pose(1) - (position_std * 3), init_pose(1) + (position_std * 3))),
-                random(init_pose(2) - (heading_std * 3), init_pose(2) + (heading_std * 3);
+                random(init_pose(1) - (position_std * 3), init_pose(1) + (position_std * 3)),
+                random(init_pose(2) - (heading_std * 3), init_pose(2) + (heading_std * 3));
         X_.at(i).x = pose;
     }
     info("Initialized particle filter");

@@ -35,8 +35,6 @@ public:
     ~PoseEstimator();
 
     void run_zed(Eigen::Vector3d init_pose);
-    void run_inference(MonocularCamera& camera);
-    void run_inference_zed(Zed& camera);
     void update_measurements();
     void estimate_pose();
     void init();

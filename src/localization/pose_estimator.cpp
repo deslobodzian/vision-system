@@ -43,39 +43,8 @@ void PoseEstimator::run_zed(Eigen::Vector3d init_pose) {
     zed_.enable_object_detection();
 }
 
-void PoseEstimator::run_inference(MonocularCamera& camera) {
-    Yolov5 yoloRT;
-    yoloRT.initialize_engine(engine_name_);
-    threads_started_.at(camera.get_id()) = true;
-    info("Monocular Inference started");
-    while (true) {
-   	    camera.read_frame();
-    	cv::Mat image = camera.get_frame();
-    	yoloRT.prepare_inference(image);
-    	yoloRT.run_inference(image);
-    	camera.add_tracked_objects(yoloRT.get_monocular_obj_data());
-    }
-}
-
-void PoseEstimator::run_inference_zed(Zed& camera) {
-    run_zed(init_pose_);
-    Yolov5 yoloRT;
-    yoloRT.initialize_engine(engine_name_);
-    threads_started_.back() = true;
-    info("Zed Inference started");
-    while (true) {
-    	sl::Mat image = camera.get_left_image();
-    	cv::Mat temp;
-    	yoloRT.prepare_inference(image, temp);
-    	yoloRT.run_inference_and_convert_to_zed(temp);
-        camera.input_custom_objects(yoloRT.get_custom_obj_data());
-    }
-}
 
 void PoseEstimator::update_measurements() {
-    for (auto &camera : monocular_cameras_) {
-        camera.add_measurements(z_);
-    }
 //    zed_.add_measurements(z_, blue_plate);
 //    zed_.add_measurements(z_, red_plate);
 //    zed_.add_measurements(z_, goal);
@@ -117,24 +86,7 @@ void PoseEstimator::init() {
 //         std::to_string(init_pose_(1)) + ", " +
 //         std::to_string(init_pose_(2)) + "]");
 
-    info("Starting ZED vision thread.");
-    inference_threads_.push_back(
-            std::thread(
-                    &PoseEstimator::run_inference_zed,
-                    this,
-                    std::ref(zed_)
-            ));
-
-    info("Starting monocular vision threads.");
-    for (int i = 0; i < num_monocular_cameras_; ++i) {
-        inference_threads_.push_back(
-                std::thread(
-                        &PoseEstimator::run_inference,
-                        this,
-                        std::ref(monocular_cameras_.at(i))
-                ));
-    }
-//    filter_.init_particle_filter(init_pose_);
+   //    filter_.init_particle_filter(init_pose_);
 //    bool start_estimator = false;
 //    info("Waiting for odometry data");
 //    while (!start_estimator) {

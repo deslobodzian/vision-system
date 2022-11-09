@@ -47,12 +47,11 @@ public:
     bool enable_tracking(Eigen::Vector3d init_pose);
 
     bool enable_object_detection();
-
     void input_custom_objects(std::vector<sl::CustomBoxObjectData> objects_in);
-
     sl::Transform get_calibration_stereo_transform();
 
     sl::Mat get_left_image();
+    sl::Mat get
     void get_left_image(sl::Mat &image);
 
     sl::Mat get_right_image();
