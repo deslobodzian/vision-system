@@ -30,9 +30,9 @@ int main() {
 
     DetectorConfig cfg = {
             tag36h11,
-            0.0,
-            0.0,
-            1,
+            0.5,
+            0.5,
+            2,
             false,
             true
     };
@@ -42,7 +42,8 @@ int main() {
         cv::Mat img = slMat_to_cvMat(zed_.get_left_image());
         detector.fetch_detections(img);
         info("Detected targets: " + std::to_string(detector.get_current_number_of_targets()));
-        cv::imshow("Zed", img);
+        //cv::imshow("Zed", img);
+	//if(cv::waitKey(30) >= 0) break;
     }
 }
 
