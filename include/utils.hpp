@@ -25,7 +25,7 @@ inline void draw_vertical_line(
     cv::line(left_display, pt4, end_pt, clr, thickness);
 }
 
-int get_ocv_type(sl::MAT_TYPE type) {
+static int get_ocv_type(sl::MAT_TYPE type) {
     int cv_type = -1;
     switch (type) {
         case sl::MAT_TYPE::F32_C1: cv_type = CV_32FC1;
