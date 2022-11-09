@@ -65,6 +65,8 @@ public:
     void fetch_detections(cv::Mat img);
     int get_detections_size(const zarray_t *detections);
     int get_current_number_of_targets();
+    bool has_targets();
+    apriltag_detection_t* get_target_from_id(int id);
     cv::Point get_detection_center(apriltag_detection_t *det);
     Corners get_detection_corners(apriltag_detection_t *det);
 };

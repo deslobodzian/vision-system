@@ -53,6 +53,21 @@ int TagDetector::get_current_number_of_targets() {
     return get_detections_size(current_detections_);
 }
 
+bool TagDetector::has_targets() {
+    return get_current_number_of_targets() > 0;
+}
+
+apriltag_detection_t* TagDetector::get_target_from_id(int id) {
+    apriltag_detection_t *det;
+    for (int i = 0; i < get_current_number_of_targets(); i++) {
+        zarray_get(current_detections_, i, &det);
+        if (id == det->id) {
+            return det;
+        }
+    }
+    return nullptr;
+}
+
 cv::Point TagDetector::get_detection_center(apriltag_detection_t *det) {
     return cv::Point(det->c[0], det->c[1]);
 }

@@ -41,7 +41,19 @@ int main() {
         zed_.fetch_measurements();
         cv::Mat img = slMat_to_cvMat(zed_.get_left_image());
         detector.fetch_detections(img);
-        info("Detected targets: " + std::to_string(detector.get_current_number_of_targets()));
+
+        if (detector.has_targets()) {
+            apriltag_detection_t* det = detector.get_target_from_id(1);
+            if (det != nullptr) {
+                cv::Point center = detector.get_detection_center(det);
+                info ("Target with ID 1 has center x: " +
+                    std::to_string(center.x)
+                    + ", y: " +
+                    std::to_string(center.y)
+                );
+            }
+        }
+//        info("Targets: id 1" + std::to_string(detector.get_current_number_of_targets()));
         //cv::imshow("Zed", img);
 	//if(cv::waitKey(30) >= 0) break;
     }
