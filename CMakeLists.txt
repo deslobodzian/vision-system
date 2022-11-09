@@ -3,6 +3,7 @@ PROJECT(Vision_System)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")
 
 option(LINK_SHARED_ZED "Link with the ZED SDK shared executable" ON)
 
