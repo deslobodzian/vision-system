@@ -29,11 +29,11 @@ int main() {
     life_cam_.open_camera();
 
     // zed camera;
-    Zed zed_;
+//    Zed zed_;
 
     // opening zed camera. Do this before zed inference thread.
-    zed_.open_camera();
-    zed_.enable_tracking();
+//    zed_.open_camera();
+//    zed_.enable_tracking();
 
 
 //    zed_.enable_object_detection();
@@ -48,7 +48,7 @@ int main() {
     };
     TagDetector detector(cfg);
     while (true) {
-        zed_.fetch_measurements();
+//        zed_.fetch_measurements();
         life_cam_.read_frame();
 //        cv::Mat img = slMat_to_cvMat(zed_.get_left_image());
         cv::Mat img = life_cam_.get_frame();
