@@ -24,6 +24,8 @@ int main() {
     // opening zed camera. Do this before zed inference thread.
     zed_.open_camera();
     zed_.enable_tracking();
+
+
 //    zed_.enable_object_detection();
 
     DetectorConfig cfg = {
@@ -37,8 +39,10 @@ int main() {
     TagDetector detector(cfg);
     while (true) {
         zed_.fetch_measurements();
-        detector.fetch_detections(slMat_to_cvMat(zed_.get_left_image()));
+        cv::Mat img = slMat_to_cvMat(zed_.get_left_image());
+        detector.fetch_detections(img);
         info("Detected targets: " + std::to_string(detector.get_current_number_of_targets()));
+        cv::imshow("Zed", img);
     }
 }
 
