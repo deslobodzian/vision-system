@@ -40,9 +40,6 @@ zarray_t* TagDetector::get_detections(cv::Mat img) {
 }
 void TagDetector::fetch_detections(cv::Mat img) {
     current_detections_ = get_detections(img);
-    if(errno == EAGAIN) {
-	    info("unable to create threads");
-    }
 }
 
 int TagDetector::get_detections_size(const zarray_t *detections) {
