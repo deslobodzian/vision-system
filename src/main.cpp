@@ -17,7 +17,8 @@ int main() {
     IntrinsicParameters parameters{1116.821, 1113.573, 678.58, 367.73};
     resolution res(1280, 720);
     CameraConfig config(
-            "usb-Microsoft_Microsoft®_LifeCam_HD-3000-video-index0",
+            "/dev/video1", // need to find a better way for device id.
+//            "usb-Microsoft_Microsoft®_LifeCam_HD-3000-video-index0",
             68.5,
             res,
             30,
