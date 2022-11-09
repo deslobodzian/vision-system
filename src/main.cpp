@@ -60,6 +60,7 @@ int main() {
                 std::to_string(pos.z) +
                 "}"
                 );
+                info ("Target distance: " + std::to_string(zed_.get_distance_from_point(pos)));
             }
         }
 //        info("Targets: id 1" + std::to_string(detector.get_current_number_of_targets()));

@@ -100,6 +100,10 @@ sl::float3 Zed::get_position_from_pixel(int x, int y) {
     return {point3d.x, point3d.y, point3d.z};
 }
 
+double Zed::get_distance_from_point(const sl::float3& p) {
+    return sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+}
+
 sl::Transform Zed::get_calibration_stereo_transform() const {
     return calibration_params_.stereo_transform;
 }
