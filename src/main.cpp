@@ -30,11 +30,11 @@ int main() {
     life_cam_.open_camera();
 
     // zed camera;
-//    Zed zed_;
+    Zed zed_;
 
     // opening zed camera. Do this before zed inference thread.
-//    zed_.open_camera();
-//    zed_.enable_tracking();
+    zed_.open_camera();
+    zed_.enable_tracking();
 
 
 //    zed_.enable_object_detection();
@@ -47,31 +47,54 @@ int main() {
             false,
             true
     };
-    TagDetector detector(cfg);
+    TagDetector detector_life(cfg);
+    TagDetector detector_zed(cfg);
     while (true) {
-//        zed_.fetch_measurements();
+        zed_.fetch_measurements();
         life_cam_.read_frame();
-//        cv::Mat img = slMat_to_cvMat(zed_.get_left_image());
         cv::Mat img = life_cam_.get_frame();
-        detector.fetch_detections(img);
+        detector_life.fetch_detections(img);
 
-        if (detector.has_targets()) {
-            apriltag_detection_t* det = detector.get_target_from_id(1);
+        if (detector_life.has_targets()) {
+            apriltag_detection_t* det = detector_life.get_target_from_id(1);
             if (det != nullptr) {
-                cv::Point center = detector.get_detection_center(det);
-                apriltag_pose_t pose = detector.get_estimated_target_pose(life_cam_.get_intrinsic_parameters(), det, 0.1651);
+                cv::Point center = detector_life.get_detection_center(det);
+                apriltag_pose_t pose = detector_life.get_estimated_target_pose(life_cam_.get_intrinsic_parameters(), det, 0.1651);
 //                sl::float3 pos = zed_.get_position_from_pixel(center.x, center.y);
-                info ("Target with ID 1 has center x: " +
-                    std::to_string(center.x)
-                    + ", y: " +
-                    std::to_string(center.y)
-                );
+//                info ("Target with ID 1 has center x: " +
+//                    std::to_string(center.x)
+//                    + ", y: " +
+//                    std::to_string(center.y)
+//                );
                 info ("Coordinates of {x: " +
                 std::to_string(pose.t->data[0]) +
                 ", y: " +
                 std::to_string(pose.t->data[1]) +
                 ", z:" +
                 std::to_string(pose.t->data[2]) +
+                "}"
+                );
+//                info ("Target distance: " + std::to_string(zed_.get_distance_from_point(pos)));
+            }
+        }
+        img = slMat_to_cvMat(zed_.get_left_image());
+        detector_zed.fetch_detections(img);
+        if (detector_zed.has_targets()) {
+            apriltag_detection_t* det = detector_zed.get_target_from_id(1);
+            if (det != nullptr) {
+                cv::Point center = detector_zed.get_detection_center(det);
+                sl::float3 pos = zed_.get_position_from_pixel(center.x, center.y);
+//                info ("Target with ID 1 has center x: " +
+//                    std::to_string(center.x)
+//                    + ", y: " +
+//                    std::to_string(center.y)
+//                );
+                info ("Coordinates of {x: " +
+                std::to_string(pos.x) +
+                ", y: " +
+                std::to_string(pos.y) +
+                ", z:" +
+                std::to_string(pos.z) +
                 "}"
                 );
 //                info ("Target distance: " + std::to_string(zed_.get_distance_from_point(pos)));
