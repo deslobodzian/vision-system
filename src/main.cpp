@@ -26,6 +26,7 @@ int main() {
 
     // monocular cameras
     MonocularCamera life_cam_(config);
+    life_cam_.open_camera();
 
     // zed camera;
     Zed zed_;
