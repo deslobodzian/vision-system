@@ -69,13 +69,13 @@ apriltag_detection_t* TagDetector::get_target_from_id(int id) {
 }
 
 cv::Point TagDetector::get_detection_center(apriltag_detection_t *det) {
-    return cv::Point(det->c[0], det->c[1]);
+    return {(int)det->c[0], (int)det->c[1]};
 }
 Corners TagDetector::get_detection_corners(apriltag_detection_t *det) {
-    cv::Point tr(det->p[0][0], det->p[0][1]);
-    cv::Point tl(det->p[1][0], det->p[1][1]);
-    cv::Point bl(det->p[2][0], det->p[2][1]);
-    cv::Point br(det->p[3][1], det->p[3][1]);
+    cv::Point tr((int)det->p[0][0], (int)det->p[0][1]);
+    cv::Point tl((int)det->p[1][0], (int)det->p[1][1]);
+    cv::Point bl((int)det->p[2][0], (int)det->p[2][1]);
+    cv::Point br((int)det->p[3][1], (int)det->p[3][1]);
     return {tr, tl, bl, br};
 }
 

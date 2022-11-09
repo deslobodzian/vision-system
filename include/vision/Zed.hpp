@@ -22,6 +22,7 @@ typedef struct {
     Mat left_image;
     Pose camera_pose;
     Mat depth_map;
+    Mat point_cloud;
 } ZedMeasurements;
 
 class Zed {
@@ -56,6 +57,10 @@ public:
     // gets the last fetched depth map.
     sl::Mat get_depth_map() const;
 
+    // gets the last fetched point cloud.
+    sl::Mat get_point_cloud() const;
+    sl::float3 get_position_from_pixel(int x, int y);
+
     sl::Transform get_calibration_stereo_transform() const;
 
     // gets the last fetched left image.
@@ -68,11 +73,5 @@ public:
     Timestamp get_measurement_timestamp() const;
 
     void close();
-
-
-    void print_pose(Pose& pose) {
-        printf("Translation: x: %.3f, y: %.3f, z: %.3f, timestamp: %llu\r",
-               pose.getTranslation().tx, pose.getTranslation().ty, pose.getTranslation().tz, pose.timestamp.getMilliseconds());
-    }
 
 };

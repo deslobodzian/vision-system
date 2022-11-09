@@ -30,6 +30,7 @@ bool Zed::successful_grab() {
     return (zed_.grab(runtime_params_) == ERROR_CODE::SUCCESS);
 }
 
+
 bool Zed::open_camera() {
     auto return_state = zed_.open(init_params_);
     calibration_params_ = zed_.getCameraInformation().camera_configuration.calibration_parameters;
@@ -75,16 +76,28 @@ void Zed::fetch_measurements() {
         zed_.retrieveImage(measurements_.left_image, VIEW::LEFT);
         measurements_.timestamp = measurements_.left_image.timestamp;
         zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
+        zed_.retrieveMeasure(measurements_.point_cloud, MEASURE::XYZRGBA);
         zed_.getPosition(measurements_.camera_pose);
     }
 }
+
 
 void Zed::input_custom_objects(std::vector<sl::CustomBoxObjectData> objects_in) {
     zed_.ingestCustomBoxObjects(objects_in);
 }
 
-Mat Zed::get_depth_map() const {
+sl::Mat Zed::get_depth_map() const {
     return measurements_.depth_map;
+}
+
+sl::Mat Zed::get_point_cloud() const {
+    return measurements_.point_cloud;
+}
+
+sl::float3 Zed::get_position_from_pixel(int x, int y) {
+    sl::float4 point3d;
+    get_point_cloud().getValue(x, y, &point3d);
+    return {point3d.x, point3d.y, point3d.z};
 }
 
 sl::Transform Zed::get_calibration_stereo_transform() const {

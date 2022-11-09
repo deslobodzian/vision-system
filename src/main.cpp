@@ -46,10 +46,19 @@ int main() {
             apriltag_detection_t* det = detector.get_target_from_id(1);
             if (det != nullptr) {
                 cv::Point center = detector.get_detection_center(det);
+                sl::float3 pos = zed_.get_position_from_pixel(center.x, center.y);
                 info ("Target with ID 1 has center x: " +
                     std::to_string(center.x)
                     + ", y: " +
                     std::to_string(center.y)
+                );
+                info ("Coordinates of {x: " +
+                std::to_string(pos.x) +
+                ", y: " +
+                std::to_string(pos.y) +
+                ", z:" +
+                std::to_string(pos.z) +
+                "}"
                 );
             }
         }
