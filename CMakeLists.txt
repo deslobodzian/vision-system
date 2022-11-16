@@ -15,6 +15,8 @@ find_package(ZED 3 REQUIRED)
 find_package(CUDA ${ZED_CUDA_VERSION} REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Sophus REQUIRED)
+find_package(wpilib REQUIRED)
 
 find_package(PkgConfig)
 pkg_search_module(apriltag REQUIRED apriltag)
@@ -25,11 +27,13 @@ include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(${ZED_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${apriltag_INCLUDE_DIRS})
+include_directories(${Sophus_INCLUDE_DIRS})
 
 link_directories(${OpenCV_LIBRARY_DIRS})
 link_directories(${ZED_LIBRARY_DIR})
 link_directories(${CUDA_LIBRARY_DIRS})
 link_directories(${apriltag_LIBDIR})
+link_directories(${Sophus_LIBRARY_DIRS})
 
 FILE(GLOB_RECURSE SRC_FILES src/*.c*)
 FILE(GLOB_RECURSE HDR_FILES include/*.h*)
@@ -49,4 +53,7 @@ TARGET_LINK_LIBRARIES(
 	${OpenCV_LIBRARIES}
 	${apriltag_LIBRARIES}
 	Eigen3::Eigen
+	${Sophus_LIBRARIES}
+	ntcore
+	cscore
 )
