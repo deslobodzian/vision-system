@@ -16,7 +16,7 @@ public:
         pub_ = nt_table->GetDoubleArrayTopic("target_data").Publish();
     }
     void publish_target_data(TrackedTargetInfo target_info) {
-        Set(target_info.target_info_vector());
+        pub_.Set(target_info.target_info_vector());
     }
 private:
     nt::DoubleArrayPublisher pub_;

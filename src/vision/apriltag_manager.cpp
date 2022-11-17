@@ -17,31 +17,13 @@ void AprilTagManager::detector_zed(Zed &camera) {
             false,
             true
     };
-    TagDetector detector(cfg);
+    zed_detector_ = TagDetector(cfg);
 
 	while (true) {
         camera.fetch_measurements();
-        detector.fetch_detections(slMat_to_cvMat(camera.get_left_image()));
+        zed_detector_.fetch_detections(slMat_to_cvMat(camera.get_left_image()));
 	}
 }
 
 void AprilTagManager::detector_monocular(MonocularCamera &camera) {
-    apriltag_family_t* tf = tag36h11_create();
-	apriltag_detector_t* td = apriltag_detector_create();
-	apriltag_detector_add_family(td, tf);
-
-	cv::Mat frame, gray;
-//	while (true) {
-//		camera.get_left_image(&frame);
-//		cv::cvtColor(frame, gray, COLOR_BGR2GRAY);
-//
-//		image_u8_t im = {
-//			.width = gray.cols,
-//			.height = gray.rows,
-//			.stride = gray.cols,
-//			.buf = gray.data
-//		}
-//
-//		zarray_t* detections = apriltag_detector_detect(td, &im);
-//	}
 }

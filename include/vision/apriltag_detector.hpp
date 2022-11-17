@@ -65,6 +65,7 @@ public:
     // preprocessed image that is gray, look into just adding raw image from monocular or zed camera
     zarray_t* get_detections(cv::Mat img);
     void fetch_detections(cv::Mat img);
+    zarray_t* get_current_detections();
     int get_detections_size(const zarray_t *detections);
     int get_current_number_of_targets();
     bool has_targets();

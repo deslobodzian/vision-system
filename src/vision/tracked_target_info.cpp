@@ -24,6 +24,9 @@ double TrackedTargetInfo::get_distance(double x_offset, double y_offset, double 
     double z = pow(get_z() - z_offset, 2);
     return sqrt(x + y + z);
 }
+double TrackedTargetInfo::get_distance() {
+    return get_distance(0, 0, 0);
+}
 
 double TrackedTargetInfo::get_distance(const sl::Transform& offset) {
     return get_distance(offset.tx, offset.ty, offset.tz);
@@ -52,6 +55,7 @@ std::span<double> TrackedTargetInfo::target_info_vector() {
 TrackedTargetInfo::~TrackedTargetInfo() {
 
 }
+
 
 
 

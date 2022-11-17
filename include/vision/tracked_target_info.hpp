@@ -29,8 +29,10 @@ public:
     double get_y() const;
     double get_z() const;
 
+    double get_distance();
     double get_distance(double x_offset, double y_offset, double z_offset);
     double get_distance(const sl::Transform& offset);
+
     double get_yaw_angle();
     double get_pitch_angle();
     std::string to_packet();

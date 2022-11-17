@@ -42,6 +42,10 @@ void TagDetector::fetch_detections(cv::Mat img) {
     current_detections_ = get_detections(img);
 }
 
+zarray_t* TagDetector::get_current_detections() {
+    return current_detections_;
+}
+
 int TagDetector::get_detections_size(const zarray_t *detections) {
     return zarray_size(detections);
 }

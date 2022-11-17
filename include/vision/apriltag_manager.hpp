@@ -34,6 +34,7 @@ class AprilTagManager {
 
 private:
 	std::vector<std::thread> threads_;
+    TagDetector zed_detector_;
 
 public:
 	void add_detector_thread(Zed &camera);
