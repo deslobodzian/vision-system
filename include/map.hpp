@@ -8,23 +8,14 @@
 
 #define FIELD_LENGTH
 
-// number correlates to the ID of the YoloV5 model.
-enum game_elements {
-    blue_ball = 0,
-    goal = 1,
-    red_ball = 2,
-    blue_plate = 3, // not used
-    red_plate = 4 // not used
-};
-
 struct Landmark {
     double x;
     double y;
-    game_elements game_element;
-    Landmark(double x_pos, double y_pos, game_elements element) {
+    int tag_id;
+    Landmark(double x_pos, double y_pos, int id) {
         x = x_pos;
         y = y_pos;
-        game_element = element;
+        tag_id = id;
     }
 };
 

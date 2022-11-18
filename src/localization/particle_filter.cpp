@@ -46,7 +46,7 @@ double ParticleFilter::zero_mean_gaussian(double x, double sigma) {
 double ParticleFilter::sample_measurement_model(Measurement measurement, Eigen::Vector3d x, Landmark landmark) {
     double q = 0;
 
-    if (measurement.get_element() == landmark.game_element) {
+    if (measurement.get_id() == landmark.tag_id) {
 
         double range = hypot(landmark.x - x(0,0), landmark.y - x(1, 0));
         double bearing = atan2(
@@ -82,7 +82,7 @@ std::vector<Eigen::Vector3d> ParticleFilter::measurement_model(Eigen::Vector3d x
                 landmark.y - x(1, 0),
                 landmark.x - x(0, 0)) - x(2, 0);
         Eigen::Vector3d z;
-        z << range, bearing, landmark.game_element;
+        z << range, bearing, landmark.tag_id;
         z_vec.emplace_back(z);
     }
     return z_vec;
@@ -90,7 +90,7 @@ std::vector<Eigen::Vector3d> ParticleFilter::measurement_model(Eigen::Vector3d x
 double ParticleFilter::calculate_weight(std::vector<Measurement> z, Eigen::Vector3d x, double weight, std::vector<Landmark> map) {
     for (Landmark landmark : map) {
         for (auto & i : z) {
-            if (i.get_element() == landmark.game_element) {
+            if (i.get_id() == landmark.tag_id) {
                 weight = weight * sample_measurement_model(i, x, landmark);
                 break;
             }

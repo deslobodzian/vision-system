@@ -97,6 +97,13 @@ apriltag_pose_t TagDetector::get_estimated_target_pose(
     return pose;
 }
 
+sl::Pose TagDetector::get_estimated_target_pose(const sl::float3 &tr, const sl::float3 &tl, const sl::float3 &br) {
+    sl::float3 normal_vec = calculate_plane_normal_vector(tr, tl, br);
+    sl::Orientation orientation(orientation_from_normal_vec(normal_vec));
+    sl::Translation translation((tl + br) / 2);
+    return {sl::Transform(orientation, translation)};
+}
+
 apriltag_family_t* TagDetector::create_tag(tag_family tf) {
     switch(tf) {
         case tag36h11:

@@ -60,6 +60,7 @@ public:
     // gets the last fetched point cloud.
     sl::Mat get_point_cloud() const;
     sl::float3 get_position_from_pixel(int x, int y);
+    sl::float3 get_position_from_pixel(const cv::Point &p);
     double get_distance_from_point(const sl::float3& p);
 
     sl::Transform get_calibration_stereo_transform() const;

@@ -100,6 +100,10 @@ sl::float3 Zed::get_position_from_pixel(int x, int y) {
     return {point3d.x, point3d.y, point3d.z};
 }
 
+sl::float3 Zed::get_position_from_pixel(const cv::Point &p) {
+    return get_position_from_pixel(p.x, p.y);
+}
+
 double Zed::get_distance_from_point(const sl::float3& p) {
     return sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
 }
@@ -123,3 +127,5 @@ Timestamp Zed::get_measurement_timestamp() const {
 void Zed::close() {
     zed_.close();
 }
+
+

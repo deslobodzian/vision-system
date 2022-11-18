@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <sl/Camera.hpp>
+#include <sophus/geometry.hpp>
 
 inline void draw_vertical_line(
         cv::Mat &left_display,
@@ -67,6 +68,21 @@ inline cv::cuda::GpuMat slMat_to_cvMat_GPU(sl::Mat& input) {
         input.getPtr<sl::uchar1>(sl::MEM::GPU),
         input.getStepBytes(sl::MEM::GPU)
     };
+}
+
+inline sl::float3 calculate_plane_normal_vector(const sl::float3 &p1, const sl::float3 &p2, const sl::float3 &p3) {
+    sl::float3 u = sl::float3::cross((p3 - p1), (p2 - p1));
+    return u/u.norm();
+}
+
+inline Sophus::SO3d so3_from_normal_vec(const sl::float3 &normal_vec) {
+    return Sophus::SO3FromNormal(Eigen::Vector3d(normal_vec.x, normal_vec.y, normal_vec.z));
+}
+
+inline sl::Orientation orientation_from_normal_vec(const sl::float3 &normal_vec) {
+    Sophus::SO3d so3(so3_from_normal_vec(normal_vec));
+    Sophus::SO3d::QuaternionMember q = so3.unit_quaternion();
+    return {sl::float4((float)q.x(), (float)q.y(), (float)q.z(), (float)q.w())};
 }
 
 inline void info(const std::string& msg) {

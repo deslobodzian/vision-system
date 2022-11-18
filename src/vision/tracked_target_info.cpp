@@ -5,6 +5,17 @@
 
 TrackedTargetInfo::TrackedTargetInfo() {}
 
+TrackedTargetInfo::TrackedTargetInfo(double x, double y, double z) {
+    x_ = x;
+    y_ = y;
+    z_ = z;
+}
+
+TrackedTargetInfo::TrackedTargetInfo(sl::Pose &pose) {
+    x_ = pose.getTranslation().tx;
+    y_ = pose.getTranslation().ty;
+    z_ = pose.getTranslation().tz;
+}
 
 double TrackedTargetInfo::get_x() const {
     return x_;
@@ -41,14 +52,14 @@ double TrackedTargetInfo::get_pitch_angle() {
 }
 
 std::string TrackedTargetInfo::to_packet() {
-    return target_identity_ + ";" +
+    return std::to_string(id_) + ";" +
             std::to_string(x_) + ";" +
             std::to_string(y_) + ";" +
             std::to_string(z_) + ";";
 }
 
 std::span<double> TrackedTargetInfo::target_info_vector() {
-    std::vector<double> tmp{x_, y_, z_, get_yaw_angle(), 0};
+    std::vector<double> tmp{x_, y_, z_, get_yaw_angle(), id_};
     return std::span<double> {tmp};
 }
 

@@ -14,15 +14,15 @@
 
 class TrackedTargetInfo {
 private:
-    std::string target_identity_;
-    cv::Point target_center_;
-    Corners corners_;
+    int id_;
     double x_;
     double y_;
     double z_;
 
 public:
     TrackedTargetInfo();
+    TrackedTargetInfo(double x, double y, double z);
+    TrackedTargetInfo(sl::Pose &pose);
     ~TrackedTargetInfo();
 
     double get_x() const;

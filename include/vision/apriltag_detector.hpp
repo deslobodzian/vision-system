@@ -7,6 +7,8 @@
 
 #include <opencv2/opencv.hpp>
 #include "vision/camera_config.hpp"
+#include "utils.hpp"
+#include "tracked_target_info.hpp"
 
 extern "C" {
     #include "apriltag.h"
@@ -78,6 +80,7 @@ public:
             apriltag_detection_t *det,
             double tag_size
             );
+    sl::Pose get_estimated_target_pose(const sl::float3 &tr, const sl::float3 &tl, const sl::float3 &br);
 };
 
 #endif //VISION_SYSTEM_APRILTAG_DETECTOR_HPP

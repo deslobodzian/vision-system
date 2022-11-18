@@ -34,12 +34,12 @@ class Measurement {
 private:
     double range_;
     double bearing_;
-    game_elements element_;
+    int id_;
 public:
-    Measurement(double range, double bearing, game_elements element) {
+    Measurement(double range, double bearing, int id) {
         range_ = range;
         bearing_ = bearing;
-        element_ = element;
+        id_ = id;
     }
 
     double get_range() const{
@@ -50,8 +50,8 @@ public:
         return bearing_;
     }
 
-    double get_element() {
-        return element_;
+    int get_id() const {
+        return id_;
     }
 
     void print_measurement() {
