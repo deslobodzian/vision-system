@@ -36,12 +36,16 @@ class AprilTagManager {
 private:
 	std::vector<std::thread> threads_;
     TagDetector zed_detector_;
+    std::mutex zed_mtx_;
+    std::vector<TrackedTargetInfo> zed_targets_;
 
 public:
 	void add_detector_thread(Zed &camera);
 	void add_detector_thread(MonocularCamera &camera);
 	void detector_monocular(MonocularCamera &camera);
 	void detector_zed(Zed &zed);
+
+    std::vector<TrackedTargetInfo> get_zed_targets();
 
 };
 

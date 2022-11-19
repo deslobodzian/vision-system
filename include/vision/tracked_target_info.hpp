@@ -21,8 +21,8 @@ private:
 
 public:
     TrackedTargetInfo();
-    TrackedTargetInfo(double x, double y, double z);
-    TrackedTargetInfo(sl::Pose &pose);
+    TrackedTargetInfo(double x, double y, double z, int id);
+    TrackedTargetInfo(sl::Pose &pose, int id);
     ~TrackedTargetInfo();
 
     double get_x() const;

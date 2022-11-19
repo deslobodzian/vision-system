@@ -5,13 +5,15 @@
 
 TrackedTargetInfo::TrackedTargetInfo() {}
 
-TrackedTargetInfo::TrackedTargetInfo(double x, double y, double z) {
+TrackedTargetInfo::TrackedTargetInfo(double x, double y, double z, int id) {
+    id_ = id;
     x_ = x;
     y_ = y;
     z_ = z;
 }
 
-TrackedTargetInfo::TrackedTargetInfo(sl::Pose &pose) {
+TrackedTargetInfo::TrackedTargetInfo(sl::Pose &pose, int id) {
+    id_ = id;
     x_ = pose.getTranslation().tx;
     y_ = pose.getTranslation().ty;
     z_ = pose.getTranslation().tz;
