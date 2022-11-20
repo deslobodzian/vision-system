@@ -11,8 +11,8 @@ void AprilTagManager::add_detector_thread(MonocularCamera &camera) {
 void AprilTagManager::detector_zed(Zed &camera) {
     DetectorConfig cfg = {
             tag36h11,
-            0.0,
-            0.0,
+            0.5,
+            0.5,
             1,
             false,
             true
