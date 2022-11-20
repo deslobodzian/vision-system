@@ -41,7 +41,6 @@ int main() {
     at_manager.add_detector_thread(zed_);
 
     while (true) {
-        auto start = std::chrono::high_resolution_clock::now();
         zed_targets_ = at_manager.get_zed_targets();
         if (!zed_targets_.empty()) {
             TrackedTargetInfo tmp = zed_targets_.at(0);
@@ -50,9 +49,8 @@ int main() {
 //            ", z: " + std::to_string(tmp.get_z()) +
 //            "} angle: " + std::to_string(tmp.get_yaw_angle()));
         }
+        at_manager.print_dt();
 //        info("Zed has found " + std::to_string(zed_targets_.size()) + " targets!");
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 //        info("Zed thread took " + std::to_string(duration.count()) + " milliseconds");
     }
 //    zed_.enable_object_detection();
