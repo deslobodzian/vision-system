@@ -42,9 +42,9 @@ int main() {
 
     while (true) {
         zed_targets_ = at_manager.get_zed_targets();
-        if (zed_targets_.size() > 0) {
+        if (!zed_targets_.empty()) {
             TrackedTargetInfo tmp = zed_targets_.at(0);
-            info("Target {x: " + std::to_string(tmp.get_x())) +
+            info("Target {x: " + std::to_string(tmp.get_x()) +
             ", y: " + std::to_string(tmp.get_y()) +
             ", z: " + std::to_string(tmp.get_z()) +
             "} angle: " + std::to_string(tmp.get_yaw_angle());
