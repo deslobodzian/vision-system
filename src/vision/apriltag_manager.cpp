@@ -18,28 +18,28 @@ void AprilTagManager::detector_zed(Zed &camera) {
             true
     };
     zed_detector_ = TagDetector(cfg);
-
+    std::vector<TrackedTargetInfo> targets;
+    apriltag_detection_t *det;
 	while (true) {
         auto start = std::chrono::high_resolution_clock::now();
         camera.fetch_measurements();
         zed_detector_.fetch_detections(slMat_to_cvMat(camera.get_left_image()));
-        std::vector<TrackedTargetInfo> targets;
 
-        apriltag_detection_t *det;
 	if (zed_detector_.has_targets()) {
-        	for (int i = 0; i < zed_detector_.get_current_number_of_targets(); i++) {
-            		zarray_get(zed_detector_.get_current_detections(), i, &det);
-            		Corners c = zed_detector_.get_detection_corners(det);
-            		sl::float3 tr = camera.get_position_from_pixel(c.tr);
-            		sl::float3 tl = camera.get_position_from_pixel(c.tl);
-            		sl::float3 br = camera.get_position_from_pixel(c.br);
-            		if (is_vec_nan(tr) || is_vec_nan(tl) || is_vec_nan(br)){
-//                		error("Vec is nan");
-            		} else {
-                		sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
-                		targets.emplace_back(TrackedTargetInfo(pose, det->id));
-            		}
-        	}
+        targets.clear();
+        for (int i = 0; i < zed_detector_.get_current_number_of_targets(); i++) {
+            zarray_get(zed_detector_.get_current_detections(), i, &det);
+            Corners c = zed_detector_.get_detection_corners(det);
+            sl::float3 tr = camera.get_position_from_pixel(c.tr);
+            sl::float3 tl = camera.get_position_from_pixel(c.tl);
+            sl::float3 br = camera.get_position_from_pixel(c.br);
+            if (is_vec_nan(tr) || is_vec_nan(tl) || is_vec_nan(br)){
+//              error("Vec is nan");
+            } else {
+                sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
+                targets.emplace_back(TrackedTargetInfo(pose, det->id));
+            }
+        }
         	const std::lock_guard<std::mutex> lock(zed_mtx_);
         	zed_targets_ = targets;
         	apriltag_detection_destroy(det);
