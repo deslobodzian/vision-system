@@ -89,6 +89,14 @@ inline bool is_vec_nan(const sl::float3 &vec) {
     return isnan(abs(vec.x)) || isnan(abs(vec.y)) || isnan(abs(vec.z));
 }
 
+inline std::string pose_string(sl::Pose &pose) {
+    std::string tmp = "Pose {x: " + std::to_string(pose.getTranslation().tx) +
+            ", y: " + std::to_string(pose.getTranslation().ty) +
+            ", z: " + std::to_string(pose.getTranslation().tz) +
+            "} angle: " + std::to_string(pose.getEulerAngles(false).z);
+    return tmp;
+}
+
 inline void info(const std::string& msg) {
     std::cout << "[INFO] " << msg << "\n";
 }

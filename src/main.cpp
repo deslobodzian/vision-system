@@ -42,7 +42,15 @@ int main() {
 
     while (true) {
         zed_targets_ = at_manager.get_zed_targets();
-        info("Zed has found " + std::to_string(zed_targets_.size()) + " targets!");
+        if (zed_targets_.size() > 0) {
+            TrackedTargetInfo tmp = zed_targets_.at(0);
+            info("Target {x: " + std::to_string(tmp.get_x())) +
+            ", y: " + std::to_string(tmp.get_y()) +
+            ", z: " + std::to_string(tmp.get_z()) +
+            "} angle: " + std::to_string(tmp.get_yaw_angle());
+        }
+//        info("Zed has found " + std::to_string(zed_targets_.size()) + " targets!");
+
     }
 //    zed_.enable_object_detection();
 
