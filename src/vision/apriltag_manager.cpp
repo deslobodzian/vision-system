@@ -45,6 +45,7 @@ void AprilTagManager::detector_zed(Zed &camera) {
 }
 
 std::vector<TrackedTargetInfo> AprilTagManager::get_zed_targets() {
+    const std::lock_guard<std::mutex> lock(zed_mtx_);
     return zed_targets_;
 }
 
