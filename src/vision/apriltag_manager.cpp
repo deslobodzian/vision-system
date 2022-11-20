@@ -34,7 +34,7 @@ void AprilTagManager::detector_zed(Zed &camera) {
             		sl::float3 tl = camera.get_position_from_pixel(c.tl);
             		sl::float3 br = camera.get_position_from_pixel(c.br);
             		if (is_vec_nan(tr) || is_vec_nan(tl) || is_vec_nan(br)){
-                		error("Vec is nan");
+//                		error("Vec is nan");
             		} else {
                 		sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
                 		targets.emplace_back(TrackedTargetInfo(pose, det->id));
@@ -80,13 +80,13 @@ void AprilTagManager::detector_monocular(MonocularCamera &camera) {
     };
     monocular_detector_ = TagDetector(cfg);
 
+    std::vector<TrackedTargetInfo> targets;
+    apriltag_detection_t *det;
     while (true) {
         auto start = std::chrono::high_resolution_clock::now();
         camera.read_frame();
         monocular_detector_.fetch_detections(camera.get_frame());
-        std::vector<TrackedTargetInfo> targets;
 
-        apriltag_detection_t *det;
         if (monocular_detector_.has_targets()) {
             for (int i = 0; i < monocular_detector_.get_current_number_of_targets(); i++) {
                 zarray_get(monocular_detector_.get_current_detections(), i, &det);
@@ -95,7 +95,6 @@ void AprilTagManager::detector_monocular(MonocularCamera &camera) {
             }
             const std::lock_guard<std::mutex> lock(monocular_mtx_);
             monocular_targets_ = targets;
-            apriltag_detection_destroy(det);
             auto stop = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
             monocular_dt_ = duration.count();
