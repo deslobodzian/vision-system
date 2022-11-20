@@ -31,6 +31,10 @@ double TrackedTargetInfo::get_z() const {
     return z_;
 }
 
+int TrackedTargetInfo::get_id() const {
+    return id_;
+}
+
 double TrackedTargetInfo::get_distance(double x_offset, double y_offset, double z_offset) {
     double x = pow(get_x() - x_offset, 2);
     double y = pow(get_y() - y_offset, 2);

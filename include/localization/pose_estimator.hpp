@@ -9,41 +9,25 @@
 #include "particle_filter.hpp"
 #include "map.hpp"
 #include "vision/Zed.hpp"
-#include "networking/udp_server.hpp"
+#include "vision/apriltag_manager.hpp"
 #include "vision/monocular_camera.hpp"
+
 
 class PoseEstimator {
 private:
-    int num_monocular_cameras_;
-    int num_zed_cameras_;
-    std::vector<Measurement> z_;
     Eigen::Vector3d init_pose_;
-    UDPServer server_;
-    Zed zed_;
+    std::vector<Measurement> z_;
+    ControlInput u_;
+
     ParticleFilter filter_;
-    std::string engine_name_ = "custom.engine";
-    std::vector<std::thread> inference_threads_;
-    std::thread pose_estimation_thread_;
-    std::vector<MonocularCamera> monocular_cameras_;
-    std::vector<bool> threads_started_;
+    AprilTagManager april_tag_manager_;
 public:
     PoseEstimator() = default;
-    PoseEstimator(int num_monocular_cameras);
-    PoseEstimator(int num_monocular_cameras, int num_zed_cameras, std::vector<Landmark> landmarks);
     ~PoseEstimator();
 
-    void run_zed(Eigen::Vector3d init_pose);
-    void update_measurements();
-    void estimate_pose();
+    void add_to_measurement_vector(const std::vector<TrackedTargetInfo> &detected_targets);
+    void fetch_current_measurements();
+
+    [[noreturn]] void estimate_pose();
     void init();
-    void kill();
-
-    void print_measurements(int camera_id);
-    void print_zed_measurements(int object_id);
-    void send_message();
-    void display_frame(int camera_id);
-
-    bool threads_started();
-    bool start_estimator();
-    Zed& get_zed();
 };

@@ -28,6 +28,7 @@ public:
     double get_x() const;
     double get_y() const;
     double get_z() const;
+    int get_id() const;
 
     double get_distance();
     double get_distance(double x_offset, double y_offset, double z_offset);

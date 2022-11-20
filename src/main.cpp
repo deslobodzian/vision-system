@@ -51,11 +51,12 @@ int main() {
             ", z: " + std::to_string(tmp.get_z()) +
             "} angle: " + std::to_string(tmp.get_yaw_angle());
 	    if (s != prev_string) {
+            info("Targets found: " + std::to_string(at_manager.get_monocular_targets().size() + at_manager.get_zed_targets().size()));
+//            at_manager.print_monocular_dt();
+//            at_manager.print_zed_dt();
 //		    info(s);
 	    }
 	    prev_string = s;
-            at_manager.print_monocular_dt();
-            at_manager.print_zed_dt();
         }
     }
 }
