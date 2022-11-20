@@ -57,9 +57,49 @@ std::vector<TrackedTargetInfo> AprilTagManager::get_zed_targets() {
     return zed_targets_;
 }
 
-void AprilTagManager::print_dt() {
-    info(std::to_string(zed_dt_));
+std::vector<TrackedTargetInfo> AprilTagManager::get_monocular_targets() {
+    const std::lock_guard<std::mutex> lock(monocular_mtx_);
+    return monocular_targets_;
+}
+void AprilTagManager::print_zed_dt() {
+    info("Zed took "  + std::to_string(zed_dt_));
+}
+
+void AprilTagManager::print_monocular_dt() {
+    info("Monocular took " + std::to_string(monocular_dt_));
 }
 
 void AprilTagManager::detector_monocular(MonocularCamera &camera) {
+    DetectorConfig cfg = {
+            tag16h5,
+            0.5,
+            0.5,
+            5,
+            false,
+            true
+    };
+    monocular_detector_ = TagDetector(cfg);
+
+    while (true) {
+        auto start = std::chrono::high_resolution_clock::now();
+        camera.read_frame();
+        monocular_detector_.fetch_detections(camera.get_frame());
+        std::vector<TrackedTargetInfo> targets;
+
+        apriltag_detection_t *det;
+        if (monocular_detector_.has_targets()) {
+            for (int i = 0; i < monocular_detector_.get_current_number_of_targets(); i++) {
+                zarray_get(monocular_detector_.get_current_detections(), i, &det);
+                apriltag_pose_t pose = monocular_detector_.get_estimated_target_pose(camera.get_intrinsic_parameters(), det, 0.127);
+                targets.emplace_back(TrackedTargetInfo(pose.t->data[0], pose.t->data[1], pose.t->data[2], det->id));
+            }
+            const std::lock_guard<std::mutex> lock(monocular_mtx_);
+            monocular_targets_ = targets;
+            apriltag_detection_destroy(det);
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+            monocular_dt_ = duration.count();
+        }
+
+    }
 }

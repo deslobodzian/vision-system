@@ -16,20 +16,20 @@ int main() {
     std::vector<TrackedTargetInfo> zed_targets_;
 
     // generate camera configs
-//    IntrinsicParameters parameters{1116.821, 1113.573, 678.58, 367.73};
-//    resolution res(1280, 720);
-//    CameraConfig config(
-//            "/dev/video1", // need to find a better way for device id.
+    IntrinsicParameters parameters{1116.821, 1113.573, 678.58, 367.73};
+    resolution res(1280, 720);
+    CameraConfig config(
+            "/dev/video1", // need to find a better way for device id.
 ////            "usb-Microsoft_Microsoft®_LifeCam_HD-3000-video-index0",
-//            68.5,
-//            res,
-//            30,
-//            parameters
-//            );
+            68.5,
+            res,
+            30,
+            parameters
+            );
 //
 //    // monocular cameras
-//    MonocularCamera life_cam_(config);
-//    life_cam_.open_camera();
+    MonocularCamera life_cam_(config);
+    life_cam_.open_camera();
 
     // zed camera;
     Zed zed_;
@@ -39,6 +39,7 @@ int main() {
     zed_.enable_tracking();
 
     at_manager.add_detector_thread(zed_);
+    at_manager.add_detector_thread(life_cam_);
     std::string prev_string;
 
     while (true) {
@@ -53,7 +54,8 @@ int main() {
 		    info(s);
 	    }
 	    prev_string = s;
-            at_manager.print_dt();
+            at_manager.print_monocular_dt();
+            at_manager.print_zed_dt();
         }
 //        info("Zed has found " + std::to_string(zed_targets_.size()) + " targets!");
 //        info("Zed thread took " + std::to_string(duration.count()) + " milliseconds");
