@@ -44,7 +44,8 @@ void AprilTagManager::detector_zed(Zed &camera) {
         apriltag_detection_destroy(det);
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        info("Zed thread took " + std::to_string(duration.count()) + " milliseconds");
+        zed_dt_ = duration.count();
+//        info("Zed thread took " + std::to_string(duration.count()) + " milliseconds");
 
     }
 }
@@ -52,6 +53,10 @@ void AprilTagManager::detector_zed(Zed &camera) {
 std::vector<TrackedTargetInfo> AprilTagManager::get_zed_targets() {
     const std::lock_guard<std::mutex> lock(zed_mtx_);
     return zed_targets_;
+}
+
+void AprilTagManager::print_dt() {
+    info(std::to_string(zed_dt_));
 }
 
 void AprilTagManager::detector_monocular(MonocularCamera &camera) {

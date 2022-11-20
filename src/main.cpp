@@ -53,7 +53,7 @@ int main() {
 //        info("Zed has found " + std::to_string(zed_targets_.size()) + " targets!");
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        info("Zed thread took " + std::to_string(duration.count()) + " milliseconds");
+//        info("Zed thread took " + std::to_string(duration.count()) + " milliseconds");
     }
 //    zed_.enable_object_detection();
 
