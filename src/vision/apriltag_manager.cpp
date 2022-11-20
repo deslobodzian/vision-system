@@ -27,6 +27,7 @@ void AprilTagManager::detector_zed(Zed &camera) {
 
 	if (zed_detector_.has_targets()) {
         targets.clear();
+        info("Monocular: " + std::to_string(zed_detector_.get_current_number_of_targets()));
         for (int i = 0; i < zed_detector_.get_current_number_of_targets(); i++) {
             zarray_get(zed_detector_.get_current_detections(), i, &det);
             Corners c = zed_detector_.get_detection_corners(det);
@@ -88,6 +89,7 @@ void AprilTagManager::detector_monocular(MonocularCamera &camera) {
         monocular_detector_.fetch_detections(camera.get_frame());
 
         if (monocular_detector_.has_targets()) {
+            info("Monocular: " + std::to_string(monocular_detector_.get_current_number_of_targets()));
             for (int i = 0; i < monocular_detector_.get_current_number_of_targets(); i++) {
                 zarray_get(monocular_detector_.get_current_detections(), i, &det);
                 apriltag_pose_t pose = monocular_detector_.get_estimated_target_pose(camera.get_intrinsic_parameters(), det, 0.127);
