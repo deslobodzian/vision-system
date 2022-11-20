@@ -47,7 +47,7 @@ int main() {
             info("Target {x: " + std::to_string(tmp.get_x()) +
             ", y: " + std::to_string(tmp.get_y()) +
             ", z: " + std::to_string(tmp.get_z()) +
-            "} angle: " + std::to_string(tmp.get_yaw_angle());
+            "} angle: " + std::to_string(tmp.get_yaw_angle()));
         }
 //        info("Zed has found " + std::to_string(zed_targets_.size()) + " targets!");
 
