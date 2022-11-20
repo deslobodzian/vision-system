@@ -27,7 +27,7 @@ void AprilTagManager::detector_zed(Zed &camera) {
 
 	if (zed_detector_.has_targets()) {
         targets.clear();
-        info("Monocular: " + std::to_string(zed_detector_.get_current_number_of_targets()));
+        info("Zed: " + std::to_string(zed_detector_.get_current_number_of_targets()));
         for (int i = 0; i < zed_detector_.get_current_number_of_targets(); i++) {
             zarray_get(zed_detector_.get_current_detections(), i, &det);
             Corners c = zed_detector_.get_detection_corners(det);
@@ -43,7 +43,6 @@ void AprilTagManager::detector_zed(Zed &camera) {
         }
         	const std::lock_guard<std::mutex> lock(zed_mtx_);
         	zed_targets_ = targets;
-        	apriltag_detection_destroy(det);
         	auto stop = std::chrono::high_resolution_clock::now();
         	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         	zed_dt_ = duration.count();
