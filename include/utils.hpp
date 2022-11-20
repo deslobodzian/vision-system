@@ -85,6 +85,10 @@ inline sl::Orientation orientation_from_normal_vec(const sl::float3 &normal_vec)
     return {sl::float4((float)q.x(), (float)q.y(), (float)q.z(), (float)q.w())};
 }
 
+inline bool is_vec_nan(const sl::float3 &vec) {
+    return isnan(abs(vec.x)) || isnan(abs(vec.y)) || isnan(abs(vec.z));
+}
+
 inline void info(const std::string& msg) {
     std::cout << "[INFO] " << msg << "\n";
 }

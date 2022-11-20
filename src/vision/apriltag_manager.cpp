@@ -31,8 +31,12 @@ void AprilTagManager::detector_zed(Zed &camera) {
             sl::float3 tr = camera.get_position_from_pixel(c.tr);
             sl::float3 tl = camera.get_position_from_pixel(c.tl);
             sl::float3 br = camera.get_position_from_pixel(c.br);
-            sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
-            targets.emplace_back(TrackedTargetInfo(pose, det->id));
+            if (is_vec_nan(tr) || is_vec_nan(tl) || is_vec_nan(br)){
+                error("Vec is nan");
+            } else {
+                sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
+                targets.emplace_back(TrackedTargetInfo(pose, det->id));
+            }
         }
         const std::lock_guard<std::mutex> lock(zed_mtx_);
         zed_targets_ = targets;
