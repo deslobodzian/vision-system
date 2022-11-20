@@ -27,7 +27,7 @@ TagDetector::TagDetector(DetectorConfig cfg) {
 
 TagDetector::~TagDetector() {}
 
-zarray_t* TagDetector::get_detections(cv::Mat img) {
+zarray_t* TagDetector::get_detections(const cv::Mat &img) {
     cv::Mat gray_img;
     cv::cvtColor(img, gray_img, cv::COLOR_BGR2GRAY);
     image_u8_t im = {
@@ -38,7 +38,7 @@ zarray_t* TagDetector::get_detections(cv::Mat img) {
     };
     return apriltag_detector_detect(td_, &im);
 }
-void TagDetector::fetch_detections(cv::Mat img) {
+void TagDetector::fetch_detections(const cv::Mat &img) {
     current_detections_ = get_detections(img);
 }
 
