@@ -5,8 +5,8 @@
 
 Zed::Zed() {
     // Initial Parameters
-    init_params_.camera_resolution = RESOLUTION::HD720;
-    init_params_.camera_fps = 60;
+    init_params_.camera_resolution = RESOLUTION::VGA;
+    init_params_.camera_fps = 100;
     init_params_.depth_mode = DEPTH_MODE::ULTRA;
     init_params_.sdk_verbose = true;
     init_params_.coordinate_system = COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;

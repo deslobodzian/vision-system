@@ -110,7 +110,7 @@ apriltag_family_t* TagDetector::create_tag(tag_family tf) {
             return tag36h11_create();
         case tag25h9:
             return tag25h9_create();
-        case tag16h6:
+        case tag16h5:
             return tag16h5_create();
         case tagCircle21h7:
             return tagCircle21h7_create();
@@ -135,7 +135,7 @@ void TagDetector::destroy_tag(tag_family tag_family_class, apriltag_family_t *tf
         case tag25h9:
             tag25h9_destroy(tf);
             break;
-        case tag16h6:
+        case tag16h5:
             tag16h5_destroy(tf);
             break;
         case tagCircle21h7:

@@ -39,17 +39,22 @@ int main() {
     zed_.enable_tracking();
 
     at_manager.add_detector_thread(zed_);
+    std::string prev_string;
 
     while (true) {
         zed_targets_ = at_manager.get_zed_targets();
         if (!zed_targets_.empty()) {
             TrackedTargetInfo tmp = zed_targets_.at(0);
-//            info("Target {x: " + std::to_string(tmp.get_x()) +
-//            ", y: " + std::to_string(tmp.get_y()) +
-//            ", z: " + std::to_string(tmp.get_z()) +
-//            "} angle: " + std::to_string(tmp.get_yaw_angle()));
+	    std::string s = "Target {x: " + std::to_string(tmp.get_x()) +
+            ", y: " + std::to_string(tmp.get_y()) +
+            ", z: " + std::to_string(tmp.get_z()) +
+            "} angle: " + std::to_string(tmp.get_yaw_angle());
+	    if (s != prev_string) {
+		    info(s);
+	    }
+	    prev_string = s;
         }
-        at_manager.print_dt();
+//        at_manager.print_dt();
 //        info("Zed has found " + std::to_string(zed_targets_.size()) + " targets!");
 //        info("Zed thread took " + std::to_string(duration.count()) + " milliseconds");
     }
