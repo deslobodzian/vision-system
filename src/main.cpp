@@ -53,8 +53,8 @@ int main() {
 		    info(s);
 	    }
 	    prev_string = s;
+            at_manager.print_dt();
         }
-//        at_manager.print_dt();
 //        info("Zed has found " + std::to_string(zed_targets_.size()) + " targets!");
 //        info("Zed thread took " + std::to_string(duration.count()) + " milliseconds");
     }
