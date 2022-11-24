@@ -1,17 +1,14 @@
 //
 // Created by DSlobodzian on 1/2/2022.
 //
-#include "utils.hpp"
-#include "networking/udp_server.hpp"
+#include "utils/utils.hpp"
 #include "vision/monocular_camera.hpp"
 #include "vision/Zed.hpp"
 #include "vision/camera_config.hpp"
 #include "vision/apriltag_manager.hpp"
 
-
 int main() {
     // Instantiate Systems
-//    UDPServer server;
     AprilTagManager at_manager;
     std::vector<TrackedTargetInfo> zed_targets_;
 

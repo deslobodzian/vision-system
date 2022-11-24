@@ -17,7 +17,7 @@
 #include <cmath>
 #include <Eigen/Dense>
 #include "map.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 
 struct Particle {
     Eigen::Vector3d x;

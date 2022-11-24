@@ -5,7 +5,7 @@
 
 #include <sl/Camera.hpp>
 #include <thread>
-#include "utils.hpp"
+#include "utils/utils.hpp"
 #include <chrono>
 #include <Eigen/Dense>
 #include "map.hpp"

@@ -22,7 +22,7 @@
 #include "vision/monocular_camera.hpp"
 #include <opencv2/opencv.hpp>
 #include "apriltag_detector.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 #include "tracked_target_info.hpp"
 
 extern "C" {

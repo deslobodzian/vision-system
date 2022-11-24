@@ -1,26 +1,36 @@
 //
-// Created by ubuntuvm on 11/16/22.
+// Created by deslobodzian on 11/23/22.
 //
 
-#ifndef VISION_SYSTEM_NETWORK_TABLES_MANAGER_HPP
-#define VISION_SYSTEM_NETWORK_TABLES_MANAGER_HPP
+#ifndef VISION_SYSTEM_NT_MANAGER_HPP
+#define VISION_SYSTEM_NT_MANAGER_HPP
 
-#include <networktables/NetworkTableInstance.h>
+#include "networktables/NetworkTableInstance.h"
 #include "nt_publisher.hpp"
+#include "nt_subscriber.hpp"
+#include <unordered_map>
 
 class NTManager {
 public:
     NTManager() {
-        instance_ = nt::NetworkTableInstance::GetDefault();
+        inst_ = nt::NetworkTableInstance::GetDefault();
+    }
 
-        zed_publisher_ = NTPublisher(instance_, "Zed");
-    };
-    ~NTManager();
+    void add_publisher(const publishable &p) {
+        publisher_map_.emplace(std::pair<std::string, NTPublisher>(p.get_topic(), NTPublisher(inst_, "table", p)));
+    }
 
+    void add_subscriber(const subscribable &s) {
+        subscriber_map_.emplace(std::pair<std::string, NTSubscriber>(s.get_topic(), NTSubscriber(inst_, "table", s)));
+    }
+
+    void publish(const subscribable &s) {
+        publisher_map_.find(s.get_topic())->second.publish();
+    }
 private:
-    nt::NetworkTableInstance instance_;
-    NTPublisher zed_publisher_;
-
+    nt::NetworkTableInstance inst_;
+    std::unordered_map<std::string, NTPublisher> publisher_map_;
+    std::unordered_map<std::string, NTSubscriber> subscriber_map_;
 };
 
-#endif //VISION_SYSTEM_NETWORK_TABLES_MANAGER_HPP
+#endif //VISION_SYSTEM_NT_MANAGER_HPP
