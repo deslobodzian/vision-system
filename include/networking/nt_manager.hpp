@@ -8,7 +8,7 @@
 #include "networktables/NetworkTableInstance.h"
 #include "nt_publisher.hpp"
 #include "nt_subscriber.hpp"
-#include <unordered_map>
+#include <map>
 
 class NTManager {
 public:
@@ -29,7 +29,7 @@ public:
     }
 private:
     nt::NetworkTableInstance inst_;
-    std::unordered_map<std::string, NTPublisher> publisher_map_;
+    std::map<std::string, NTPublisher> publisher_map_;
     std::unordered_map<std::string, NTSubscriber> subscriber_map_;
 };
 
