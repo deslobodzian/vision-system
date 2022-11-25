@@ -22,10 +22,13 @@ void VisionContainer::init() {
     nt_manager_.add_subscriber(&odometry_sub_);
 }
 
-//void VisionContainer::run() {
-//    init();
-//
-//    PeriodicMemberFunction<VisionContainer> nt_task(
-//            &task_manager
-//            )
-//}
+void VisionContainer::run() {
+    init();
+    info("[VisionContainer]: Starting system");
+
+    vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
+
+    vision_runner_->control_input_ = control_input_;
+    vision_runner_->measurements_ = measurements_;
+
+}

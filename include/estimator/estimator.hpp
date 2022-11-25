@@ -5,6 +5,7 @@
 #ifndef VISION_SYSTEM_ESTIMATOR_HPP
 #define VISION_SYSTEM_ESTIMATOR_HPP
 #include <Eigen/Geometry>
+#include "networking/state_estimate_pub.hpp"
 
 using namespace Eigen;
 
@@ -12,12 +13,20 @@ template <typename T>
 struct ControlInput {
     Translation<T, 2> d_translation; // change in translation;
     Rotation2D<T> d_theta; // change in heading;
+
+
 };
 
 template <typename T>
 struct StateEstimate {
     Translation<T, 2> translation_estimate;
     Rotation2D<T> rotation_estimate;
+
+    void set_state_estimator_pub_(state_estimate_publishable &data) {
+        data.state_estimate[0] = translation_estimate.x();
+        data.state_estimate[1] = translation_estimate.y();
+        data.state_estimate[2] = rotation_estimate.angle();
+    }
 };
 
 template <typename T>

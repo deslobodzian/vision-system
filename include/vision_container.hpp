@@ -14,6 +14,7 @@
 #include "networking/odometry_sub.hpp"
 #include "networking/vision_pub.hpp"
 #include "networking/nt_manager.hpp"
+#include "vision_runner.hpp"
 
 class VisionContainer {
 public:
@@ -21,10 +22,12 @@ public:
 
     void init_scheduler();
     void init();
+    void run();
 
     virtual ~VisionContainer();
 
     std::vector<Measurement<double>>* measurements_;
+    ControlInput<double>* control_input_;
 
     void get_odometry_data();
 
@@ -34,6 +37,7 @@ protected:
 
     odometry_subscribable odometry_sub_;
 
+    VisionRunner* vision_runner_ = nullptr;
 
 };
 
