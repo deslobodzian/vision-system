@@ -32,6 +32,7 @@ extern "C" {
 }
 
 class AprilTagManager {
+public:
     AprilTagManager() = default;
     AprilTagManager(const DetectorConfig &cfg);
     ~AprilTagManager();
