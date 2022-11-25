@@ -24,7 +24,6 @@ public:
     ControlInput<double>* control_input_;
     std::vector<Measurement<double>>* measurements_;
 private:
-    NTManager nt_manager_;
     StateEstimate<double> state_estimate_;
     EstimatorContainer<double>* state_estimator_;
 

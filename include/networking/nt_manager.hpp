@@ -16,16 +16,16 @@ public:
         inst_ = nt::NetworkTableInstance::GetDefault();
     }
 
-    void add_publisher(const publishable &p) {
-        publisher_map_.emplace(std::pair<std::string, NTPublisher>(p.get_topic(), NTPublisher(inst_, "table", p)));
+    void add_publisher(publishable *p) {
+        publisher_map_.emplace(std::pair<std::string, NTPublisher>(p->get_topic(), NTPublisher(inst_, "table", p)));
     }
 
-    void add_subscriber(const subscribable &s) {
-        subscriber_map_.emplace(std::pair<std::string, NTSubscriber>(s.get_topic(), NTSubscriber(inst_, "table", s)));
+    void add_subscriber(subscribable *s) {
+        subscriber_map_.emplace(std::pair<std::string, NTSubscriber>(s->get_topic(), NTSubscriber(inst_, "table", s)));
     }
 
-    void publish(const subscribable &s) {
-        publisher_map_.find(s.get_topic())->second.publish();
+    void publish(subscribable *s) {
+        publisher_map_.find(s->get_topic())->second.publish();
     }
 private:
     nt::NetworkTableInstance inst_;

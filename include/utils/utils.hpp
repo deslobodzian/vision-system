@@ -98,13 +98,13 @@ inline std::string pose_string(sl::Pose &pose) {
 }
 
 inline void info(const std::string& msg) {
-    std::cout << "[INFO] " << msg << "\n";
+    std::cout << "[INFO]" << msg << "\n";
 }
 inline void error(const std::string& msg) {
-    std::cout << "[ERROR] " << msg << "\n";
+    std::cout << "[ERROR]" << msg << "\n";
 }
 inline void debug(const std::string& msg) {
-    std::cout << "[DEBUG] " << msg << "\n";
+    std::cout << "[DEBUG]" << msg << "\n";
 }
 /*
  * Encode int32_t to uint8_t from LCM package
