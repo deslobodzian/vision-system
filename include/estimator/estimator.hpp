@@ -57,8 +57,8 @@ private:
 template <typename T>
 struct StateEstimatorData {
     StateEstimate<T>* state_estimate;
-    ControlInput<T> control_input;
-    std::vector<Measurement<T>> measurements;
+    ControlInput<T>* control_input;
+    std::vector<Measurement<T>>* measurements;
 };
 
 template <typename T>
@@ -86,6 +86,12 @@ public:
         data_.state_estimate = estimate;
     }
 
+    void run() {
+        for (auto estimator : estimators_) {
+            estimator->run();
+        }
+    }
+
     template<typename EstimatorToAdd>
     void add_estimator() {
         auto *estimator = new EstimatorToAdd();
@@ -94,6 +100,35 @@ public:
         estimators_.push_back(estimator);
     }
 
+    template <typename EstimatorToRemove>
+    void removeEstimator() {
+        int removed = 0;
+        estimators_.erase(
+                std::remove_if(estimators_.begin(), estimators_.end(),
+                               [&removed](Estimator<T>* e) {
+                                   if (dynamic_cast<EstimatorToRemove*>(e)) {
+                                       delete e;
+                                       removed++;
+                                       return true;
+                                   } else {
+                                       return false;
+                                   }
+                               }),
+                estimators_.end());
+    }
+
+    void remove_all_estimators() {
+        for (auto estimator : estimators_) {
+            delete estimator;
+        }
+        estimators_.clear();
+    }
+
+    ~EstimatorContainer() {
+        for (auto estimator : estimators_) {
+            delete estimator;
+        }
+    }
 private:
     StateEstimatorData<T> data_;
     std::vector<Estimator<T> *> estimators_;
