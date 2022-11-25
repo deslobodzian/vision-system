@@ -15,6 +15,8 @@
 #include "networking/vision_pub.hpp"
 #include "networking/nt_manager.hpp"
 #include "vision_runner.hpp"
+#include "vision/Zed.hpp"
+#include "vision/apriltag_manager.hpp"
 
 class VisionContainer {
 public:
@@ -33,9 +35,13 @@ public:
 
 protected:
     TaskManager task_manager_;
+    AprilTagManager tag_manager_;
     NTManager nt_manager_;
 
     odometry_subscribable odometry_sub_;
+
+    Zed* zed_camera_ = nullptr;
+    MonocularCamera<float>* monocular_camera_ = nullptr;
 
     VisionRunner* vision_runner_ = nullptr;
 

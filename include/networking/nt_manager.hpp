@@ -29,7 +29,7 @@ public:
     }
 private:
     nt::NetworkTableInstance inst_;
-    std::map<std::string, NTPublisher> publisher_map_;
+    std::unordered_map<std::string, NTPublisher> publisher_map_;
     std::unordered_map<std::string, NTSubscriber> subscriber_map_;
 };
 

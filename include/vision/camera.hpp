@@ -1,12 +1,21 @@
 //
-// Created by ubuntuvm on 11/25/22.
+// Created by deslobodzian on 11/25/22.
 //
 
 #ifndef VISION_SYSTEM_CAMERA_HPP
 #define VISION_SYSTEM_CAMERA_HPP
 
-class Camera {
+#include <opencv2/opencv.hpp>
+
+enum CAMERA_TYPE {
+    MONOCULAR,
+    ZED
+};
+class GenericCamera {
 public:
+    virtual int open_camera();
+    virtual void fetch_measurements();
+    virtual CAMERA_TYPE get_camera_type() const;
 private:
 };
 

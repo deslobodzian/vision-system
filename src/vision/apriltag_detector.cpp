@@ -80,10 +80,11 @@ Corners TagDetector::get_detection_corners(apriltag_detection_t *det) {
     return {tr, tl, bl, br};
 }
 
+template <typename T>
 apriltag_pose_t TagDetector::get_estimated_target_pose(
-        IntrinsicParameters params,
+        IntrinsicParameters<T> params,
         apriltag_detection_t *det,
-        double tag_size) {
+        T tag_size) {
     apriltag_detection_info_t info;
     info.det = det;
     info.tagsize = tag_size;
@@ -93,7 +94,7 @@ apriltag_pose_t TagDetector::get_estimated_target_pose(
     info.cy = params.cy;
 
     apriltag_pose_t pose;
-    double err = estimate_tag_pose(&info, &pose);
+    T err = estimate_tag_pose(&info, &pose);
     return pose;
 }
 

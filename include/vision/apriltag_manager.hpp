@@ -32,29 +32,29 @@ extern "C" {
 }
 
 class AprilTagManager {
+    AprilTagManager() = default;
+    AprilTagManager(const DetectorConfig &cfg);
+    ~AprilTagManager();
+	void add_detector_thread(Zed* camera);
+    template <typename T>
+	void add_detector_thread(MonocularCamera<T>* camera);
+    template <typename T>
+	void detector_monocular(MonocularCamera<T>* camera);
+	void detector_zed(Zed* zed);
+    void print_monocular_dt() const;
+    void print_zed_dt() const;
 
+    std::vector<TrackedTargetInfo> get_zed_targets();
+    std::vector<TrackedTargetInfo> get_monocular_targets();
 private:
-	std::vector<std::thread> threads_;
     TagDetector zed_detector_;
     TagDetector monocular_detector_;
     std::mutex zed_mtx_;
     std::mutex monocular_mtx_;
     std::vector<TrackedTargetInfo> zed_targets_;
     std::vector<TrackedTargetInfo> monocular_targets_;
-    double zed_dt_;
-    double monocular_dt_;
-
-public:
-	void add_detector_thread(Zed &camera);
-	void add_detector_thread(MonocularCamera &camera);
-	void detector_monocular(MonocularCamera &camera);
-	void detector_zed(Zed &zed);
-    void print_monocular_dt();
-    void print_zed_dt();
-
-    std::vector<TrackedTargetInfo> get_zed_targets();
-    std::vector<TrackedTargetInfo> get_monocular_targets();
-
+    long zed_dt_;
+    long monocular_dt_;
 };
 
 

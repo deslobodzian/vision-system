@@ -44,8 +44,8 @@ enum tag_family{
 
 struct DetectorConfig {
     tag_family tf;
-    double quad_decimate;
-    double quad_sigma;
+    float quad_decimate;
+    float quad_sigma;
     int nthreads;
     bool debug;
     bool refine_edges;
@@ -75,10 +75,11 @@ public:
 
     cv::Point get_detection_center(apriltag_detection_t *det);
     Corners get_detection_corners(apriltag_detection_t *det);
+    template <typename T>
     apriltag_pose_t get_estimated_target_pose(
-            IntrinsicParameters params,
+            IntrinsicParameters<T> params,
             apriltag_detection_t *det,
-            double tag_size
+            T tag_size
             );
     sl::Pose get_estimated_target_pose(const sl::float3 &tr, const sl::float3 &tl, const sl::float3 &br);
 };

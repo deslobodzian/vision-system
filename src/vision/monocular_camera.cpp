@@ -3,14 +3,17 @@
 //
 #include "vision/monocular_camera.hpp"
 
-MonocularCamera::MonocularCamera(CameraConfig config) {
+template <typename T>
+MonocularCamera<T>::MonocularCamera(CameraConfig<T> config) {
     config_ = config;
 }
-MonocularCamera::~MonocularCamera() {
+template <typename T>
+MonocularCamera<T>::~MonocularCamera() {
     cap_.release();
 }
 
-bool MonocularCamera::open_camera() {
+template <typename T>
+int MonocularCamera<T>::open_camera() {
     //std::string c = 
 //	    "v4l2src device=/dev/video" + std::to_string(device_id_) +
 //	    " ! video/x-raw, width=" + std::to_string(config_.camera_resolution.width) +
@@ -24,28 +27,33 @@ bool MonocularCamera::open_camera() {
     return cap_.isOpened();
 }
 
-IntrinsicParameters MonocularCamera::get_intrinsic_parameters() {
+template <typename T>
+IntrinsicParameters<T> MonocularCamera<T>::get_intrinsic_parameters() {
     return config_.get_intrinsic_parameters();
 }
 
-bool MonocularCamera::read_frame() {
+template <typename T>
+void MonocularCamera<T>::fetch_measurements() {
     cap_.read(frame_);
-    return frame_.empty();
 }
 
-cv::Mat MonocularCamera::get_frame() {
+template <typename T>
+cv::Mat MonocularCamera<T>::get_frame() {
     return frame_;
 }
 
-void MonocularCamera::get_frame(cv::Mat& image) {
+template <typename T>
+void MonocularCamera<T>::get_frame(cv::Mat& image) {
     cap_.read(image);
 }
 
-void MonocularCamera::draw_rect(cv::Rect rect) {
+template <typename T>
+void MonocularCamera<T>::draw_rect(const cv::Rect &rect) {
     rectangle(frame_, rect, cv::Scalar(0, 255, 255), 1);
 }
 
-void MonocularCamera::draw_crosshair(cv::Rect rect) {
+template <typename T>
+void MonocularCamera<T>::draw_crosshair(const cv::Rect &rect) {
     cv::Point object_center = (rect.br() + rect.tl()) / 2.0;
     cv::Point top = object_center + cv::Point(0, 10);
     cv::Point bot = object_center - cv::Point(0, 10);
@@ -56,7 +64,8 @@ void MonocularCamera::draw_crosshair(cv::Rect rect) {
     line(frame_, left, right, cv::Scalar(0, 255, 0), 1);
 }
 
-int MonocularCamera::get_id() {
+template <typename T>
+int MonocularCamera<T>::get_id() const {
 	return device_id_;
 }
 

@@ -11,26 +11,28 @@
 
 #define USE_MATH_DEFINES_
 
+template <typename T>
 struct fov {
-    double horizontal;
-    double vertical;
-    double diagonal;
+    T horizontal;
+    T vertical;
+    T diagonal;
     fov() = default;
-    fov(double h, double v) {
+    fov(T h, T v) {
         horizontal = h * M_PI / 180.0;
         vertical = v * M_PI / 180.0;
     }
-    fov(double h, double v, bool rad) {
+    fov(T h, T v, bool rad) {
         horizontal = h;
         vertical = v;
     }
 };
 
+template <typename T>
 struct IntrinsicParameters {
-    double fx;
-    double fy;
-    double cx;
-    double cy;
+    T fx;
+    T fy;
+    T cx;
+    T cy;
 };
 
 struct resolution {
@@ -43,38 +45,38 @@ struct resolution {
     }
 };
 
+template <typename T>
 class CameraConfig {
-
 private:
     std::string device_id_;
-    fov field_of_view_;
+    fov<T> field_of_view_;
     int frames_per_second_;
     resolution camera_resolution_;
-    IntrinsicParameters intrinsic_parameters_;
+    IntrinsicParameters<T> intrinsic_parameters_;
     std::string pipeline_;
 
 public:
     CameraConfig() = default;
 
     CameraConfig(
-            std::string device,
-            double diagonal_fov,
+            const std::string &device,
+            T diagonal_fov,
             resolution res,
             int fps,
-            IntrinsicParameters intrinsic_parameters
+            const IntrinsicParameters<T> &intrinsic_parameters
     ) {
         device_id_ = device;
-        double d_fov = diagonal_fov * M_PI / 180.0;
-        double aspect = hypot(res.width, res.height);
-        double h_fov = atan(tan(d_fov / 2.0) * (res.width / aspect)) * 2;
-        double v_fov = atan(tan(d_fov / 2.0) * (res.height / aspect)) * 2;
+        T d_fov = diagonal_fov * M_PI / 180.0;
+        T aspect = hypot(res.width, res.height);
+        T h_fov = atan(tan(d_fov / 2.0) * (res.width / aspect)) * 2;
+        T v_fov = atan(tan(d_fov / 2.0) * (res.height / aspect)) * 2;
         field_of_view_ = fov(h_fov, v_fov, false);
         camera_resolution_ = res;
         intrinsic_parameters_ = intrinsic_parameters;
         frames_per_second_ = fps;
     }
 
-    CameraConfig(std::string device, fov fov, resolution res, int fps) {
+    CameraConfig(const std::string &device, fov<T> fov, resolution res, int fps) {
         device_id_ = device;
         field_of_view_ = fov;
         camera_resolution_ = res;
@@ -85,7 +87,7 @@ public:
         return device_id_;
     }
 
-    fov get_fov() {
+    fov<T> get_fov() {
         return field_of_view_;
     }
 
@@ -93,13 +95,14 @@ public:
         return camera_resolution_;
     }
 
-    IntrinsicParameters get_intrinsic_parameters() {
+    IntrinsicParameters<T> get_intrinsic_parameters() {
         return intrinsic_parameters_;
     };
 
-    int get_fps() {
+    int get_fps() const {
         return frames_per_second_;
     }
+
     std::string get_pipeline() {
         pipeline_ = "v4l2src device=" + device_id_ + " ! video/x-raw(memory::NVMM), format=BGR, width=" + std::to_string(camera_resolution_.width) +
                     ", height=" + std::to_string(camera_resolution_.height) + ", framerate=" + std::to_string(frames_per_second_) +
@@ -107,4 +110,15 @@ public:
         return pipeline_;
     }
 };
+
+struct zed_config {
+    sl::RESOLUTION res;
+    int fps;
+    sl::DEPTH_MODE depth_mode;
+    bool sdk_verbose;
+    sl::COORDINATE_SYSTEM coordinate_system;
+    sl::UNIT units;
+    float max_depth;
+};
+
 #endif //VISION_SYSTEM_CAMERA_CONFIG_HPP

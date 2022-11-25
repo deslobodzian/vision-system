@@ -15,31 +15,35 @@
 #include "map.hpp"
 #include "utils/utils.hpp"
 #include "camera_config.hpp"
+#include "camera.hpp"
 
 
-
-
-class MonocularCamera {
+template <typename T>
+class MonocularCamera : GenericCamera {
 private:
     cv::VideoCapture cap_;
     cv::Mat frame_;
-    int device_id_;
-    CameraConfig config_;
+    int device_id_ = 0;
+    CameraConfig<T> config_;
 
 public:
     MonocularCamera() = default;
-    MonocularCamera(CameraConfig config);
+    explicit MonocularCamera(CameraConfig<T> config);
     ~MonocularCamera();
 
-    IntrinsicParameters get_intrinsic_parameters();
-    bool open_camera();
-    bool read_frame();
-    int get_id();
+    IntrinsicParameters<T> get_intrinsic_parameters();
+    int open_camera() override;
+    void fetch_measurements() override;
+    int get_id() const;
+
+    CAMERA_TYPE get_camera_type() const override{
+        return MONOCULAR;
+    }
 
     cv::Mat get_frame();
     void get_frame(cv::Mat& image);
-    void draw_rect(cv::Rect rect);
-    void draw_crosshair(cv::Rect rect);
+    void draw_rect(const cv::Rect &rect);
+    void draw_crosshair(const cv::Rect &rect);
 };
 
 #endif //PARTICLE_FILTER_MONOCULARCAMERA_HPP

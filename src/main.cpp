@@ -13,7 +13,7 @@ int main() {
     std::vector<TrackedTargetInfo> zed_targets_;
 
     // generate camera configs
-    IntrinsicParameters parameters{1116.821, 1113.573, 678.58, 367.73};
+    IntrinsicParameters<float> parameters{1116.821, 1113.573, 678.58, 367.73};
     resolution res(320, 240);
     CameraConfig config(
             "/dev/video0", // need to find a better way for device id.

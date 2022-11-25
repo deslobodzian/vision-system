@@ -10,10 +10,7 @@
 #include <Eigen/Dense>
 #include "map.hpp"
 #include "estimator/mcl_pose_estimator.hpp"
-
-#define CAM_TO_ROBOT_X -0.361696
-#define CAM_TO_ROBOT_Y -0.00889
-#define CAM_TO_CATAPULT_Y -0.1651
+#include "camera.hpp"
 
 using namespace sl;
 
@@ -25,32 +22,20 @@ typedef struct {
     Mat point_cloud;
 } ZedMeasurements;
 
-class Zed {
+class Zed : public GenericCamera {
 
-private:
-     Camera zed_;
-     ZedMeasurements measurements_;
-
-     InitParameters init_params_;
-     RuntimeParameters runtime_params_;
-     ObjectDetectionParameters detection_params_;
-     ObjectDetectionRuntimeParameters objectTracker_params_rt_;
-
-     CalibrationParameters calibration_params_;
-     Transform cam_to_robot_;
-
-     float left_offset_to_center_;
-     bool successful_grab();
 
 public:
-    Zed();
+    Zed(const zed_config &config);
     ~Zed();
 
-    bool open_camera();
-    bool enable_tracking();
-    bool enable_tracking(Eigen::Vector3d init_pose);
-    bool enable_object_detection();
-    void input_custom_objects(std::vector<sl::CustomBoxObjectData> objects_in);
+    CAMERA_TYPE get_camera_type() const override {
+        return ZED;
+    };
+
+    int open_camera();
+    int enable_tracking();
+    int enable_tracking(const Eigen::Vector3f &init_pose);
 
     void fetch_measurements();
 
@@ -59,9 +44,9 @@ public:
 
     // gets the last fetched point cloud.
     sl::Mat get_point_cloud() const;
-    sl::float3 get_position_from_pixel(int x, int y);
+    sl::float3 get_position_from_pixel(int x, int y) const;
     sl::float3 get_position_from_pixel(const cv::Point &p);
-    double get_distance_from_point(const sl::float3& p);
+    float get_distance_from_point(const sl::float3& p);
 
     sl::Transform get_calibration_stereo_transform() const;
 
@@ -75,5 +60,12 @@ public:
     Timestamp get_measurement_timestamp() const;
 
     void close();
+private:
+    Camera zed_;
+    ZedMeasurements measurements_;
+    InitParameters init_params_;
+    CalibrationParameters calibration_params_;
 
+    float left_offset_to_center_{};
+    bool successful_grab();
 };
