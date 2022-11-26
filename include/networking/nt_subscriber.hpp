@@ -5,11 +5,11 @@
 #ifndef VISION_SYSTEM_NT_SUBSCRIBER_HPP
 #define VISION_SYSTEM_NT_SUBSCRIBER_HPP
 
-#include <networktables/DoubleArrayTopic.h>
+#include <networktables/RawTopic.h>
 #include <mutex>
 
 struct subscribable {
-    virtual void copy_vector(const std::vector<double> &data);
+    virtual void copy_vector(const std::vector<uint8_t> &data);
     virtual std::string get_topic() const;
     std::mutex subscriber_mtx_;
 };
@@ -20,7 +20,7 @@ public:
     NTSubscriber(const nt::NetworkTableInstance &instance, const std::string &table, subscribable *s) {
         auto nt_table = instance.GetTable(table);
         s_ = s;
-        sub_ = nt_table->GetDoubleArrayTopic(s_->get_topic()).Subscribe({});
+        sub_ = nt_table->GetRawTopic(s_->get_topic()).Subscribe({}, {});
     }
 
     void get() {
@@ -29,7 +29,7 @@ public:
     }
 
 private:
-    nt::DoubleArraySubscriber sub_;
+    nt::RawSubscriber sub_;
     subscribable* s_;
 };
 #endif //VISION_SYSTEM_NT_SUBSCRIBER_HPP
