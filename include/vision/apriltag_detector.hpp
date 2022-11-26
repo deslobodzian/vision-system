@@ -42,7 +42,7 @@ enum tag_family{
     tagCustom48h12
 };
 
-struct DetectorConfig {
+struct detector_config {
     tag_family tf;
     float quad_decimate;
     float quad_sigma;
@@ -61,7 +61,7 @@ private:
     void destroy_tag(tag_family tag_family_class, apriltag_family_t *tf);
 public:
     TagDetector();
-    TagDetector(DetectorConfig cfg);
+    TagDetector(detector_config cfg);
     ~TagDetector();
 
     // preprocessed image that is gray, look into just adding raw image from monocular or zed camera

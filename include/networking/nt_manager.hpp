@@ -24,9 +24,14 @@ public:
         subscriber_map_.emplace(std::pair<std::string, NTSubscriber>(s->get_topic(), NTSubscriber(inst_, "table", s)));
     }
 
-    void publish(subscribable *s) {
-        publisher_map_.find(s->get_topic())->second.publish();
+    void publish(publishable *p) {
+        publisher_map_.find(p->get_topic())->second.publish();
     }
+
+    void get_subscription(subscribable *s) {
+        subscriber_map_.find(s->get_topic())->second.get();
+    }
+
 private:
     nt::NetworkTableInstance inst_;
     std::unordered_map<std::string, NTPublisher> publisher_map_;

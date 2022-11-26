@@ -35,16 +35,17 @@ public:
 
 protected:
     TaskManager task_manager_;
-    AprilTagManager tag_manager_;
     NTManager nt_manager_;
-
+    std::thread odometry_thread_;
     odometry_subscribable odometry_sub_;
 
     Zed* zed_camera_ = nullptr;
     MonocularCamera<float>* monocular_camera_ = nullptr;
-
+    AprilTagManager* tag_manager_ = nullptr;
     VisionRunner* vision_runner_ = nullptr;
 
+    void odometry_handle();
+    void detect_targets();
 };
 
 #endif //VISION_SYSTEM_VISION_CONTAINER_HPP

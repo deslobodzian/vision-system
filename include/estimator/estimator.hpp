@@ -5,6 +5,7 @@
 #ifndef VISION_SYSTEM_ESTIMATOR_HPP
 #define VISION_SYSTEM_ESTIMATOR_HPP
 #include <Eigen/Geometry>
+#include "networking/odometry_sub.hpp"
 #include "networking/state_estimate_pub.hpp"
 
 using namespace Eigen;
@@ -13,8 +14,11 @@ template <typename T>
 struct ControlInput {
     Translation<T, 2> d_translation; // change in translation;
     Rotation2D<T> d_theta; // change in heading;
-
-
+    void set_odometry_input(const odometry_subscribable* msg) {
+        d_translation.x() = msg->dx;
+        d_translation.y() = msg->dy;
+        d_theta.angle() = msg->d_theta;
+    }
 };
 
 template <typename T>

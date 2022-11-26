@@ -12,7 +12,7 @@ TagDetector::TagDetector() {
     apriltag_detector_add_family(td_, tf_);
 }
 
-TagDetector::TagDetector(DetectorConfig cfg) {
+TagDetector::TagDetector(detector_config cfg) {
     tf_ = create_tag(cfg.tf);
     td_ = apriltag_detector_create();
 
@@ -25,7 +25,10 @@ TagDetector::TagDetector(DetectorConfig cfg) {
     td_->refine_edges = cfg.refine_edges;
 }
 
-TagDetector::~TagDetector() {}
+TagDetector::~TagDetector() {
+    apriltag_detector_destroy(td_);
+    apriltag_detections_destroy(current_detections_);
+}
 
 zarray_t* TagDetector::get_detections(const cv::Mat &img) {
     cv::Mat gray_img;
