@@ -9,11 +9,6 @@ MCLPoseEstimator<T>::MCLPoseEstimator(const std::vector<Landmark> &map) {
 }
 
 template <typename T>
-MCLPoseEstimator<T>::~MCLPoseEstimator() {
-    X_.clear();
-}
-
-template <typename T>
 void MCLPoseEstimator<T>::setup() {
     Particle p;
     Eigen::Vector3<T> rand_pose;
