@@ -8,13 +8,16 @@
 #include <string>
 #include <thread>
 #include <sys/timerfd.h>
-#include "task_manager.hpp"
+#include <vector>
+//#include "task_manager.hpp"
 #include <cmath>
 /* task that will run at a specific period in hz. */
-class Task {
+class TaskManager;
 
+class Task {
 public:
-    Task(TaskManager* manager, double period, std::string name);
+//    Task(TaskManager* manager, double period, std::string name);
+    Task(TaskManager* manager, float period, std::string name);
     virtual ~Task() {stop();}
     void start();
     void stop();
@@ -22,7 +25,7 @@ public:
     virtual void run();
 
     /* return period in hz */
-    double get_period() {return period_;}
+    float get_period() {return period_;}
 
 
 private:
@@ -32,6 +35,16 @@ private:
     std::thread thread_;
 
     void loop();
+};
+
+class TaskManager {
+public:
+    TaskManager() = default;
+    ~TaskManager();
+    void add_task(Task* task);
+    void stop_tasks();
+private:
+    std::vector<Task*> tasks_;
 };
 
 class PeriodicFunction : public Task{

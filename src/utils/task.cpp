@@ -3,9 +3,8 @@
 //
 
 #include "utils/task.hpp"
-#include "utils/task_manager.hpp"
 
-Task::Task(TaskManager* manager, double period, std::string name)
+Task::Task(TaskManager* manager, float period, std::string name)
     : period_(period), name_(name) {
     manager->add_task(this);
 }
@@ -47,5 +46,16 @@ void Task::loop() {
         run();
         int m = read(timer_fd, &missed, sizeof(missed));
         (void)m;
+    }
+}
+TaskManager::~TaskManager() {}
+
+void TaskManager::add_task(Task* task) {
+    tasks_.push_back(task);
+}
+
+void TaskManager::stop_tasks() {
+    for (auto &task : tasks_) {
+        task->stop();
     }
 }

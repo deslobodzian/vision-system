@@ -7,8 +7,7 @@
 
 #include "utils/task.hpp"
 #include "estimator/estimator.hpp"
-#include "networking/nt_manager.hpp"
-#include "networking/state_estimate_pub.hpp"
+//#include "networking/state_estimate_pub.hpp"
 #include "estimator/mcl_pose_estimator.hpp"
 
 class VisionRunner : public Task {
@@ -27,7 +26,7 @@ private:
     StateEstimate<double> state_estimate_;
     EstimatorContainer<double>* state_estimator_;
 
-    state_estimate_publishable state_est_pub_;
+//    state_estimate_publishable state_est_pub_;
 
 };
 
