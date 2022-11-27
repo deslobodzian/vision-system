@@ -4,7 +4,7 @@
 
 #include "map.hpp"
 
-Map::Map() {
+WorldMap::WorldMap() {
     Landmark l1(16.459252 - 13.2334, 8.22960 - 0.3683, 0);
     Landmark l2(16.459252 - 13.2334, 8.22960 - 2.85, 1);
     Landmark l3(16.45925 / 2.0, 8.22960 / 2.0, 2);
@@ -17,7 +17,7 @@ Map::Map() {
     landmarks_.emplace_back(l5);
 }
 
-std::vector<Landmark> Map::get_landmarks() {
+std::vector<Landmark> WorldMap::get_landmarks() {
     return landmarks_;
 }
 

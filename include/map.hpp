@@ -19,14 +19,14 @@ struct Landmark {
     }
 };
 
-class Map {
+class WorldMap {
 
 private:
     std::vector<Landmark> landmarks_;
 
 public:
-    Map();
-    ~Map() = default;
+    WorldMap();
+    ~WorldMap() = default;
 
     std::vector<Landmark> get_landmarks();
 

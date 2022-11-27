@@ -36,19 +36,19 @@ public:
     virtual void run();
     virtual void setup();
 
-    std::vector<Measurement<T>> measurement_model(const Eigen::Vector3<T> &x);
+    std::vector<Measurement<T>> measurement_model(const Eigen::Vector<T, 3> &x);
 
     T sample_measurement_model(
             const Measurement<T> &measurement,
-            const Eigen::Vector3<T> &x,
+            const Eigen::Vector<T, 3> &x,
             const Landmark &landmark);
 
     Eigen::Vector3<T> sample_motion_model(
             const ControlInput<T> &u,
-            const Eigen::Vector3<T> &x);
+            const Eigen::Vector<T, 3> &x);
 
-    double calculate_weight(const std::vector<Measurement<T>> &z,
-                            const Eigen::Vector3<T> &x,
+    T calculate_weight(const std::vector<Measurement<T>> &z,
+                            const Eigen::Vector<T, 3> &x,
                             T weight,
                             const std::vector<Landmark> &map);
 
@@ -59,11 +59,11 @@ public:
     std::vector<Particle> low_variance_sampler(const std::vector<Particle> &X);
 
     std::vector<Particle> get_particle_set();
-    Eigen::Vector3<T> get_estimated_pose();
+    Eigen::Vector<T, 3> get_estimated_pose();
 
 
 private:
-    Eigen::Vector3<T> x_est_;
+    Eigen::Vector<T, 3> x_est_;
 
     std::vector<Particle> X_; // particle set for filter
     std::vector<Landmark> map_;

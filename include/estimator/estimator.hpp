@@ -50,7 +50,7 @@ public:
         return bearing_;
     }
 
-    int get_element() const {
+    int get_id() const {
         return id_;
     }
 

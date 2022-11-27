@@ -16,12 +16,12 @@ MCLPoseEstimator<T>::~MCLPoseEstimator() {
 template <typename T>
 void MCLPoseEstimator<T>::setup() {
     Particle p;
-    Eigen::Vector3<T> rand_pose;
+    Eigen::Vector<T, 3> rand_pose;
 
     p.weight = 1.0 / NUM_PARTICLES;
     X_.assign(NUM_PARTICLES, p);
 
-    x_est_ = Eigen::Vector3<T>::Zero();
+    x_est_ = Eigen::Vector<T, 3>::Zero();
     for (int i = 0; i < NUM_PARTICLES; ++i) {
         rand_pose = {
                 uniform_random(0, 5),
@@ -47,7 +47,7 @@ void MCLPoseEstimator<T>::run() {
 template <typename T>
 T MCLPoseEstimator<T>::sample_measurement_model(
         const Measurement<T> &measurement,
-        const Eigen::Vector3<T> &x,
+        const Eigen::Vector<T, 3> &x,
         const Landmark &landmark) {
     T q = 0;
     if (measurement.get_element() == landmark.tag_id) {
@@ -63,46 +63,46 @@ T MCLPoseEstimator<T>::sample_measurement_model(
     return q;
 }
 template <typename T>
-Eigen::Vector3<T> MCLPoseEstimator<T>::sample_motion_model(
+Eigen::Vector<T, 3> MCLPoseEstimator<T>::sample_motion_model(
         const ControlInput<T> &u,
         const Eigen::Vector3<T> &x) {
     T noise_dx = u.dx + sample_triangle_distribution(fabs(u.d_translation.x() * ALPHA_TRANSLATION));
     T noise_dy = u.dy + sample_triangle_distribution(fabs(u.d_translation.y() * ALPHA_TRANSLATION));
     T noise_dTheta = u.d_theta + sample_triangle_distribution(fabs(u.d_theta.angle() * ALPHA_TRANSLATION));
 
-    T x_prime = x(0,0) + noise_dx;
-    T y_prime = x(1,0) + noise_dy;
-    T theta_prime = x(2, 0) + noise_dTheta;
+    T x_prime = x.x() + noise_dx;
+    T y_prime = x.y() + noise_dy;
+    T theta_prime = x.z() + noise_dTheta;
     Eigen::Vector3<T> result;
     result << x_prime, y_prime, theta_prime;
     return result;
 }
 
 template <typename T>
-std::vector<Measurement<T>> MCLPoseEstimator<T>::measurement_model(const Eigen::Vector3<T> &x) {
+std::vector<Measurement<T>> MCLPoseEstimator<T>::measurement_model(const Eigen::Vector<T, 3> &x) {
     std::vector<Measurement<T>> z_vec;
     for (Landmark landmark : map_) {
         T range = hypot(
-                landmark.x - x(0, 0),
-                landmark.y - x(1, 0));
+                landmark.x - x.x(),
+                landmark.y - x.y());
         T bearing = atan2(
-                landmark.y - x(1, 0),
-                landmark.x - x(0, 0)) - x(2, 0);
+                landmark.y - x.y(),
+                landmark.x - x.x) - x.z();
         Measurement<T> z(range, bearing, landmark.tag_id);
         z_vec.emplace_back(z);
     }
     return z_vec;
 }
 template <typename T>
-double MCLPoseEstimator<T>::calculate_weight(
+T MCLPoseEstimator<T>::calculate_weight(
         const std::vector<Measurement<T>> &z,
-        const Eigen::Vector3<T> &x,
+        const Eigen::Vector<T, 3> &x,
         T weight,
-        const std::vector<Landmark> &map) {
-    for (Landmark landmark : map) {
-        for (auto &i : z) {
-            if (i.get_element() == landmark.tag_id) {
-                weight = weight * sample_measurement_model(i, x, landmark);
+        const std::vector<Landmark> &world_map) {
+    for (Landmark landmark : world_map) {
+        for (auto &measurement : z) {
+            if (measurement.get_id() == landmark.tag_id) {
+                weight = weight * sample_measurement_model(measurement, x, landmark);
                 break;
             }
         }
@@ -136,7 +136,7 @@ std::vector<Particle> MCLPoseEstimator<T>::monte_carlo_localization(
     T sum = 0;
     Eigen::MatrixX<T> x_set(3, X_.size());
     for (int particle = 0; particle < NUM_PARTICLES; ++particle) {
-        Eigen::Vector3<T> x = sample_motion_model(u, X_.at(particle).x);
+        Eigen::Vector<T, 3> x = sample_motion_model(u, X_.at(particle).x);
         T weight = calculate_weight(z, x, X_.at(particle).weight, map_);
         sum += weight;
         Particle p;
@@ -171,6 +171,6 @@ std::vector<Particle> MCLPoseEstimator<T>::get_particle_set() {
 }
 
 template <typename T>
-Eigen::Vector3<T> MCLPoseEstimator<T>::get_estimated_pose() {
+Eigen::Vector<T, 3> MCLPoseEstimator<T>::get_estimated_pose() {
     return x_est_;
 }
