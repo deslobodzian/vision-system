@@ -28,8 +28,8 @@ public:
 
     virtual ~VisionContainer();
 
-    std::vector<Measurement<double>>* measurements_;
-    ControlInput<double>* control_input_;
+    std::vector<Measurement<float>>* measurements_;
+    ControlInput<float>* control_input_;
 
     void get_odometry_data();
 

@@ -13,7 +13,7 @@ VisionRunner::VisionRunner(
 void VisionRunner::init() {
     info("initializing [VisionRunner]");
 
-    state_estimator_ = new EstimatorContainer<double>(
+    state_estimator_ = new EstimatorContainer<float>(
             control_input_,
             measurements_,
             &state_estimate_
@@ -28,7 +28,7 @@ void VisionRunner::run() {
 
 void VisionRunner::initialize_state_estimator() {
     state_estimator_->remove_all_estimators();
-    state_estimator_->add_estimator<MCLPoseEstimator<double>>();
+    state_estimator_->add_estimator<MCLPoseEstimator<float>>();
 }
 
 VisionRunner::~VisionRunner() {
