@@ -21,6 +21,8 @@
 #include "estimator.hpp"
 #include "utils/probability_utils.hpp"
 
+using namespace Eigen;
+
 struct Particle {
     Eigen::Vector3d x;
     double weight;
