@@ -19,9 +19,9 @@ void MCLPoseEstimator<T>::setup() {
     x_est_ = Eigen::Vector3<T>::Zero();
     for (int i = 0; i < NUM_PARTICLES; ++i) {
         rand_pose = {
-                uniform_random(0, 5),
-                uniform_random(0, 5),
-                uniform_random(0, 5)
+                uniform_random(0.0, 5.0),
+                uniform_random(0.0, 5.0),
+                uniform_random(0.0, 5.0)
         };
         X_.at(i).x = rand_pose;
     }
@@ -59,11 +59,11 @@ T MCLPoseEstimator<T>::sample_measurement_model(
 }
 template <typename T>
 Eigen::Vector3<T> MCLPoseEstimator<T>::sample_motion_model(
-        const ControlInput<T> &u,
+        ControlInput<T>* u,
         const Eigen::Vector3<T> &x) {
-    T noise_dx = u.dx + sample_triangle_distribution(fabs(u.d_translation.x() * ALPHA_TRANSLATION));
-    T noise_dy = u.dy + sample_triangle_distribution(fabs(u.d_translation.y() * ALPHA_TRANSLATION));
-    T noise_dTheta = u.d_theta + sample_triangle_distribution(fabs(u.d_theta.angle() * ALPHA_TRANSLATION));
+    T noise_dx = u->dx + sample_triangle_distribution(fabs(u->d_translation.x() * ALPHA_TRANSLATION));
+    T noise_dy = u->dy + sample_triangle_distribution(fabs(u->d_translation.y() * ALPHA_TRANSLATION));
+    T noise_dTheta = u->d_theta + sample_triangle_distribution(fabs(u->d_theta.angle() * ALPHA_TRANSLATION));
 
     T x_prime = x.x() + noise_dx;
     T y_prime = x.y() + noise_dy;
@@ -125,8 +125,8 @@ std::vector<Particle> MCLPoseEstimator<T>::low_variance_sampler(const std::vecto
 
 template <typename T>
 std::vector<Particle> MCLPoseEstimator<T>::monte_carlo_localization(
-        const ControlInput<T> &u,
-        const std::vector<Measurement<T>> &z) {
+        ControlInput<T>* u,
+        std::vector<Measurement<T>>* z) {
     std::vector<Particle> X_bar;
     T sum = 0;
     Eigen::MatrixX<T> x_set(3, X_.size());

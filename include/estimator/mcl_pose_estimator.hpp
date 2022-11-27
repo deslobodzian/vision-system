@@ -34,8 +34,8 @@ public:
     MCLPoseEstimator() = default;
     explicit MCLPoseEstimator(const std::vector<Landmark> &map);
 
-    virtual void run();
-    virtual void setup();
+    void run() override;
+    void setup() override;
 
     std::vector<Measurement<T>> measurement_model(const Eigen::Vector3<T> &x);
 
@@ -45,7 +45,7 @@ public:
             const Landmark &landmark);
 
     Eigen::Vector3<T> sample_motion_model(
-            const ControlInput<T> &u,
+            ControlInput<T>* u,
             const Eigen::Vector3<T> &x);
 
     T calculate_weight(const std::vector<Measurement<T>> &z,
@@ -54,8 +54,8 @@ public:
                             const std::vector<Landmark> &map);
 
     std::vector<Particle> monte_carlo_localization(
-            const ControlInput<T> &u,
-            const std::vector<Measurement<T>> &z);
+            ControlInput<T>* u,
+            std::vector<Measurement<T>>* z);
 
     std::vector<Particle> low_variance_sampler(const std::vector<Particle> &X);
 
