@@ -25,7 +25,6 @@ typedef struct {
 
 class Zed : public GenericCamera {
 
-
 public:
     Zed(const zed_config &config);
     ~Zed();
