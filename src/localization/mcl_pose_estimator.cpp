@@ -174,3 +174,6 @@ template <typename T>
 Eigen::Vector3<T> MCLPoseEstimator<T>::get_estimated_pose() {
     return x_est_;
 }
+
+template class MCLPoseEstimator<float>;
+template class MCLPoseEstimator<double>;

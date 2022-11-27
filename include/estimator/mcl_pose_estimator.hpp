@@ -33,7 +33,7 @@ class MCLPoseEstimator : public Estimator<T>{
 public:
     MCLPoseEstimator() = default;
     explicit MCLPoseEstimator(const std::vector<Landmark> &map);
-    ~MCLPoseEstimator();
+    ~MCLPoseEstimator() override;
 
     virtual void run();
     virtual void setup();
