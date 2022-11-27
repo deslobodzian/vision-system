@@ -11,6 +11,7 @@
 #include "map.hpp"
 #include "estimator/mcl_pose_estimator.hpp"
 #include "camera.hpp"
+#include "camera_config.hpp"
 
 using namespace sl;
 
