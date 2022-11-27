@@ -20,11 +20,11 @@ public:
     void initialize_state_estimator();
     virtual ~VisionRunner();
 
-    ControlInput<double>* control_input_;
-    std::vector<Measurement<double>>* measurements_;
+    ControlInput<float>* control_input_;
+    std::vector<Measurement<float>>* measurements_;
 private:
-    StateEstimate<double> state_estimate_;
-    EstimatorContainer<double>* state_estimator_;
+    StateEstimate<float> state_estimate_;
+    EstimatorContainer<float>* state_estimator_;
 
 //    state_estimate_publishable state_est_pub_;
 
