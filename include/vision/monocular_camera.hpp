@@ -27,7 +27,7 @@ private:
 
 public:
     MonocularCamera() = default;
-    explicit MonocularCamera(CameraConfig<T> config);
+    explicit MonocularCamera(const CameraConfig<T> &config);
     ~MonocularCamera() override;
 
     IntrinsicParameters<T> get_intrinsic_parameters();

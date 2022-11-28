@@ -4,9 +4,8 @@
 #include "vision/monocular_camera.hpp"
 
 template <typename T>
-MonocularCamera<T>::MonocularCamera(CameraConfig<T> config) {
-    config_ = config;
-}
+MonocularCamera<T>::MonocularCamera(const CameraConfig<T> &config) : config_(config){}
+
 template <typename T>
 MonocularCamera<T>::~MonocularCamera() {
     cap_.release();
