@@ -68,3 +68,5 @@ int MonocularCamera<T>::get_id() const {
 	return device_id_;
 }
 
+template class MonocularCamera<float>;
+template class MonocularCamera<double>;
