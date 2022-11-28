@@ -19,9 +19,9 @@ void MCLPoseEstimator<T>::setup() {
     x_est_ = Eigen::Vector3<T>::Zero();
     for (int i = 0; i < NUM_PARTICLES; ++i) {
         rand_pose = {
-                uniform_random(0.0, 5.0),
-                uniform_random(0.0, 5.0),
-                uniform_random(0.0, 5.0)
+                uniform_random(0.0f, 5.0f),
+                uniform_random(0.0f, 5.0f),
+                uniform_random(0.0f, 5.0f)
         };
         X_.at(i).x = rand_pose;
     }

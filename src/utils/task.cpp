@@ -4,8 +4,10 @@
 
 #include "utils/task.hpp"
 
+#include <utility>
+
 Task::Task(TaskManager* manager, float period, std::string name)
-    : period_(period), name_(name) {
+    : period_(period), name_(std::move(name)) {
     manager->add_task(this);
 }
 
