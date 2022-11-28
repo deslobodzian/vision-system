@@ -70,22 +70,26 @@ inline cv::cuda::GpuMat slMat_to_cvMat_GPU(const sl::Mat& input) {
     };
 }
 
-inline sl::float3 calculate_plane_normal_vector(const sl::float3 &p1, const sl::float3 &p2, const sl::float3 &p3) {
-    sl::float3 u = sl::float3::cross((p3 - p1), (p2 - p1));
+template <typename T>
+inline sl::Vector3<T> calculate_plane_normal_vector(const sl::Vector3<T> &p1, const sl::Vector3<T>  &p2, const sl::Vector3<T> &p3) {
+    sl::Vector3<T> u = sl::Vector3<T>::cross((p3 - p1), (p2 - p1));
     return u/u.norm();
 }
 
-inline Sophus::SO3d so3_from_normal_vec(const sl::float3 &normal_vec) {
-    return Sophus::SO3FromNormal(Eigen::Vector3d(normal_vec.x, normal_vec.y, normal_vec.z));
+template <typename T>
+inline Sophus::SO3<T> so3_from_normal_vec(const sl::Vector3<T> &normal_vec) {
+    return Sophus::SO3FromNormal(Eigen::Vector3<T>(normal_vec.x, normal_vec.y, normal_vec.z));
 }
 
-inline sl::Orientation orientation_from_normal_vec(const sl::float3 &normal_vec) {
-    Sophus::SO3d so3(so3_from_normal_vec(normal_vec));
-    Sophus::SO3d::QuaternionMember q = so3.unit_quaternion();
-    return {sl::float4((float)q.x(), (float)q.y(), (float)q.z(), (float)q.w())};
+template <typename T>
+inline sl::Orientation orientation_from_normal_vec(const sl::Vector3<T> &normal_vec) {
+    Sophus::SO3<T> so3(so3_from_normal_vec(normal_vec));
+    typename Sophus::SO3<T>::QuaternionMember q = so3.unit_quaternion();
+    return {sl::Vector4<float>((float)q.x(), (float)q.y(), (float)q.z(), (float)q.w())};
 }
 
-inline bool is_vec_nan(const sl::float3 &vec) {
+template <typename T>
+inline bool is_vec_nan(const sl::Vector3<T> &vec) {
     return isnan(abs(vec.x)) || isnan(abs(vec.y)) || isnan(abs(vec.z));
 }
 
