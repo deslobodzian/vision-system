@@ -83,31 +83,31 @@ Corners TagDetector::get_detection_corners(apriltag_detection_t *det) {
     return {tr, tl, bl, br};
 }
 
-template <typename T>
-apriltag_pose_t TagDetector::get_estimated_target_pose(
-        IntrinsicParameters<T> params,
-        apriltag_detection_t *det,
-        T tag_size) {
-    apriltag_detection_info_t info;
-    info.det = det;
-    info.tagsize = tag_size;
-    info.fx = params.fx;
-    info.fy = params.fy;
-    info.cx = params.cx;
-    info.cy = params.cy;
+//template <typename T>
+//apriltag_pose_t TagDetector::get_estimated_target_pose(
+//        IntrinsicParameters<T> params,
+//        apriltag_detection_t *det,
+//        T tag_size) {
+//    apriltag_detection_info_t info;
+//    info.det = det;
+//    info.tagsize = tag_size;
+//    info.fx = params.fx;
+//    info.fy = params.fy;
+//    info.cx = params.cx;
+//    info.cy = params.cy;
+//
+//    apriltag_pose_t pose;
+//    T err = estimate_tag_pose(&info, &pose);
+//    return pose;
+//}
 
-    apriltag_pose_t pose;
-    T err = estimate_tag_pose(&info, &pose);
-    return pose;
-}
-
-template <typename T>
-sl::Pose TagDetector::get_estimated_target_pose(const sl::Vector3<T> &tr, const sl::Vector3<T> &tl, const sl::Vector3<T> &br) {
-    sl::float3 normal_vec = calculate_plane_normal_vector(tr, tl, br);
-    sl::Orientation orientation(orientation_from_normal_vec(normal_vec));
-    sl::Translation translation((tl + br) / 2);
-    return {sl::Transform(orientation, translation)};
-}
+//template <typename T>
+//sl::Pose TagDetector::get_estimated_target_pose(const sl::Vector3<T> &tr, const sl::Vector3<T> &tl, const sl::Vector3<T> &br) {
+//    sl::float3 normal_vec = calculate_plane_normal_vector(tr, tl, br);
+//    sl::Orientation orientation(orientation_from_normal_vec(normal_vec));
+//    sl::Translation translation((tl + br) / 2);
+//    return {sl::Transform(orientation, translation)};
+//}
 
 apriltag_family_t* TagDetector::create_tag(tag_family tf) {
     switch(tf) {
