@@ -16,6 +16,7 @@
 //#include "networking/nt_manager.hpp"
 #include "vision_runner.hpp"
 #include "vision/Zed.hpp"
+#include "vision/monocular_camera.hpp"
 #include "vision/apriltag_manager.hpp"
 
 class VisionContainer {
