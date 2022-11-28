@@ -46,8 +46,8 @@ public:
     std::vector<TrackedTargetInfo> get_zed_targets();
     std::vector<TrackedTargetInfo> get_monocular_targets();
 private:
-    TagDetector<T> zed_detector_;
-    TagDetector<T> monocular_detector_;
+    TagDetector<float> zed_detector_;
+    TagDetector<float> monocular_detector_;
     std::mutex zed_mtx_;
     std::mutex monocular_mtx_;
     std::vector<TrackedTargetInfo> zed_targets_;
