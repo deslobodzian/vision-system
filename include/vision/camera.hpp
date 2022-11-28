@@ -16,6 +16,8 @@ public:
     virtual int open_camera(){return -1;};
     virtual void fetch_measurements(){};
     virtual CAMERA_TYPE get_camera_type() const = 0;
+
+    virtual ~GenericCamera() = default;
 private:
 };
 
