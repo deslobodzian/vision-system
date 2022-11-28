@@ -83,7 +83,7 @@ inline Sophus::SO3<T> so3_from_normal_vec(const sl::Vector3<T> &normal_vec) {
 
 template <typename T>
 inline sl::float3 sl_vec_to_float3(const sl::Vector3<T> &vec) {
-    return{(float)vec.tx, (float)vec.ty, (float)vec.tz}
+    return{(float)vec.tx, (float)vec.ty, (float)vec.tz};
 }
 
 template <typename T>
