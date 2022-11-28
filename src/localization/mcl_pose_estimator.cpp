@@ -10,7 +10,7 @@ MCLPoseEstimator<T>::MCLPoseEstimator(const std::vector<Landmark> &map) {
 
 template <typename T>
 void MCLPoseEstimator<T>::setup() {
-    Particle p;
+    Particle<T> p;
     Eigen::Vector3<T> rand_pose;
 
     p.weight = 1.0 / NUM_PARTICLES;
@@ -29,13 +29,14 @@ void MCLPoseEstimator<T>::setup() {
 
 template <typename T>
 void MCLPoseEstimator<T>::run() {
-    ControlInput<T> u = this->state_estimator_data_.state_estimate->u;
-    std::vector<Measurement<T>> measurements = this->state_estimator_data_.state_estimate->measurements;
+    ControlInput<T>* u = this->state_estimator_data_.control_input;
+    std::vector<Measurement<T>>* measurements = this->state_estimator_data_.measurements;
     monte_carlo_localization(u, measurements);
 
     Translation<T, 2> t_est {get_estimated_pose().x(), get_estimated_pose().y()};
     Rotation2D<T> rot_est{get_estimated_pose().z()};
-    this->state_estimator_data_.state_estimate->translation_estimate = {t_est, rot_est};
+    this->state_estimator_data_.state_estimate->translation_estimate = {t_est};
+    this->state_estimator_data_.state_estimate->rotation_estimate = {rot_est};
 }
 
 // for now assume feature is [range, bearing, element]
@@ -45,14 +46,14 @@ T MCLPoseEstimator<T>::sample_measurement_model(
         const Eigen::Vector3<T> &x,
         const Landmark &landmark) {
     T q = 0;
-    if (measurement.get_element() == landmark.tag_id) {
+    if (measurement.get_id() == landmark.tag_id) {
         T range = hypot(landmark.x - x.x(), landmark.y - x.y());
         T bearing = atan2(
                 landmark.y - x.y(),
                 landmark.x - x.x()
         ) - x.z();
-        q = zero_mean_gaussian(measurement.get_range() - range, 0.1) *
-            zero_mean_gaussian(measurement.get_bearing() - bearing,0.1);
+        q = zero_mean_gaussian(measurement.get_range() - range, (T)0.1) *
+            zero_mean_gaussian(measurement.get_bearing() - bearing, (T)0.1);
 //        info("probability of meansurement: " + std::to_string(q));
     }
     return q;
@@ -61,9 +62,9 @@ template <typename T>
 Eigen::Vector3<T> MCLPoseEstimator<T>::sample_motion_model(
         ControlInput<T>* u,
         const Eigen::Vector3<T> &x) {
-    T noise_dx = u->dx + sample_triangle_distribution(fabs(u->d_translation.x() * ALPHA_TRANSLATION));
-    T noise_dy = u->dy + sample_triangle_distribution(fabs(u->d_translation.y() * ALPHA_TRANSLATION));
-    T noise_dTheta = u->d_theta + sample_triangle_distribution(fabs(u->d_theta.angle() * ALPHA_TRANSLATION));
+    T noise_dx = u->d_translation.x() + sample_triangle_distribution(fabs(u->d_translation.x() * ALPHA_TRANSLATION));
+    T noise_dy = u->d_translation.y() + sample_triangle_distribution(fabs(u->d_translation.y() * ALPHA_TRANSLATION));
+    T noise_dTheta = u->d_theta.angle() + sample_triangle_distribution(fabs(u->d_theta.angle() * ALPHA_TRANSLATION));
 
     T x_prime = x.x() + noise_dx;
     T y_prime = x.y() + noise_dy;
@@ -95,9 +96,9 @@ T MCLPoseEstimator<T>::calculate_weight(
         T weight,
         const std::vector<Landmark> &map) {
     for (Landmark landmark : map) {
-        for (auto &i : z) {
-            if (i.get_id() == landmark.tag_id) {
-                weight = weight * sample_measurement_model(i, x, landmark);
+        for (Measurement<T> measurement : z) {
+            if (measurement.get_id() == landmark.tag_id) {
+                weight = weight * sample_measurement_model(measurement, x, landmark);
                 break;
             }
         }
@@ -107,8 +108,8 @@ T MCLPoseEstimator<T>::calculate_weight(
 }
 
 template <typename T>
-std::vector<Particle> MCLPoseEstimator<T>::low_variance_sampler(const std::vector<Particle> &X) {
-    std::vector<Particle> X_bar;
+std::vector<Particle<T>> MCLPoseEstimator<T>::low_variance_sampler(const std::vector<Particle<T>> &X) {
+    std::vector<Particle<T>> X_bar;
     T r = random(0.0, 1.0 / NUM_PARTICLES);
     T c = X.at(0).weight;
     int i = 0;
@@ -124,17 +125,17 @@ std::vector<Particle> MCLPoseEstimator<T>::low_variance_sampler(const std::vecto
 }
 
 template <typename T>
-std::vector<Particle> MCLPoseEstimator<T>::monte_carlo_localization(
+std::vector<Particle<T>> MCLPoseEstimator<T>::monte_carlo_localization(
         ControlInput<T>* u,
         std::vector<Measurement<T>>* z) {
-    std::vector<Particle> X_bar;
+    std::vector<Particle<T>> X_bar;
     T sum = 0;
     Eigen::MatrixX<T> x_set(3, X_.size());
     for (int particle = 0; particle < NUM_PARTICLES; ++particle) {
         Eigen::Vector3<T> x = sample_motion_model(u, X_.at(particle).x);
-        T weight = calculate_weight(z, x, X_.at(particle).weight, map_);
+        T weight = calculate_weight(*z, x, X_.at(particle).weight, map_);
         sum += weight;
-        Particle p;
+        Particle<T> p;
         p.x = x;
         p.weight = weight;
         X_bar.emplace_back(p);
@@ -161,7 +162,7 @@ std::vector<Particle> MCLPoseEstimator<T>::monte_carlo_localization(
 }
 
 template <typename T>
-std::vector<Particle> MCLPoseEstimator<T>::get_particle_set() {
+std::vector<Particle<T>> MCLPoseEstimator<T>::get_particle_set() {
     return X_;
 }
 
@@ -169,3 +170,6 @@ template <typename T>
 Eigen::Vector3<T> MCLPoseEstimator<T>::get_estimated_pose() {
     return x_est_;
 }
+
+template class MCLPoseEstimator<float>;
+template class MCLPoseEstimator<double>;

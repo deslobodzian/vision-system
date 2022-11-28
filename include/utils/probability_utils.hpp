@@ -27,9 +27,7 @@ inline T sample_triangle_distribution(T b) {
 
 template <typename T>
 inline T zero_mean_gaussian(T x, T sigma) {
-    double probability = (1.0 / sqrt(2.0 * M_PI * pow(sigma, 2))) *
-                         exp(-pow(x, 2) / (2.0 * pow(sigma, 2)));
-    return probability;
+    return (1.0 / sqrt(2.0 * M_PI * pow(sigma, 2))) * exp(-pow(x, 2) / (2.0 * pow(sigma, 2)));
 }
 
 #endif //VISION_SYSTEM_PROBABILITY_UTIL_HPP

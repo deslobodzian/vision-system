@@ -23,9 +23,10 @@
 
 using namespace Eigen;
 
+template <typename T>
 struct Particle {
-    Eigen::Vector3d x;
-    double weight;
+    Eigen::Vector3<T> x;
+    T weight;
 };
 
 template <typename T>
@@ -53,20 +54,20 @@ public:
                             T weight,
                             const std::vector<Landmark> &map);
 
-    std::vector<Particle> monte_carlo_localization(
+    std::vector<Particle<T>> monte_carlo_localization(
             ControlInput<T>* u,
             std::vector<Measurement<T>>* z);
 
-    std::vector<Particle> low_variance_sampler(const std::vector<Particle> &X);
+    std::vector<Particle<T>> low_variance_sampler(const std::vector<Particle<T>> &X);
 
-    std::vector<Particle> get_particle_set();
+    std::vector<Particle<T>> get_particle_set();
     Eigen::Vector3<T> get_estimated_pose();
 
 
 private:
     Eigen::Vector3<T> x_est_;
 
-    std::vector<Particle> X_; // particle set for filter
+    std::vector<Particle<T>> X_; // particle set for filter
     std::vector<Landmark> map_;
 };
 #endif //VISION_SYSTEM_MCL_POSE_ESTIMATOR_HPP
