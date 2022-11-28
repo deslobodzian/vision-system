@@ -33,7 +33,7 @@ void AprilTagManager::detect_tags_zed(Zed* camera) {
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         zed_dt_ = duration.count();
 	}
-    apriltag_detection_destroy(det);
+//    apriltag_detection_destroy(det);
 }
 
 //template <typename T>
