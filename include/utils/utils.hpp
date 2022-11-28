@@ -113,7 +113,7 @@ inline void error(const std::string& msg) {
     std::cout << "\033[1;31m[ERROR]\033[0m" << msg << "\n";
 }
 inline void debug(const std::string& msg) {
-    std::cout << "[DEBUG]" << msg << "\n";
+    std::cout << "\033[1;33m[DEBUG]\033[0m" << msg << "\n";
 }
 /*
  * Encode int32_t to uint8_t from LCM package

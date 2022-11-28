@@ -11,7 +11,7 @@ void VisionContainer::init_scheduler() {
     struct sched_param parameters_{};
     parameters_.sched_priority = sched_get_priority_max(SCHED_FIFO);
     if (sched_setscheduler(0, SCHED_FIFO, &parameters_) == -1) {
-        error("[Scheduler]: Failed to configure task scheduler.");
+        error("[Scheduler]: Failed to configure task scheduler errno: " + std::to_string(errno));
     }
 }
 void VisionContainer::init() {
