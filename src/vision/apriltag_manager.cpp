@@ -1,12 +1,10 @@
 #include "vision/apriltag_manager.hpp"
 
-template <typename T>
-AprilTagManager<T>::AprilTagManager(const detector_config &cfg) :
+AprilTagManager::AprilTagManager(const detector_config &cfg) :
         zed_detector_(cfg), monocular_detector_(cfg){
 }
 
-template <typename T>
-void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
+void AprilTagManager::detect_tags_zed(Zed* camera) {
     std::vector<TrackedTargetInfo> targets;
     apriltag_detection_t *det;
     auto start = std::chrono::high_resolution_clock::now();
@@ -39,7 +37,7 @@ void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
 }
 
 template <typename T>
-void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
+void AprilTagManager::detect_tags_monocular(MonocularCamera<T>* camera) {
     std::vector<TrackedTargetInfo> targets;
     apriltag_detection_t *det;
     auto start = std::chrono::high_resolution_clock::now();
@@ -71,28 +69,22 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
     }
 }
 
-template <typename T>
-std::vector<TrackedTargetInfo> AprilTagManager<T>::get_zed_targets() {
+std::vector<TrackedTargetInfo> AprilTagManager::get_zed_targets() {
     const std::lock_guard<std::mutex> lock(zed_mtx_);
     return zed_targets_;
 }
 
-template <typename T>
-std::vector<TrackedTargetInfo> AprilTagManager<T>::get_monocular_targets() {
+std::vector<TrackedTargetInfo> AprilTagManager::get_monocular_targets() {
     const std::lock_guard<std::mutex> lock(monocular_mtx_);
     return monocular_targets_;
 }
 
-template <typename T>
-void AprilTagManager<T>::print_zed_dt() const {
+void AprilTagManager::print_zed_dt() const {
     info("Zed took "  + std::to_string(zed_dt_));
 }
 
-template <typename T>
-void AprilTagManager<T>::print_monocular_dt() const {
+void AprilTagManager::print_monocular_dt() const {
     info("Monocular took " + std::to_string(monocular_dt_));
 }
 
-
-template <typename T>
-AprilTagManager<T>::~AprilTagManager() {}
+AprilTagManager::~AprilTagManager() {}

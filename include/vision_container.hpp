@@ -42,7 +42,7 @@ protected:
 
     Zed* zed_camera_ = nullptr;
     MonocularCamera<float>* monocular_camera_ = nullptr;
-    AprilTagManager<float>* tag_manager_ = nullptr;
+    AprilTagManager* tag_manager_ = nullptr;
     VisionRunner* vision_runner_ = nullptr;
 
     void odometry_handle();
