@@ -31,12 +31,13 @@ extern "C" {
 	#include "common/getopt.h"
 }
 
+template <typename T>
 class AprilTagManager {
 public:
     AprilTagManager() = default;
     AprilTagManager(const detector_config &cfg);
     ~AprilTagManager();
-    template <typename T>
+
 	void detect_tags_monocular(MonocularCamera<T>* camera);
 	void detect_tags_zed(Zed* zed);
     void print_monocular_dt() const;
@@ -51,8 +52,8 @@ private:
     std::mutex monocular_mtx_;
     std::vector<TrackedTargetInfo> zed_targets_;
     std::vector<TrackedTargetInfo> monocular_targets_;
-    long zed_dt_;
-    long monocular_dt_;
+    long zed_dt_{};
+    long monocular_dt_{};
 
 };
 

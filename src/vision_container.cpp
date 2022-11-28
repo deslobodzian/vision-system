@@ -55,7 +55,7 @@ void VisionContainer::init() {
     apriltag_config.debug = false;
     apriltag_config.refine_edges = false;
 
-    tag_manager_ = new AprilTagManager(apriltag_config);
+    tag_manager_ = new AprilTagManager<float>(apriltag_config);
 }
 void VisionContainer::detect_targets() {
     tag_manager_->detect_tags_zed(zed_camera_);
