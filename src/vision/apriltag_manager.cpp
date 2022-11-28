@@ -19,9 +19,9 @@ void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
         for (int i = 0; i < zed_detector_.get_current_number_of_targets(); i++) {
             zarray_get(zed_detector_.get_current_detections(), i, &det);
             Corners c = zed_detector_.get_detection_corners(det);
-            sl::float3 tr = camera->get_position_from_pixel(c.tr);
-            sl::float3 tl = camera->get_position_from_pixel(c.tl);
-            sl::float3 br = camera->get_position_from_pixel(c.br);
+            sl::Vector3<T> tr = camera->get_position_from_pixel(c.tr);
+            sl::Vector3<T> tl = camera->get_position_from_pixel(c.tl);
+            sl::Vector3<T> br = camera->get_position_from_pixel(c.br);
             if (is_vec_nan(tr) || is_vec_nan(tl) || is_vec_nan(br)){
 //              error("Vec is nan");
             } else {
@@ -96,4 +96,3 @@ template <typename T>
 AprilTagManager<T>::~AprilTagManager() {}
 
 template class AprilTagManager<float>;
-template class AprilTagManager<double>;
