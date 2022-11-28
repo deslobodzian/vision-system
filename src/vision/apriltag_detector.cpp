@@ -180,4 +180,3 @@ void TagDetector<T>::destroy_tag(tag_family tag_family_class, apriltag_family_t 
 }
 
 template class TagDetector<float>;
-template class TagDetector<double>;
