@@ -43,7 +43,7 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
     std::vector<TrackedTargetInfo> targets;
     apriltag_detection_t *det;
     auto start = std::chrono::high_resolution_clock::now();
-    camera->read_frame();
+    camera->fetch_measurements();
     monocular_detector_.fetch_detections(camera->get_frame());
 
     if (monocular_detector_.has_targets()) {
@@ -53,7 +53,7 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
             apriltag_pose_t pose = monocular_detector_.get_estimated_target_pose(
                     camera->get_intrinsic_parameters(),
                     det,
-                    0.127 // 5 inch in meters
+                    (T)0.127 // 5 inch in meters
             );
             targets.emplace_back(
                     TrackedTargetInfo(
@@ -96,4 +96,3 @@ void AprilTagManager<T>::print_monocular_dt() const {
 
 template <typename T>
 AprilTagManager<T>::~AprilTagManager() {}
-

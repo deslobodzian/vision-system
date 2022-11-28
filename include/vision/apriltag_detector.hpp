@@ -81,7 +81,8 @@ public:
             apriltag_detection_t *det,
             T tag_size
             );
-    sl::Pose get_estimated_target_pose(const sl::float3 &tr, const sl::float3 &tl, const sl::float3 &br);
+    template <typename T>
+    sl::Pose get_estimated_target_pose(const sl::Vector3<T> &tr, const sl::Vector3<T> &tl, const sl::Vector3<T> &br);
 };
 
 #endif //VISION_SYSTEM_APRILTAG_DETECTOR_HPP

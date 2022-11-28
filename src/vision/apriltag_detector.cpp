@@ -101,7 +101,8 @@ apriltag_pose_t TagDetector::get_estimated_target_pose(
     return pose;
 }
 
-sl::Pose TagDetector::get_estimated_target_pose(const sl::float3 &tr, const sl::float3 &tl, const sl::float3 &br) {
+template <typename T>
+sl::Pose TagDetector::get_estimated_target_pose(const sl::Vector3<T> &tr, const sl::Vector3<T> &tl, const sl::Vector3<T> &br) {
     sl::float3 normal_vec = calculate_plane_normal_vector(tr, tl, br);
     sl::Orientation orientation(orientation_from_normal_vec(normal_vec));
     sl::Translation translation((tl + br) / 2);
