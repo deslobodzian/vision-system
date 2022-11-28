@@ -51,11 +51,11 @@ void VisionContainer::init() {
     info("[VisionContainer]: Setting up AprilTag manager");
     detector_config apriltag_config {};
     apriltag_config.tf = tag16h5;
-    apriltag_config.quad_decimate = 0.5;
+    apriltag_config.quad_decimate = 1;
     apriltag_config.quad_sigma = 0.5;
     apriltag_config.nthreads = 2;
     apriltag_config.debug = false;
-    apriltag_config.refine_edges = false;
+    apriltag_config.refine_edges = true;
 
     tag_manager_ = new AprilTagManager<float>(apriltag_config);
 }

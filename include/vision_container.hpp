@@ -5,7 +5,7 @@
 #ifndef VISION_SYSTEM_VISION_CONTAINER_HPP
 #define VISION_SYSTEM_VISION_CONTAINER_HPP
 
-#define PRIORITY 49
+#define PRIORITY 40
 
 #include "estimator/estimator.hpp"
 #include <sys/mman.h>
