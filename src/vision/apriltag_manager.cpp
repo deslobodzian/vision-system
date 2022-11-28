@@ -11,11 +11,14 @@ void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
     apriltag_detection_t *det;
     auto start = std::chrono::high_resolution_clock::now();
     camera->fetch_measurements();
-    zed_detector_.fetch_detections(slMat_to_cvMat(camera->get_left_image()));
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    zed_dt_ = duration.count();
 
+    zed_detector_.fetch_detections(slMat_to_cvMat(camera->get_left_image()));
 	if (zed_detector_.has_targets()) {
         targets.clear();
-        info("Zed: " + std::to_string(zed_detector_.get_current_number_of_targets()));
+//        info("Zed: " + std::to_string(zed_detector_.get_current_number_of_targets()));
         for (int i = 0; i < zed_detector_.get_current_number_of_targets(); i++) {
             zarray_get(zed_detector_.get_current_detections(), i, &det);
             Corners c = zed_detector_.get_detection_corners(det);
@@ -31,9 +34,7 @@ void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
         }
         const std::lock_guard<std::mutex> lock(zed_mtx_);
         zed_targets_ = targets;
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        zed_dt_ = duration.count();
+        print_zed_dt();
 	}
 }
 
@@ -43,10 +44,14 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
     apriltag_detection_t *det;
     auto start = std::chrono::high_resolution_clock::now();
     camera->fetch_measurements();
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    monocular_dt_ = duration.count();
+
     monocular_detector_.fetch_detections(camera->get_frame());
 
     if (monocular_detector_.has_targets()) {
-        info("Monocular: " + std::to_string(monocular_detector_.get_current_number_of_targets()));
+//        info("Monocular: " + std::to_string(monocular_detector_.get_current_number_of_targets()));
         for (int i = 0; i < monocular_detector_.get_current_number_of_targets(); i++) {
             zarray_get(monocular_detector_.get_current_detections(), i, &det);
             apriltag_pose_t pose = monocular_detector_.get_estimated_target_pose(
@@ -64,9 +69,7 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
         }
         const std::lock_guard<std::mutex> lock(monocular_mtx_);
         monocular_targets_ = targets;
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        monocular_dt_ = duration.count();
+        print_monocular_dt();
     }
 }
 
@@ -84,12 +87,12 @@ std::vector<TrackedTargetInfo> AprilTagManager<T>::get_monocular_targets() {
 
 template <typename T>
 void AprilTagManager<T>::print_zed_dt() const {
-    info("Zed took "  + std::to_string(zed_dt_));
+    info("Zed took "  + std::to_string(zed_dt_) + " ms");
 }
 
 template <typename T>
 void AprilTagManager<T>::print_monocular_dt() const {
-    info("Monocular took " + std::to_string(monocular_dt_));
+    info("Monocular took " + std::to_string(monocular_dt_) + " ms");
 }
 
 template <typename T>
