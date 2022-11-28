@@ -28,7 +28,7 @@ void VisionContainer::init() {
     zed_config.res = sl::RESOLUTION::VGA;
     zed_config.fps = 100;
     zed_config.depth_mode = sl::DEPTH_MODE::ULTRA;
-    zed_config.sdk_verbose = false;
+    zed_config.sdk_verbose = true;
     zed_config.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
     zed_config.units = sl::UNIT::METER;
     zed_config.max_depth = 20.0;
@@ -77,7 +77,7 @@ void VisionContainer::run() {
     info("[VisionContainer]: Starting detection task");
     PeriodicMemberFunction<VisionContainer> detection_task(
             &task_manager_,
-            0.002,
+            0.02,
             "detection",
             &VisionContainer::detect_targets,
             this
