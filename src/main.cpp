@@ -6,7 +6,6 @@
 int main() {
     VisionContainer container;
 //
-    container.init();
     container.run();
 }
 

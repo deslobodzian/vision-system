@@ -34,6 +34,7 @@ void VisionContainer::init() {
     zed_config.max_depth = 20.0;
 
     zed_camera_ = new Zed(zed_config);
+    zed_camera_->open_camera();
 
     info("[VisionContainer]: Setting up monocular cameras");
     IntrinsicParameters<float> parameters{1116.821, 1113.573, 678.58, 367.73};
@@ -45,6 +46,7 @@ void VisionContainer::init() {
             parameters
     );
     monocular_camera_ = new MonocularCamera<float>(monocular_config);
+    monocular_camera_->open_camera();
 
     info("[VisionContainer]: Setting up AprilTag manager");
     detector_config apriltag_config {};
