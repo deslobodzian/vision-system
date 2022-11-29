@@ -7,7 +7,6 @@
 
 #include "networktables/NetworkTableInstance.h"
 #include "nt_publisher.hpp"
-#include <wpi/Str
 #include "nt_subscriber.hpp"
 #include <map>
 

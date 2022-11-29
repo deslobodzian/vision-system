@@ -70,6 +70,7 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         monocular_dt_ = duration.count();
         print_monocular_dt();
+        debug("monocular_targets: " + monocular_targets_.at(0).to_packet());
     }
 }
 
