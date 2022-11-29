@@ -34,7 +34,7 @@ void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         zed_dt_ = duration.count();
-        print_zed_dt();
+//        print_zed_dt();
 	}
 }
 
@@ -69,8 +69,7 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         monocular_dt_ = duration.count();
-        print_monocular_dt();
-        debug("monocular_targets: " + monocular_targets_.at(0).to_packet());
+//        print_monocular_dt();
     }
 }
 
