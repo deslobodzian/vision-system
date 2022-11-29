@@ -18,8 +18,8 @@ using namespace sl;
 typedef struct {
     Timestamp timestamp;
     Mat left_image;
-//    Pose camera_pose;
-//    Mat depth_map;
+    Pose camera_pose;
+    Mat depth_map;
     Mat point_cloud;
 } ZedMeasurements;
 
