@@ -49,7 +49,7 @@ void VisionContainer::init() {
     tag_manager_ = new AprilTagManager<float>(apriltag_config);
 }
 void VisionContainer::detect_targets() {
-    tag_manager_->detect_tags_zed(zed_camera_);
+//    tag_manager_->detect_tags_zed(zed_camera_);
     tag_manager_->detect_tags_monocular(monocular_camera_);
 }
 
