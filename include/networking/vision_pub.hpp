@@ -7,17 +7,23 @@
 
 #include "nt_publisher.hpp"
 
-struct vision_publishable : public Publishable {
-    double target_info[3];
-    double pose_estimate[3];
+struct vision_publishable : public publishable {
+    const std::string topic_ = "vision";
+    float target_info[3];
 
-    std::span<double> to_span() {
-        return {target_info, pose_estimate};
+    std::span<uint8_t> to_span() override {
+        uint8_t bytes[3 * sizeof(float)];
+        encode(bytes);
+        return {bytes};
     }
-    std::string get_topic() const {
+
+    void encode(uint8_t *buffer) override {
+        encode_float_array(buffer, 0, sizeof(float) * 3, target_info, 3);
+    }
+
+    std::string get_topic() const override {
         return topic_;
     }
-    const std::string topic_ = "vision";
 };
 
 #endif //VISION_SYSTEM_VISION_PUB_HPP

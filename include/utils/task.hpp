@@ -26,11 +26,11 @@ public:
     virtual void run() = 0;
 
     /* return period in hz */
-    float get_period() {return period_;}
+    float get_period() const {return 1.0f / period_;}
 
 
 private:
-    double period_;
+    float period_;
     bool running_ = false;
     std::string name_;
     std::thread thread_;

@@ -10,16 +10,16 @@
 
 struct state_estimate_publishable : public publishable {
     const std::string topic_ = "state_estimate";
-    double state_estimate[3];
+    float state_estimate[3];
 
     std::span<uint8_t> to_span() override {
-        uint8_t bytes[3 * sizeof(double)];
+        uint8_t bytes[3 * sizeof(float)];
         encode(bytes);
         return {bytes};
     }
 
     void encode(uint8_t *buffer) override {
-        encode_double_array(buffer, 0, sizeof(double) * 3, state_estimate, 3);
+        encode_float_array(buffer, 0, sizeof(float) * 3, state_estimate, 3);
     }
 
     std::string get_topic() const override {

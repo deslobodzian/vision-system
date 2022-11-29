@@ -9,10 +9,10 @@
 
 struct odometry_subscribable : public subscribable {
 public:
-    double dx;
-    double dy;
-    double d_theta;
-    void copy_vec(const std::vector<double> &data) {
+    float dx;
+    float dy;
+    float d_theta;
+    void copy_vec(const std::vector<float> &data) {
         dx = data.at(0);
         dy = data.at(1);
         d_theta = data.at(2);
