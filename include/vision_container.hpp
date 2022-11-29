@@ -5,10 +5,8 @@
 #ifndef VISION_SYSTEM_VISION_CONTAINER_HPP
 #define VISION_SYSTEM_VISION_CONTAINER_HPP
 
-#define PRIORITY 40
 
 #include "estimator/estimator.hpp"
-#include <sys/mman.h>
 #include "utils/task.hpp"
 #include "utils/utils.hpp"
 //#include "networking/odometry_sub.hpp"
@@ -23,7 +21,6 @@ class VisionContainer {
 public:
     VisionContainer();
 
-    void init_scheduler();
     void init();
     void run();
 
