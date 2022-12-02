@@ -8,9 +8,9 @@ VisionContainer::VisionContainer() {}
 
 void VisionContainer::init() {
     info("[VisionContainer]: Subscribing to odometry");
-//    nt_manager_.add_subscriber(&odometry_sub_);
+    nt_manager_.add_subscriber(&odometry_sub_);
     info("[VisionContainer]: Starting odometry subscription thread");
-//    odometry_thread_ = std::thread(&VisionContainer::odometry_handle, this);
+    odometry_thread_ = std::thread(&VisionContainer::odometry_handle, this);
 
     info("[VisionContainer]: Setting up zed camera");
     zed_config zed_config{};
@@ -79,8 +79,8 @@ void VisionContainer::run() {
 }
 
 void VisionContainer::odometry_handle() {
-//    nt_manager_.get_subscription(&odometry_sub_);
-//    control_input_->set_odometry_input(&odometry_sub_);
+    nt_manager_.get_subscription(&odometry_sub_);
+    control_input_->set_odometry_input(&odometry_sub_);
 }
 
 VisionContainer::~VisionContainer() {

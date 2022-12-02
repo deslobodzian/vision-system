@@ -9,8 +9,8 @@
 #include <mutex>
 
 struct subscribable {
-    virtual void copy_vector(const std::vector<uint8_t> &data);
-    virtual std::string get_topic() const;
+    virtual void copy_vector(const std::vector<uint8_t> &data){};
+    virtual std::string get_topic() const=0;
     std::mutex subscriber_mtx_;
 };
 

@@ -9,9 +9,9 @@
 #include "estimator/estimator.hpp"
 #include "utils/task.hpp"
 #include "utils/utils.hpp"
-//#include "networking/odometry_sub.hpp"
-//#include "networking/vision_pub.hpp"
-//#include "networking/nt_manager.hpp"
+#include "networking/odometry_sub.hpp"
+#include "networking/vision_pub.hpp"
+#include "networking/nt_manager.hpp"
 #include "vision_runner.hpp"
 #include "vision/Zed.hpp"
 #include "vision/monocular_camera.hpp"
@@ -33,9 +33,9 @@ public:
 
 protected:
     TaskManager task_manager_;
-//    NTManager nt_manager_;
+    NTManager nt_manager_;
     std::thread odometry_thread_;
-//    odometry_subscribable odometry_sub_;
+    odometry_subscribable odometry_sub_;
 
     Zed* zed_camera_ = nullptr;
     MonocularCamera<float>* monocular_camera_ = nullptr;
