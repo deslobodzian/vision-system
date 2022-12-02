@@ -43,7 +43,8 @@ protected:
     VisionRunner* vision_runner_ = nullptr;
 
     void odometry_handle();
-    void detect_targets();
+    void detect_zed_targets();
+    void detect_monocular_targets();
 };
 
 #endif //VISION_SYSTEM_VISION_CONTAINER_HPP

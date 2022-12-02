@@ -47,9 +47,15 @@ void VisionContainer::init() {
     apriltag_config.refine_edges = true;
 
     tag_manager_ = new AprilTagManager<float>(apriltag_config);
+
+
 }
-void VisionContainer::detect_targets() {
+
+void VisionContainer::detect_zed_targets() {
     tag_manager_->detect_tags_zed(zed_camera_);
+}
+
+void VisionContainer::detect_monocular_targets() {
     tag_manager_->detect_tags_monocular(monocular_camera_);
 }
 
@@ -63,15 +69,28 @@ void VisionContainer::run() {
     vision_runner_->measurements_ = measurements_;
 
     // init threads;
-    info("[VisionContainer]: Starting detection task");
-    PeriodicMemberFunction<VisionContainer> detection_task(
+    info("[VisionContainer]: Starting detection zed task");
+    PeriodicMemberFunction<VisionContainer> zed_task(
             &task_manager_,
             0.02,
             "detection",
-            &VisionContainer::detect_targets,
+            &VisionContainer::detect_zed_targets,
             this
-            );
-    detection_task.start();
+    );
+    // monocular task runs slower as we don't need this to update as fast as the zed camera.
+    info("[VisionContainer]: Starting detection monocular task");
+    PeriodicMemberFunction<VisionContainer> monocular_task(
+            &task_manager_,
+            0.05,
+            "detection",
+            &VisionContainer::detect_zed_targets,
+            this
+    );
+
+    zed_task.start();
+    monocular_task.start();
+
+    vision_runner_->start();
 
     for (;;) {
         usleep(1000000);

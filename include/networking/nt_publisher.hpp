@@ -11,9 +11,9 @@
 #include "vision/tracked_target_info.hpp"
 
 struct publishable {
-    virtual std::span<uint8_t> to_span(){};
+    virtual std::span<uint8_t> to_span() = 0;
     virtual std::string get_topic() const = 0;
-    virtual void encode(uint8_t* buffer){};
+    virtual void encode(uint8_t* buffer) = 0;
     std::mutex publishable_mtx_;
 };
 class NTPublisher {
