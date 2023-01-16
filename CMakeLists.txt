@@ -35,16 +35,26 @@ link_directories(${CUDA_LIBRARY_DIRS})
 link_directories(${apriltag_LIBDIR})
 link_directories(${Sophus_LIBRARY_DIRS})
 
+# cuda
+include_directories(/usr/local/cuda/include)
+link_directories(/usr/local/cuda/lib64)
+# tensorrt
+include_directories(/usr/include/x86_64-linux-gnu/)
+link_directories(/usr/lib/x86_64-linux-gnu/)
+
 FILE(GLOB_RECURSE SRC_FILES src/*.c*)
 FILE(GLOB_RECURSE HDR_FILES include/*.h*)
 
-ADD_EXECUTABLE(${PROJECT_NAME} ${HDR_FILES} ${SRC_FILES})
+cuda_add_executable(${PROJECT_NAME} ${HDR_FILES} ${SRC_FILES})
+add_definitions(-O3 -D_MWAITXINTRIN_H_INCLUDED -Wno-deprecated-declarations)
 
 if (LINK_SHARED_ZED)
-    SET(ZED_LIBS ${ZED_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
+	SET(ZED_LIBS ${ZED_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 else()
-    SET(ZED_LIBS ${ZED_STATIC_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_LIBRARY})
+	SET(ZED_LIBS ${ZED_STATIC_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_LIBRARY})
 endif()
+
+SET(TRT_LIBS nvinfer)
 
 TARGET_LINK_LIBRARIES(
 	${PROJECT_NAME}
@@ -54,4 +64,5 @@ TARGET_LINK_LIBRARIES(
 	Eigen3::Eigen
 	${Sophus_LIBRARIES}
 	fmt::fmt
+	${TRT_LIBS}
 )
