@@ -9,7 +9,6 @@
 #include <opencv2/opencv.hpp>
 #include "apriltag_detector.hpp"
 #include <Eigen/Dense>
-#include <span>
 #include "map.hpp"
 
 class TrackedTargetInfo {
@@ -37,7 +36,7 @@ public:
     double get_yaw_angle();
     double get_pitch_angle();
     std::string to_packet();
-    std::span<double> target_info_vector();
+    std::vector<double> target_info_vector();
 };
 
 #endif //VISION_SYSTEM_TARGET_INFO_HPP

@@ -64,9 +64,9 @@ std::string TrackedTargetInfo::to_packet() {
             std::to_string(z_) + ";";
 }
 
-std::span<double> TrackedTargetInfo::target_info_vector() {
+std::vector<double> TrackedTargetInfo::target_info_vector() {
     std::vector<double> tmp{x_, y_, z_, get_yaw_angle(), id_};
-    return std::span<double> {tmp};
+    return tmp;
 }
 
 TrackedTargetInfo::~TrackedTargetInfo() {

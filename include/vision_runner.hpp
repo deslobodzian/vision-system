@@ -7,7 +7,6 @@
 
 #include "utils/task.hpp"
 #include "estimator/estimator.hpp"
-#include "networking/state_estimate_pub.hpp"
 #include "estimator/mcl_pose_estimator.hpp"
 
 class VisionRunner : public Task {
@@ -17,16 +16,9 @@ public:
     void init() override;
     void run() override;
 
-    void initialize_state_estimator();
     virtual ~VisionRunner();
 
-    ControlInput<float>* control_input_;
-    std::vector<Measurement<float>>* measurements_;
 private:
-    StateEstimate<float> state_estimate_;
-    EstimatorContainer<float>* state_estimator_;
-
-    state_estimate_publishable state_est_pub_;
 
 };
 
