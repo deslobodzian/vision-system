@@ -1,6 +1,6 @@
 # Vision System
 
-This repository contains a vision system that utilizes monocular and stero camera with apriltags to localize itself within a fixed enviorment. 
+This repository contains a vision system that utilizes monocular and stereo camera with apriltags to localize itself within a fixed enviorment. 
 
 ## Localization
 - Monty Carlo Localization, read more on [Wiki](https://en.wikipedia.org/wiki/Monte_Carlo_localization)
