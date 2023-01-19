@@ -7,6 +7,7 @@
 VisionContainer::VisionContainer() {}
 
 void VisionContainer::init() {
+    info("[VisionContainer]: Starting Zmq Manager");
     info("[VisionContainer]: Setting up zed camera");
     zed_config zed_config{};
     zed_config.res = sl::RESOLUTION::VGA;
@@ -18,7 +19,7 @@ void VisionContainer::init() {
     zed_config.max_depth = 20.0;
 
     zed_camera_ = new Zed(zed_config);
-    zed_camera_->open_camera();
+//    zed_camera_->open_camera();
 
 //    info("[VisionContainer]: Setting up AprilTag manager");
 //    detector_config apriltag_config {};
