@@ -1,6 +1,7 @@
 # Vision System
 
-This repository contains a vision system that utilizes monocular and stereo camera with apriltags to localize itself within a fixed enviorment. 
+This repository contains a vision system uses Yolov7 and Zed 2 stereocamera to detect objects in the enviorment.
+Apriltag detection is avalible but not in use. Vision data is sent with a pub sub system using ZeroMQ.
 
 ## Localization
 - Monty Carlo Localization, read more on [Wiki](https://en.wikipedia.org/wiki/Monte_Carlo_localization)
