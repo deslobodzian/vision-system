@@ -12,7 +12,7 @@
 struct ZedInferenceStruct {
     sl::Mat sl_mat;
     cv::Mat cv_mat;
-    std::vector<sl::CustomBoxObjectData>* custom_obj_data_;
+    std::vector<sl::CustomBoxObjectData> custom_obj_data_;
 } ;
 
 class InferenceManager {

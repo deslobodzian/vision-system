@@ -27,7 +27,7 @@ void Yolov7::prepare_buffer(ICudaEngine* engine, float** input_buffer_device, fl
 bool Yolov7::initialize_engine(std::string& engine_name) {
 	std::ifstream file(engine_name, std::ios::binary);
     if (!file.good()) {
-        std::cerr << "read " << engine_name << " error!" << std::endl;
+        error("[Yolov7]: Read " + engine_name + " error!");
         return -1;
     }
     char *trtModelStream = nullptr;

@@ -29,7 +29,7 @@ include_directories(${ZED_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${apriltag_INCLUDE_DIRS})
 include_directories(${Sophus_INCLUDE_DIRS})
-include_directories(${ZeroMQ_INCLUDE_DIRS})
+include_directories(${cppmq_INCLUDE_DIRS})
 
 link_directories(${OpenCV_LIBRARY_DIRS})
 link_directories(${ZED_LIBRARY_DIR})
@@ -67,5 +67,5 @@ TARGET_LINK_LIBRARIES(
 	${Sophus_LIBRARIES}
 	fmt::fmt
 	${TRT_LIBS}
-	${ZeroMQ_LIBS}
+	cppzmq
 )

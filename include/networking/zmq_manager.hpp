@@ -11,14 +11,21 @@
 
 class ZmqManager {
 public:
-    ZmqManager();
+    ZmqManager() = default;
+
     ~ZmqManager() {
         for (auto& [topic, publisher] : publishers_) {
             delete publisher;
         }
     }
-    void create_publisher(const std::string& topic, const std::string& endpoint) {
-        publishers_[topic] = new ZmqPublisher(endpoint);
+    void create_publisher(publishable* p, const std::string& endpoint) {
+        publishers_[p->get_topic()] = new ZmqPublisher(endpoint, p);
+    }
+    // this sends all the publishers in the map
+    void send_publishers() {
+        for (auto& [topic, publisher] : publishers_) {
+            publisher->send();
+        }
     }
 private:
     std::map<std::string, ZmqPublisher*> publishers_;

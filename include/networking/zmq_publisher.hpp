@@ -13,31 +13,35 @@ struct publishable {
     virtual uint8_t* get_byte_array() {return nullptr;}
     virtual std::string get_topic() const = 0;
     virtual void encode(uint8_t* buffer) = 0;
-    virtual size_t get_size() = 0;
+    virtual size_t get_size() const = 0;
 //    std::mutex publishable_mtx_;
 };
 
 class ZmqPublisher {
 public:
-    ZmqPublisher(const std::string& endpoint) {
-        publisher_ = new zmq::socket_t(context_, ZMQ_PUB);
+    ZmqPublisher(const std::string& endpoint, publishable* p) {
+        context_ = zmq::context_t(1);
+        publisher_ = new zmq::socket_t(context_, zmq::socket_type::pub);
         publisher_->bind(endpoint);
+        publishable_ = p;
     }
 
     ~ZmqPublisher() {
         publisher_->close();
+        context_.close();
         delete publisher_;
     }
 
-    template <typename T>
-    void send(const T& publishable) {
-        publisher_->send(publishable);
-        publisher_->send(publishable.get_byte_array(), publishable.get_size());
+    void send() {
+        zmq::message_t message(publishable_->get_topic());
+        publisher_->send(message, ZMQ_SNDMORE);
+        publisher_->send(publishable_->get_byte_array(), publishable_->get_size());
     }
 
 private:
-    zmq::context_t context_ = zmq::context_t(1);
+    zmq::context_t context_;
     zmq::socket_t* publisher_;
+    publishable* publishable_;
 };
 
 #endif //VISION_SYSTEM_ZMQ_PUBLISHER_HPP

@@ -25,7 +25,7 @@ struct vision_publishable : public publishable {
         encode_float_array(buffer, 0, size_, target_info, 3);
     }
 
-    size_t get_size() {
+    size_t get_size() const override{
         return size_;
     }
 

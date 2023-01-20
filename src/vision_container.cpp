@@ -8,6 +8,8 @@ VisionContainer::VisionContainer() {}
 
 void VisionContainer::init() {
     info("[VisionContainer]: Starting Zmq Manager");
+    zmq_manager_ = new ZmqManager();
+
     info("[VisionContainer]: Setting up zed camera");
     zed_config zed_config{};
     zed_config.res = sl::RESOLUTION::VGA;
@@ -23,7 +25,10 @@ void VisionContainer::init() {
     zed_config.model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
 
     zed_camera_ = new Zed(zed_config);
-//    zed_camera_->open_camera();
+
+    info("[Vision Container]: Starting Inference Manager");
+    inference_manager_ = new InferenceManager("../engines/best.engine");
+    inference_manager_->init();
 
 //    info("[VisionContainer]: Setting up AprilTag manager");
 //    detector_config apriltag_config {};
@@ -41,6 +46,7 @@ void VisionContainer::init() {
 
 void VisionContainer::detect_zed_targets() {
 //    tag_manager_->detect_tags_zed(zed_camera_);
+    inference_manager_->inference_on_device(zed_camera_);
 }
 
 
@@ -50,17 +56,11 @@ void VisionContainer::run() {
 
     vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
 
-    // init threads;
-    info("[VisionContainer]: Starting detection zed task");
-    PeriodicMemberFunction<VisionContainer> zed_task(
-            &task_manager_,
-            0.02,
-            "detection",
-            &VisionContainer::detect_zed_targets,
-            this
-    );
+    vision_runner_->zed_camera_ = zed_camera_;
+    vision_runner_->inference_manager_ = inference_manager_;
+    vision_runner_->zmq_manager_ = zmq_manager_;
 
-    zed_task.start();
+    vision_runner_->init();
     vision_runner_->start();
 
     for (;;) {
@@ -70,6 +70,7 @@ void VisionContainer::run() {
 
 VisionContainer::~VisionContainer() {
     delete vision_runner_;
-//    delete tag_manager_;
     delete zed_camera_;
+    delete inference_manager_;
+    delete zmq_manager_;
 }

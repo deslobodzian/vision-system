@@ -12,10 +12,21 @@ VisionRunner::VisionRunner(
 
 void VisionRunner::init() {
     info("initializing [VisionRunner]");
+    zed_camera_->open_camera();
+
+    image_pub_ = new image_publishable;
+//    sleep(1);
+    zmq_manager_->create_publisher(image_pub_, "inproc://#1");
 }
 
 void VisionRunner::run() {
+    inference_manager_->inference_on_device(zed_camera_);
+    if (image_pub_ != nullptr) {
+        image_pub_->img_ = slMat_to_cvMat(zed_camera_->get_left_image());
+    }
+    zmq_manager_->send_publishers();
 }
 
 VisionRunner::~VisionRunner() {
+    delete image_pub_;
 }

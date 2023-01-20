@@ -225,5 +225,18 @@ static inline int decode_double_array(const void *_buf, int offset, int maxlen, 
     return decode_int64_t_array(_buf, offset, maxlen, reinterpret_cast<int64_t *>(p), elements);
 }
 
+static inline int encode_cv_mat(const void *_buf, int offset, int maxlen, const cv::Mat &mat) {
+    int total_size = mat.total() * mat.elemSize();
+    auto *buf = (uint8_t *)_buf;
+    int pos = offset;
+
+    if (maxlen < total_size) {
+        return -1;
+    }
+
+    std::memcpy(buf + pos, mat.data, total_size);
+    return total_size;
+}
+
 
 #endif

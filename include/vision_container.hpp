@@ -13,6 +13,8 @@
 #include "vision/Zed.hpp"
 #include "vision/monocular_camera.hpp"
 #include "vision/apriltag_manager.hpp"
+#include "inference/inference_manager.hpp"
+#include "networking/zmq_manager.hpp"
 
 class VisionContainer {
 public:
@@ -25,7 +27,8 @@ public:
 
 protected:
     TaskManager task_manager_;
-
+    ZmqManager* zmq_manager_ = nullptr;
+    InferenceManager* inference_manager_ = nullptr;
     Zed* zed_camera_ = nullptr;
 //    AprilTagManager<float>* tag_manager_ = nullptr;
     VisionRunner* vision_runner_ = nullptr;
