@@ -20,7 +20,6 @@ public:
     void create_publisher(const std::string& topic, const std::string& endpoint) {
         publishers_[topic] = new ZmqPublisher(endpoint);
     }
-
 private:
     std::map<std::string, ZmqPublisher*> publishers_;
 };

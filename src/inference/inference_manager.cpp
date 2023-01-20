@@ -1,46 +1,21 @@
-////
-//// Created by deslobodzian on 5/2/22.
-////
 //
-//#include "inference/inference_manager.hpp"
+// Created by deslobodzian on 5/2/22.
 //
-//InferenceManager::InferenceManager(std::string custom_engine) {
-//    engine_name_ = custom_engine;
-//}
-//
-//void InferenceManager::add_inference_thread(Zed& camera) {
-//    threads_.emplace_back(&InferenceManager::run_inference_zed, this, std::ref(camera));
-//}
-//
-//void InferenceManager::add_inference_thread(MonocularCamera& camera) {
-//    threads_.emplace_back(&InferenceManager::run_inference, this, std::ref(camera));
-//}
-//
-//void InferenceManager::run_inference_zed(Zed &camera) {
-//    Yolov5 yoloRT;
-//    yoloRT.initialize_engine(engine_name_);
-//    sl::Mat zedImage;
-//    cv::Mat temp;
-//    info("Zed Inference started");
-//    while (true) {
-//        camera.get_left_image(zedImage);
-//        yoloRT.prepare_inference(zedImage, temp);
-//        yoloRT.run_inference_and_convert_to_zed(temp);
-//        camera.input_custom_objects(yoloRT.get_custom_obj_data());
-//    }
-//}
-//
-//void InferenceManager::run_inference(MonocularCamera& camera) {
-//    Yolov5 yoloRT;
-//    yoloRT.initialize_engine(engine_name_);
-//    cv::Mat image;
-//    info("Monocular Inference started");
-//    while (true) {
-//        camera.get_frame(image);
-//        yoloRT.prepare_inference(image);
-//        yoloRT.run_inference(image);
-//        camera.add_tracked_objects(yoloRT.get_monocular_obj_data());
-//    }
-//}
 
+#include "inference/inference_manager.hpp"
+
+InferenceManager::InferenceManager(const std::string& custom_engine) {
+    engine_name_ = custom_engine;
+}
+
+void InferenceManager::init() {
+    detector_.initialize_engine(engine_name_);
+}
+
+void InferenceManager::inference_on_device(Zed *camera) {
+    camera->get_left_image(zed_struct_.sl_mat);
+    detector_.prepare_inference(zed_struct_.sl_mat, zed_struct_.cv_mat);
+    detector_.run_inference(zed_struct_.cv_mat, zed_struct_.custom_obj_data_);
+    camera->ingest_custom_objects(*zed_struct_.custom_obj_data_);
+}
 

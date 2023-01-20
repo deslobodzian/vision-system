@@ -34,18 +34,6 @@ using namespace nvinfer1;
 
 class Yolov7 {
 //
-private:
-    ICudaEngine* engine_;
-    IRuntime* runtime_;
-    IExecutionContext* context_;
-    cudaStream_t stream_;
-    void* buffers_[2];
-    int inputIndex_;
-    int outputIndex_;
-    int batch_ = 0;
-//    std::vector<sl::CustomBoxObjectData> objects_in_;
-//
-//
 public:
     const static int kOutputSize = kMaxNumOutputBbox * sizeof(Detection) / sizeof(float) + 1;
     float data[kBatchSize * 3 * kInputH * kInputW];
@@ -53,25 +41,27 @@ public:
 
     Yolov7() = default;
     ~Yolov7();
-//
     Logger gLogger;
 
-//    int get_width(int x, float gw, int divisor = 8);
-//
-//    int get_depth(int x, float gd);
-//
     bool initialize_engine(std::string& engine_name);
-    void doInference(IExecutionContext &context, cudaStream_t &stream, void **buffers, float *input, float *output, int batchSize);
+    static void prepare_buffer(ICudaEngine* engine, float** input_buffer_device, float** output_buffer_device, float** output_buffer_host);
+    static void doInference(IExecutionContext &context, cudaStream_t &stream, void **buffers, float *output, int batchSize);
 
-//    std::vector<sl::uint2> cvt(const cv::Rect &bbox_in);
+    static std::vector<sl::uint2> cvt(const cv::Rect& bbox_in);
 //    void print(std::string msg_prefix, sl::ERROR_CODE err_code, std::string msg_suffix);
     bool prepare_inference(cv::Mat& img_cv_rgb);
     bool prepare_inference(sl::Mat& img_sl, cv::Mat& img_cv_rgb);
-//    void run_inference_and_convert_to_zed(cv::Mat& img_cv_rgb);
+    void run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectData>* objs);
 //    void run_inference(cv::Mat& img_cv_rgb);
-//    std::vector<sl::CustomBoxObjectData> get_custom_obj_data();
-//
-//    void kill();
-//
+    void kill();
+private:
+    ICudaEngine* engine_;
+    IRuntime* runtime_;
+    IExecutionContext* context_;
+    cudaStream_t stream_;
+    float* buffers_[2];
+    float* output_buffer_host_ = nullptr;
+    int batch_ = 0;
+
 };
 #endif // VISION_SYSTEM_YOLOV7_HPP

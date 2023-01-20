@@ -112,6 +112,7 @@ public:
 };
 
 struct zed_config {
+    // Initial Parameters;
     sl::RESOLUTION res;
     int fps;
     sl::DEPTH_MODE depth_mode;
@@ -119,6 +120,12 @@ struct zed_config {
     sl::COORDINATE_SYSTEM coordinate_system;
     sl::UNIT units;
     float max_depth;
+
+    sl::REFERENCE_FRAME reference_frame;
+
+    bool enable_tracking;
+    bool enable_mask_output;
+    sl::DETECTION_MODEL model;
 };
 
 #endif //VISION_SYSTEM_CAMERA_CONFIG_HPP

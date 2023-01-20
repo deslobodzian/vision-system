@@ -36,6 +36,7 @@ public:
     int open_camera();
     int enable_tracking();
     int enable_tracking(const Eigen::Vector3f &init_pose);
+    void enable_object_detection();
 
     void fetch_measurements();
 
@@ -52,6 +53,8 @@ public:
 
     // gets the last fetched left image.
     sl::Mat get_left_image() const;
+    // pass img ref to get left image.
+    void get_left_image(sl::Mat& img) const;
 
     // gets the last fetched camera pose.
     Pose get_camera_pose() const;
@@ -59,12 +62,19 @@ public:
     // gets the timestamp from the last fetched measurement information.
     Timestamp get_measurement_timestamp() const;
 
+    // Ingest the CustomObjects into the zed SDK
+    void ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs) {
+        zed_.ingestCustomBoxObjects(objs);
+    }
+
     void close();
 private:
     Camera zed_;
     ZedMeasurements measurements_;
     InitParameters init_params_;
     CalibrationParameters calibration_params_;
+    RuntimeParameters runtime_params_;
+    ObjectDetectionParameters obj_detection_params_;
 
     float left_offset_to_center_{};
     bool successful_grab();

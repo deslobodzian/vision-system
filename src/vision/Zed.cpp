@@ -9,10 +9,16 @@ Zed::Zed(const zed_config &config) {
     init_params_.camera_fps = config.fps;
     init_params_.depth_mode = config.depth_mode;
     init_params_.sdk_verbose = config.sdk_verbose;
-//    init_params_.coordinate_system = COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
     init_params_.coordinate_system = config.coordinate_system;
     init_params_.coordinate_units = config.units;
     init_params_.depth_maximum_distance = config.max_depth;
+
+    runtime_params_.measure3D_reference_frame = config.reference_frame;
+
+    obj_detection_params_.enable_tracking = config.enable_tracking;
+    obj_detection_params_.enable_mask_output = config.enable_mask_output;
+    obj_detection_params_.detection_model = config.model;
+
 }
 bool Zed::successful_grab() {
     return (zed_.grab() == ERROR_CODE::SUCCESS);
@@ -48,6 +54,12 @@ int Zed::enable_tracking(const Eigen::Vector3f &init_pose) {
     tracking_params.initial_world_transform = initial_position;
     zed_.enablePositionalTracking(tracking_params);
     return 0;
+}
+
+void Zed::enable_object_detection() {
+    if (zed_.enableObjectDetection(obj_detection_params_) == sl::ERROR_CODE::SUCCESS) {
+        error("[ZED] Failed to enable object detection!");
+    }
 }
 
 void Zed::fetch_measurements() {
@@ -89,6 +101,9 @@ sl::Transform Zed::get_calibration_stereo_transform() const {
 
 sl::Mat Zed::get_left_image() const {
     return measurements_.left_image;
+}
+void Zed::get_left_image(sl::Mat& img) const {
+    img = measurements_.left_image;
 }
 
 sl::Pose Zed::get_camera_pose() const {
