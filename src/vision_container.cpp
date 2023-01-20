@@ -17,6 +17,10 @@ void VisionContainer::init() {
     zed_config.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
     zed_config.units = sl::UNIT::METER;
     zed_config.max_depth = 20.0;
+    zed_config.reference_frame = REFERENCE_FRAME::CAMERA;
+    zed_config.enable_tracking = true;
+    zed_config.enable_mask_output = false;
+    zed_config.model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
 
     zed_camera_ = new Zed(zed_config);
 //    zed_camera_->open_camera();
