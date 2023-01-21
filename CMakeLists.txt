@@ -17,7 +17,7 @@ find_package(OpenCV REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(fmt REQUIRED)
 find_package(Sophus REQUIRED)
-find_package(cppzmq REQUIRED)
+find_package(ZeroMQ REQUIRED)
 
 find_package(PkgConfig)
 pkg_search_module(apriltag REQUIRED apriltag)
@@ -29,7 +29,7 @@ include_directories(${ZED_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${apriltag_INCLUDE_DIRS})
 include_directories(${Sophus_INCLUDE_DIRS})
-include_directories(${cppmq_INCLUDE_DIRS})
+include_directories(${ZeroMQ_INCLUDE_DIRS})
 
 link_directories(${OpenCV_LIBRARY_DIRS})
 link_directories(${ZED_LIBRARY_DIR})
@@ -67,5 +67,5 @@ TARGET_LINK_LIBRARIES(
 	${Sophus_LIBRARIES}
 	fmt::fmt
 	${TRT_LIBS}
-	cppzmq
+	${ZeroMQ_LIBS}
 )

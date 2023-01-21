@@ -15,8 +15,7 @@ void VisionRunner::init() {
     zed_camera_->open_camera();
 
     image_pub_ = new image_publishable;
-//    sleep(1);
-    zmq_manager_->create_publisher(image_pub_, "inproc://#1");
+    zmq_manager_->create_publisher(image_pub_, "tcp://*:5556");
 }
 
 void VisionRunner::run() {

@@ -60,11 +60,10 @@ void VisionContainer::run() {
     vision_runner_->inference_manager_ = inference_manager_;
     vision_runner_->zmq_manager_ = zmq_manager_;
 
-    vision_runner_->init();
     vision_runner_->start();
 
     for (;;) {
-        usleep(1000000);
+//        usleep(1000000);
     }
 }
 

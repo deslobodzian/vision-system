@@ -21,7 +21,8 @@ class ZmqPublisher {
 public:
     ZmqPublisher(const std::string& endpoint, publishable* p) {
         context_ = zmq::context_t(1);
-        publisher_ = new zmq::socket_t(context_, zmq::socket_type::pub);
+        publisher_ = new zmq::socket_t(context_, zmq::socket_type::push);
+        info("[Publisher][" + p->get_topic() + "]: Binding socket to: " + endpoint);
         publisher_->bind(endpoint);
         publishable_ = p;
     }
@@ -33,9 +34,18 @@ public:
     }
 
     void send() {
-        zmq::message_t message(publishable_->get_topic());
+        debug("Send called");
+        std::string topic = publishable_->get_topic();
+        zmq::message_t message(topic.size());
+        memcpy(message.data(), topic.data(), topic.size());
+        debug("Message created");
         publisher_->send(message, ZMQ_SNDMORE);
-        publisher_->send(publishable_->get_byte_array(), publishable_->get_size());
+        std::string msg = "Test";
+        zmq::message_t message_1(msg.size());
+        memcpy(message_1.data(), msg.data(), msg.size());
+//        debug("topic sent");
+        publisher_->send(message_1, 0);
+//        publisher_->send(publishable_->get_byte_array(), publishable_->get_size());
     }
 
 private:
