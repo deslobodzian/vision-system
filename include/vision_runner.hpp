@@ -27,6 +27,7 @@ public:
 
 private:
     image_publishable* image_pub_ = nullptr;
+    sl::Objects objs_;
 };
 
 #endif //VISION_SYSTEM_VISION_RUNNER_HPP

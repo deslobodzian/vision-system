@@ -114,6 +114,15 @@ Timestamp Zed::get_measurement_timestamp() const {
     return measurements_.timestamp;
 }
 
+void Zed::ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs) {
+    zed_.ingestCustomBoxObjects(objs);
+}
+
+void Zed::retrieve_objects(sl::Objects &objs) {
+    zed_.retrieveObjects(objs, obj_rt_params_);
+}
+
+
 void Zed::close() {
     zed_.close();
 }

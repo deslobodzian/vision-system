@@ -63,9 +63,9 @@ public:
     Timestamp get_measurement_timestamp() const;
 
     // Ingest the CustomObjects into the zed SDK
-    void ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs) {
-        zed_.ingestCustomBoxObjects(objs);
-    }
+    void ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs);
+
+    void retrieve_objects(sl::Objects& objs);
 
     void close();
 private:
@@ -75,6 +75,7 @@ private:
     CalibrationParameters calibration_params_;
     RuntimeParameters runtime_params_;
     ObjectDetectionParameters obj_detection_params_;
+    ObjectDetectionRuntimeParameters obj_rt_params_;
 
     float left_offset_to_center_{};
     bool successful_grab();

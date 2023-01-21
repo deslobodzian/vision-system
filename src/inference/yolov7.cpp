@@ -100,10 +100,10 @@ bool Yolov7::prepare_inference(sl::Mat& img_sl, cv::Mat& img_cv_rgb) {
 //
 void Yolov7::run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectData>* objs) {
     objs->clear();
-    auto start = std::chrono::high_resolution_clock::now();
+//    auto start = std::chrono::high_resolution_clock::now();
     doInference(*context_, stream_, (void**)buffers_, output_buffer_host_, kBatchSize);
-    auto stop = std::chrono::high_resolution_clock::now();
-    info("Inference time: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count()) + "ms");
+//    auto stop = std::chrono::high_resolution_clock::now();
+//    info("Inference time: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count()) + "ms");
     std::vector<std::vector<Detection>> batch_res(kBatchSize);
     auto& res = batch_res[batch_];
     nms(res, &prob[batch_ * kOutputSize], kConfThresh, kNmsThresh);
