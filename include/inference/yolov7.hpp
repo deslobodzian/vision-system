@@ -6,30 +6,17 @@
 
 #include "config.h"
 #include "model.h"
-//#include <iostream>
-//#include <chrono>
-//#include <cmath>
 #include "cuda_utils.h"
 #include "logging.h"
 #include "preprocess.h"
 #include "postprocess.h"
-//#include "common.hpp"
 #include "utils.h"
 #include "utils/utils.hpp"
 #include <fstream>
-//#include "utils.hpp"
-//#include "calibrator.h"
-//#include <mutex>
-//
-//#include "vision/monocular_camera.hpp"
+
 #include <sl/Camera.hpp>
-//
-//#define USE_FP16  // set USE_INT8 or USE_FP16 or USE_FP32
+#define USE_FP16  // set USE_INT8 or USE_FP16 or USE_FP32
 //#define DEVICE 0  // GPU id
-//#define NMS_THRESH 0.4
-//#define CONF_THRESH 0.5
-//#define BATCH_SIZE 1
-//
 using namespace nvinfer1;
 
 class Yolov7 {

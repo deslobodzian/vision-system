@@ -21,7 +21,12 @@ void VisionRunner::init() {
 void VisionRunner::run() {
     inference_manager_->inference_on_device(zed_camera_);
     if (image_pub_ != nullptr) {
-        image_pub_->img_ = slMat_to_cvMat(zed_camera_->get_left_image());
+        cv::Mat img = slMat_to_cvMat(zed_camera_->get_left_image());
+//        printf("Mat {w: %i, h %i}\n", img.rows, img.cols);
+        cv::Mat img_new;
+        cv::cvtColor(img, img_new, cv::COLOR_BGRA2BGR);
+
+        image_pub_->img_ = img_new;
     }
     zmq_manager_->send_publishers();
 }

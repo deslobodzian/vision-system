@@ -24,7 +24,7 @@ public:
     // this sends all the publishers in the map
     void send_publishers() {
         for (auto& [topic, publisher] : publishers_) {
-            debug("Sending topic data: " + topic);
+//            debug("Sending topic data: " + topic);
             publisher->send();
         }
     }

@@ -22,7 +22,7 @@ public:
     ZmqPublisher(const std::string& endpoint, publishable* p) {
         context_ = zmq_ctx_new();
         publisher_ = zmq_socket(context_, ZMQ_PUB);
-        info("[Publisher][" + p->get_topic() + "]: Binding socket to: " + endpoint);
+        debug("[Publisher][" + p->get_topic() + "]: Binding socket to: " + endpoint);
         int rc = zmq_bind(publisher_, endpoint.c_str());
         publishable_ = p;
     }
@@ -33,12 +33,8 @@ public:
     }
 
     void send() {
-        std::string message = "Test";
-        zmq_send(publisher_, message.c_str(), message.size(), ZMQ_SNDMORE);
-        std::string message_1 = "Works";
-        zmq_send(publisher_, message_1.c_str(), message_1.size(), 0);
-
-//        publisher_->send(publishable_->get_byte_array(), publishable_->get_size());
+        zmq_send(publisher_, publishable_->get_topic().c_str(), publishable_->get_topic().size(), ZMQ_SNDMORE);
+        zmq_send(publisher_, publishable_->get_byte_array(), publishable_->get_size(),0);
     }
 
 private:

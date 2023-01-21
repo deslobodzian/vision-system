@@ -105,7 +105,6 @@ void Yolov7::run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectD
     auto stop = std::chrono::high_resolution_clock::now();
     info("Inference time: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count()) + "ms");
     std::vector<std::vector<Detection>> batch_res(kBatchSize);
-    //info("Time takes: " + std::to_string(duration.count()));
     auto& res = batch_res[batch_];
     nms(res, &prob[batch_ * kOutputSize], kConfThresh, kNmsThresh);
     cv::Rect bounds = cv::Rect(0, 0, img_cv_rgb.size().width, img_cv_rgb.size().height);
@@ -137,10 +136,6 @@ void Yolov7::run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectD
 //
 //std::vector<sl::CustomBoxObjectData> Yolov5::get_custom_obj_data() {
 //	return objects_in_;
-//}
-//
-//std::vector<tracked_object> Yolov5::get_monocular_obj_data() {
-//    return monocular_objects_in_;
 //}
 Yolov7::~Yolov7() {
     kill();
