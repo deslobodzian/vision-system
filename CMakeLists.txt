@@ -67,5 +67,5 @@ TARGET_LINK_LIBRARIES(
 	${Sophus_LIBRARIES}
 	fmt::fmt
 	${TRT_LIBS}
-	${ZeroMQ_LIBS}
+	${ZeroMQ_LIBRARY}
 )

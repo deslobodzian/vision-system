@@ -7,7 +7,7 @@
 
 #include <string>
 #include <iostream>
-#include <zmq.hpp>
+#include <zmq.h>
 
 struct publishable {
     virtual uint8_t* get_byte_array() {return nullptr;}
@@ -20,37 +20,30 @@ struct publishable {
 class ZmqPublisher {
 public:
     ZmqPublisher(const std::string& endpoint, publishable* p) {
-        context_ = zmq::context_t(1);
-        publisher_ = new zmq::socket_t(context_, zmq::socket_type::push);
+        context_ = zmq_ctx_new();
+        publisher_ = zmq_socket(context_, ZMQ_PUB);
         info("[Publisher][" + p->get_topic() + "]: Binding socket to: " + endpoint);
-        publisher_->bind(endpoint);
+        int rc = zmq_bind(publisher_, endpoint.c_str());
         publishable_ = p;
     }
 
     ~ZmqPublisher() {
-        publisher_->close();
-        context_.close();
-        delete publisher_;
+        zmq_close(publisher_);
+        zmq_ctx_destroy(context_);
     }
 
     void send() {
-        debug("Send called");
-        std::string topic = publishable_->get_topic();
-        zmq::message_t message(topic.size());
-        memcpy(message.data(), topic.data(), topic.size());
-        debug("Message created");
-        publisher_->send(message, ZMQ_SNDMORE);
-        std::string msg = "Test";
-        zmq::message_t message_1(msg.size());
-        memcpy(message_1.data(), msg.data(), msg.size());
-//        debug("topic sent");
-        publisher_->send(message_1, 0);
+        std::string message = "Test";
+        zmq_send(publisher_, message.c_str(), message.size(), ZMQ_SNDMORE);
+        std::string message_1 = "Works";
+        zmq_send(publisher_, message_1.c_str(), message_1.size(), 0);
+
 //        publisher_->send(publishable_->get_byte_array(), publishable_->get_size());
     }
 
 private:
-    zmq::context_t context_;
-    zmq::socket_t* publisher_;
+    void* context_;
+    void* publisher_;
     publishable* publishable_;
 };
 
