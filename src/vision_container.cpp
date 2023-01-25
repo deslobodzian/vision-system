@@ -29,11 +29,17 @@ void VisionContainer::init() {
     info("[Vision Container]: Starting Inference Manager");
     inference_manager_ = new InferenceManager("../engines/best.engine");
     inference_manager_->init();
+    std::string folderpath = "/home/prometheus/projects/VisionSystem/image/*.jpg"; //images is the folder where the images are stored
+    std::vector<std::string> filenames;
+    cv::glob(folderpath, filenames);
 
-    std::string file_name = "../image/test.jpg";
-    cv::Mat img = cv::imread(file_name);
-    inference_manager_->test_inference(img);
-    cv::imwrite("output.jpg", img);
+    for (size_t i=0; i<filenames.size(); i++) {
+        cv::Mat im = cv::imread(filenames[i]);
+        inference_manager_->test_inference(im);
+        std::string name = "output" + std::to_string(i)+".jpg";
+        cv::imwrite(name.c_str(), im);
+    }
+
 
 //    info("[VisionContainer]: Setting up AprilTag manager");
 //    detector_config apriltag_config {};
