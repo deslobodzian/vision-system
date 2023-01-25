@@ -30,6 +30,11 @@ void VisionContainer::init() {
     inference_manager_ = new InferenceManager("../engines/best.engine");
     inference_manager_->init();
 
+    std::string file_name = "../image/test.jpg";
+    cv::Mat img = cv::imread(file_name);
+    inference_manager_->test_inference(img);
+    cv::imwrite("output.jpg", img);
+
 //    info("[VisionContainer]: Setting up AprilTag manager");
 //    detector_config apriltag_config {};
 //    apriltag_config.tf = tag16h5;
@@ -54,13 +59,13 @@ void VisionContainer::run() {
     init();
     info("[VisionContainer]: Starting system");
 
-    vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
-
-    vision_runner_->zed_camera_ = zed_camera_;
-    vision_runner_->inference_manager_ = inference_manager_;
-    vision_runner_->zmq_manager_ = zmq_manager_;
-
-    vision_runner_->start();
+//    vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
+//
+//    vision_runner_->zed_camera_ = zed_camera_;
+//    vision_runner_->inference_manager_ = inference_manager_;
+//    vision_runner_->zmq_manager_ = zmq_manager_;
+//
+//    vision_runner_->start();
 
     for (;;) {
 //        usleep(1000000);

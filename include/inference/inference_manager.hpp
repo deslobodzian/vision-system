@@ -22,6 +22,7 @@ public:
 
     void init();
     void inference_on_device(Zed* camera);
+    void test_inference(cv::Mat& img);
 
 private:
 //    std::vector<std::thread> threads_;

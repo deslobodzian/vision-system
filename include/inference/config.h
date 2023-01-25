@@ -18,7 +18,7 @@
 const static char* kInputTensorName = "data";
 const static char* kOutputTensorName = "prob";
 
-const static int kNumClass = 80;
+const static int kNumClass = 2;
 const static int kBatchSize = 1;
 
 // Yolo's input width and height must by divisible by 32

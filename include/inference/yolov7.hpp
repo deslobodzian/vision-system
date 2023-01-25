@@ -29,8 +29,8 @@ public:
     Yolov7() = default;
     ~Yolov7();
     Logger gLogger;
-
     bool initialize_engine(std::string& engine_name);
+    void deserialize_engine(std::string& engine_name, IRuntime** runtime, ICudaEngine** engine, IExecutionContext** context);
     static void prepare_buffer(ICudaEngine* engine, float** input_buffer_device, float** output_buffer_device, float** output_buffer_host);
     static void doInference(IExecutionContext &context, cudaStream_t &stream, void **buffers, float *output, int batchSize);
 
@@ -39,7 +39,7 @@ public:
     bool prepare_inference(cv::Mat& img_cv_rgb);
     bool prepare_inference(sl::Mat& img_sl, cv::Mat& img_cv_rgb);
     void run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectData>* objs);
-//    void run_inference(cv::Mat& img_cv_rgb);
+    void run_inference_test(cv::Mat& img_cv_rgb);
     void kill();
 private:
     ICudaEngine* engine_;

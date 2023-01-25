@@ -8,7 +8,29 @@ std::vector<sl::uint2> Yolov7::cvt(const cv::Rect& bbox_in){
     bbox_out[3] = sl::uint2(bbox_in.x, bbox_in.y + bbox_in.height);
     return bbox_out;
 }
+void Yolov7::deserialize_engine(std::string& engine_name, IRuntime** runtime, ICudaEngine** engine, IExecutionContext** context) {
+    std::ifstream file(engine_name, std::ios::binary);
+    if (!file.good()) {
+        std::cerr << "read " << engine_name << " error!" << std::endl;
+        assert(false);
+    }
+    size_t size = 0;
+    file.seekg(0, file.end);
+    size = file.tellg();
+    file.seekg(0, file.beg);
+    char* serialized_engine = new char[size];
+    assert(serialized_engine);
+    file.read(serialized_engine, size);
+    file.close();
 
+    *runtime = createInferRuntime(gLogger);
+    assert(*runtime);
+    *engine = (*runtime)->deserializeCudaEngine(serialized_engine, size);
+    assert(*engine);
+    *context = (*engine)->createExecutionContext();
+    assert(*context);
+    delete[] serialized_engine;
+}
 void Yolov7::prepare_buffer(ICudaEngine* engine, float** input_buffer_device, float** output_buffer_device, float** output_buffer_host) {
     assert(engine->getNbBindings() == 2);
     // In order to bind the buffers, we need to know the names of the input and output tensors.
@@ -25,31 +47,7 @@ void Yolov7::prepare_buffer(ICudaEngine* engine, float** input_buffer_device, fl
 }
 
 bool Yolov7::initialize_engine(std::string& engine_name) {
-	std::ifstream file(engine_name, std::ios::binary);
-    if (!file.good()) {
-        error("[Yolov7]: Read " + engine_name + " error!");
-        return -1;
-    }
-    char *trtModelStream = nullptr;
-    size_t size = 0;
-    file.seekg(0, file.end);
-    size = file.tellg();
-    file.seekg(0, file.beg);
-    trtModelStream = new char[size];
-    assert(trtModelStream);
-    file.read(trtModelStream, size);
-    file.close();
-
-    // prepare input data ---------------------------
-    runtime_ = createInferRuntime(gLogger);
-    assert(runtime_ != nullptr);
-    engine_ = runtime_->deserializeCudaEngine(trtModelStream, size);
-    assert(engine_ != nullptr);
-    context_ = engine_->createExecutionContext();
-    assert(context_ != nullptr);
-    delete[] trtModelStream;
-    assert(engine_->getNbBindings() == 2);
-
+    deserialize_engine(engine_name, &runtime_, &engine_, &context_);
     // Create stream
     CUDA_CHECK(cudaStreamCreate(&stream_));
     assert(kBatchSize == 1); // This sample only support batch 1 for now
@@ -60,7 +58,7 @@ bool Yolov7::initialize_engine(std::string& engine_name) {
     return false;
 }
 
-void Yolov7::doInference(IExecutionContext& context, cudaStream_t& stream, void **buffers, float* output, int batchSize) {
+void Yolov7::doInference(IExecutionContext& context, cudaStream_t& stream, void** buffers, float* output, int batchSize) {
     // DMA input batch data to device, infer on the batch asynchronously, and DMA output back to host
     context.enqueue(batchSize, buffers, stream, nullptr);
     CUDA_CHECK(cudaMemcpyAsync(output, buffers[1], batchSize * kOutputSize * sizeof(float), cudaMemcpyDeviceToHost, stream));
@@ -77,19 +75,6 @@ bool Yolov7::prepare_inference(cv::Mat& img_cv_rgb) {
             kInputH,
             stream_
             );
-//    if (img_cv_rgb.empty()) return false;
-//    cv::Mat pr_img = preprocess_img(img_cv_rgb, kInputW, kInputH);
-//    int i = 0;
-//    for (int row = 0; row < kInputH; ++row) {
-//        uchar* uc_pixel = pr_img.data + row * pr_img.step;
-//        for (int col = 0; col < kInputW; ++col) {
-//            data[batch_ * 3 * kInputH * kInputW + i] = (float) uc_pixel[2] / 255.0;
-//            data[batch_ * 3 * kInputH * kInputW + i + kInputH * kInputW] = (float) uc_pixel[1] / 255.0;
-//            data[batch_ * 3 * kInputH * kInputW+ i + 2 * kInputH * kInputW] = (float) uc_pixel[0] / 255.0;
-//            uc_pixel += 3;
-//            ++i;
-//        }
-//    }
     return false;
 }
 bool Yolov7::prepare_inference(sl::Mat& img_sl, cv::Mat& img_cv_rgb) {
@@ -121,18 +106,17 @@ void Yolov7::run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectD
 	}
 }
 //
-//void Yolov5::run_inference(cv::Mat& img_cv_rgb) {
-//    monocular_objects_in_.clear();
-//    doInference(*context_, stream_, buffers_, data, prob, BATCH_SIZE);
-//    std::vector<std::vector<Yolo::Detection>> batch_res(BATCH_SIZE);
-//    auto& res = batch_res[batch_];
-//    nms(res, &prob[batch_ * OUTPUT_SIZE], CONF_THRESH, NMS_THRESH);
-//    for (auto &it : res) {
-//        cv::Rect r = get_rect(img_cv_rgb, it.bbox);
-//        tracked_object temp(r, it.class_id);
-//        monocular_objects_in_.push_back(temp);
-//    }
-//}
+void Yolov7::run_inference_test(cv::Mat& img_cv_rgb) {
+    auto start = std::chrono::high_resolution_clock::now();
+    doInference(*context_, stream_, (void **)buffers_, output_buffer_host_, kBatchSize);
+    auto stop = std::chrono::high_resolution_clock::now();
+    info("Inference time: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count()) + "ms");
+    std::vector<std::vector<Detection>> batch_res(kBatchSize);
+    auto& res = batch_res[batch_];
+    nms(res, &output_buffer_host_[batch_ * kOutputSize], kConfThresh, kNmsThresh);
+    draw_bbox_single(img_cv_rgb, res);
+}
+
 //
 //std::vector<sl::CustomBoxObjectData> Yolov5::get_custom_obj_data() {
 //	return objects_in_;

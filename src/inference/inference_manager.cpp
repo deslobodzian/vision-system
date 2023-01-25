@@ -20,6 +20,11 @@ void InferenceManager::inference_on_device(Zed *camera) {
     camera->ingest_custom_objects(zed_struct_.custom_obj_data_);
 }
 
+void InferenceManager::test_inference(cv::Mat& img) {
+    detector_.prepare_inference(img);
+    detector_.run_inference_test(img);
+}
+
 InferenceManager::~InferenceManager() {
     detector_.kill();
 }

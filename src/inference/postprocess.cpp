@@ -78,6 +78,8 @@ void batch_nms(std::vector<std::vector<Detection>>& res_batch, float *output, in
     }
 }
 
+//void
+
 void draw_bbox(std::vector<cv::Mat>& img_batch, std::vector<std::vector<Detection>>& res_batch) {
     for (size_t i = 0; i < img_batch.size(); i++) {
         auto& res = res_batch[i];
@@ -89,7 +91,7 @@ void draw_bbox(std::vector<cv::Mat>& img_batch, std::vector<std::vector<Detectio
         }
     }
 }
-void draw_bbox_singe(cv::Mat& img, std::vector<Detection>& res) {
+void draw_bbox_single(cv::Mat& img, std::vector<Detection>& res) {
     for (size_t j = 0; j < res.size(); j++) {
         cv::Rect r = get_rect(img, res[j].bbox);
         cv::rectangle(img, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
