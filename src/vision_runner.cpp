@@ -12,10 +12,11 @@ VisionRunner::VisionRunner(
 
 void VisionRunner::init() {
     info("initializing [VisionRunner]");
-    zed_camera_->open_camera();
 
     image_pub_ = new image_publishable;
     zmq_manager_->create_publisher(image_pub_, "tcp://*:5556");
+    vision_pub_ = new vision_publishable;
+    zmq_manager_->create_publisher(vision_pub_, "tcp://*:5557");
 }
 
 void VisionRunner::run() {
@@ -36,9 +37,18 @@ void VisionRunner::run() {
         }
         image_pub_->img_ = img_new;
     }
+    if (vision_pub_ != nullptr) {
+        std::vector<TrackedTargetInfo> vec;
+        for (int i = 0; i < 3; i++) {
+            TrackedTargetInfo t(i*2,i*3,i*5,i);
+            vec.push_back(t);
+        }
+        vision_pub_->targets_ = vec;
+    }
     zmq_manager_->send_publishers();
 }
 
 VisionRunner::~VisionRunner() {
     delete image_pub_;
+    delete vision_pub_;
 }

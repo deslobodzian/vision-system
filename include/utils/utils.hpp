@@ -238,5 +238,4 @@ static inline int encode_cv_mat(const void *_buf, int offset, int maxlen, const 
     return total_size;
 }
 
-
 #endif

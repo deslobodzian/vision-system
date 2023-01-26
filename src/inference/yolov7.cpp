@@ -91,7 +91,7 @@ void Yolov7::run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectD
 //    info("Inference time: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count()) + "ms");
     std::vector<std::vector<Detection>> batch_res(kBatchSize);
     auto& res = batch_res[batch_];
-    nms(res, &prob[batch_ * kOutputSize], kConfThresh, kNmsThresh);
+    nms(res, &output_buffer_host_[batch_ * kOutputSize], kConfThresh, kNmsThresh);
     cv::Rect bounds = cv::Rect(0, 0, img_cv_rgb.size().width, img_cv_rgb.size().height);
     for (auto &it : res) {
 	    sl::CustomBoxObjectData tmp;

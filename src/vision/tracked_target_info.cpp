@@ -5,7 +5,7 @@
 
 TrackedTargetInfo::TrackedTargetInfo() {}
 
-TrackedTargetInfo::TrackedTargetInfo(double x, double y, double z, int id) {
+TrackedTargetInfo::TrackedTargetInfo(float x, float y, float z, int id) {
     id_ = id;
     x_ = x;
     y_ = y;
@@ -19,15 +19,25 @@ TrackedTargetInfo::TrackedTargetInfo(sl::Pose &pose, int id) {
     z_ = pose.getTranslation().tz;
 }
 
-double TrackedTargetInfo::get_x() const {
+TrackedTargetInfo::TrackedTargetInfo(const sl::ObjectData& object_data) {
+    id_ = object_data.raw_label;
+    x_ = object_data.position.x;
+    y_ = object_data.position.y;
+    z_ = object_data.position.z;
+    vx_ = object_data.velocity.x;
+    vy_ = object_data.velocity.y;
+    vz_ = object_data.velocity.z;
+}
+
+float TrackedTargetInfo::get_x() const {
     return x_;
 }
 
-double TrackedTargetInfo::get_y() const {
+float TrackedTargetInfo::get_y() const {
     return y_;
 }
 
-double TrackedTargetInfo::get_z() const {
+float TrackedTargetInfo::get_z() const {
     return z_;
 }
 
@@ -57,16 +67,8 @@ double TrackedTargetInfo::get_pitch_angle() {
     return atan((get_y() / get_z()));
 }
 
-std::string TrackedTargetInfo::to_packet() {
-    return std::to_string(id_) + ";" +
-            std::to_string(x_) + ";" +
-            std::to_string(y_) + ";" +
-            std::to_string(z_) + ";";
-}
-
-std::vector<double> TrackedTargetInfo::target_info_vector() {
-    std::vector<double> tmp{x_, y_, z_, get_yaw_angle(), id_};
-    return tmp;
+std::vector<float> TrackedTargetInfo::get_vec() const {
+    return {static_cast<float>(id_), x_, y_, z_, vx_, vy_, vz_};
 }
 
 TrackedTargetInfo::~TrackedTargetInfo() {

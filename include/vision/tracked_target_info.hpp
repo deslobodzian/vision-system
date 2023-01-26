@@ -14,19 +14,23 @@
 class TrackedTargetInfo {
 private:
     int id_;
-    double x_;
-    double y_;
-    double z_;
+    float x_;
+    float y_;
+    float z_;
+    float vx_;
+    float vy_;
+    float vz_;
 
 public:
     TrackedTargetInfo();
-    TrackedTargetInfo(double x, double y, double z, int id);
+    TrackedTargetInfo(float x, float y, float z, int id);
     TrackedTargetInfo(sl::Pose &pose, int id);
+    TrackedTargetInfo(const sl::ObjectData& object_data);
     ~TrackedTargetInfo();
 
-    double get_x() const;
-    double get_y() const;
-    double get_z() const;
+    float get_x() const;
+    float get_y() const;
+    float get_z() const;
     int get_id() const;
 
     double get_distance();
@@ -35,8 +39,9 @@ public:
 
     double get_yaw_angle();
     double get_pitch_angle();
-    std::string to_packet();
-    std::vector<double> target_info_vector();
+
+    std::vector<float> get_vec() const;
+
 };
 
 #endif //VISION_SYSTEM_TARGET_INFO_HPP

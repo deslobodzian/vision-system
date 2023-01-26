@@ -11,6 +11,7 @@
 #include "inference/inference_manager.hpp"
 #include "networking/zmq_manager.hpp"
 #include "networking/image_pub.hpp"
+#include "networking/vision_pub.hpp"
 
 class VisionRunner : public Task {
 public:
@@ -27,6 +28,7 @@ public:
 
 private:
     image_publishable* image_pub_ = nullptr;
+    vision_publishable* vision_pub_ = nullptr;
     sl::Objects objs_;
 };
 

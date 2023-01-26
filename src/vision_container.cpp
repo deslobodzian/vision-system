@@ -25,20 +25,22 @@ void VisionContainer::init() {
     zed_config.model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
 
     zed_camera_ = new Zed(zed_config);
+    // need to open camera before inference manager;
+    zed_camera_->open_camera();
 
     info("[Vision Container]: Starting Inference Manager");
     inference_manager_ = new InferenceManager("../engines/best.engine");
     inference_manager_->init();
-    std::string folderpath = "/home/prometheus/projects/VisionSystem/image/*.jpg"; //images is the folder where the images are stored
-    std::vector<std::string> filenames;
-    cv::glob(folderpath, filenames);
-
-    for (size_t i=0; i<filenames.size(); i++) {
-        cv::Mat im = cv::imread(filenames[i]);
-        inference_manager_->test_inference(im);
-        std::string name = "output" + std::to_string(i)+".jpg";
-        cv::imwrite(name.c_str(), im);
-    }
+//    std::string folderpath = "/home/prometheus/projects/VisionSystem/image/*.jpg"; //images is the folder where the images are stored
+//    std::vector<std::string> filenames;
+//    cv::glob(folderpath, filenames);
+//
+//    for (size_t i=0; i<filenames.size(); i++) {
+//        cv::Mat im = cv::imread(filenames[i]);
+//        inference_manager_->test_inference(im);
+//        std::string name = "output" + std::to_string(i)+".jpg";
+//        cv::imwrite(name.c_str(), im);
+//    }
 
 
 //    info("[VisionContainer]: Setting up AprilTag manager");
@@ -65,16 +67,16 @@ void VisionContainer::run() {
     init();
     info("[VisionContainer]: Starting system");
 
-//    vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
-//
-//    vision_runner_->zed_camera_ = zed_camera_;
-//    vision_runner_->inference_manager_ = inference_manager_;
-//    vision_runner_->zmq_manager_ = zmq_manager_;
-//
-//    vision_runner_->start();
+    vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
+
+    vision_runner_->zed_camera_ = zed_camera_;
+    vision_runner_->inference_manager_ = inference_manager_;
+    vision_runner_->zmq_manager_ = zmq_manager_;
+
+    vision_runner_->start();
 
     for (;;) {
-//        usleep(1000000);
+        usleep(1000000);
     }
 }
 
