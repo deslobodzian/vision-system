@@ -7,7 +7,7 @@ AprilTagManager<T>::AprilTagManager(const detector_config &cfg) :
 
 template <typename T>
 void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
-    std::vector<TrackedTargetInfo> targets;
+    std::vector<tracked_target_info> targets;
     apriltag_detection_t *det;
     auto start = std::chrono::high_resolution_clock::now();
     camera->fetch_measurements();
@@ -26,7 +26,7 @@ void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
 //              error("Vec is nan");
             } else {
                 sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
-                targets.emplace_back(TrackedTargetInfo(pose, det->id));
+//                targets.emplace_back(TrackedTargetInfo(pose, det->id));
             }
         }
         const std::lock_guard<std::mutex> lock(zed_mtx_);
@@ -40,7 +40,7 @@ void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
 
 template <typename T>
 void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
-    std::vector<TrackedTargetInfo> targets;
+    std::vector<tracked_target_info> targets;
     apriltag_detection_t *det;
     auto start = std::chrono::high_resolution_clock::now();
     camera->fetch_measurements();
@@ -57,7 +57,7 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
                     (T)0.127 // 5 inch in meters
             );
             targets.emplace_back(
-                    TrackedTargetInfo(
+                    tracked_target_info(
                             pose.t->data[0],
                             pose.t->data[1],
                             pose.t->data[2],
@@ -74,13 +74,13 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
 }
 
 template <typename T>
-std::vector<TrackedTargetInfo> AprilTagManager<T>::get_zed_targets() {
+std::vector<tracked_target_info> AprilTagManager<T>::get_zed_targets() {
     const std::lock_guard<std::mutex> lock(zed_mtx_);
     return zed_targets_;
 }
 
 template <typename T>
-std::vector<TrackedTargetInfo> AprilTagManager<T>::get_monocular_targets() {
+std::vector<tracked_target_info> AprilTagManager<T>::get_monocular_targets() {
     const std::lock_guard<std::mutex> lock(monocular_mtx_);
     return monocular_targets_;
 }

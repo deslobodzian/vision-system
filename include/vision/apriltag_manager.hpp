@@ -43,15 +43,15 @@ public:
     void print_monocular_dt() const;
     void print_zed_dt() const;
 
-    std::vector<TrackedTargetInfo> get_zed_targets();
-    std::vector<TrackedTargetInfo> get_monocular_targets();
+    std::vector<tracked_target_info> get_zed_targets();
+    std::vector<tracked_target_info> get_monocular_targets();
 private:
     TagDetector<T> zed_detector_;
     TagDetector<T> monocular_detector_;
     std::mutex zed_mtx_;
     std::mutex monocular_mtx_;
-    std::vector<TrackedTargetInfo> zed_targets_;
-    std::vector<TrackedTargetInfo> monocular_targets_;
+    std::vector<tracked_target_info> zed_targets_;
+    std::vector<tracked_target_info> monocular_targets_;
     long zed_dt_{};
     long monocular_dt_{};
 

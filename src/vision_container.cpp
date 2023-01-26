@@ -29,7 +29,7 @@ void VisionContainer::init() {
     zed_camera_->open_camera();
 
     info("[Vision Container]: Starting Inference Manager");
-    inference_manager_ = new InferenceManager("../engines/best.engine");
+    inference_manager_ = new InferenceManager("../engines/pc.engine");
     inference_manager_->init();
 //    std::string folderpath = "/home/prometheus/projects/VisionSystem/image/*.jpg"; //images is the folder where the images are stored
 //    std::vector<std::string> filenames;

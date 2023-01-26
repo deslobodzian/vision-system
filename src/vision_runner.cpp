@@ -20,6 +20,7 @@ void VisionRunner::init() {
 }
 
 void VisionRunner::run() {
+    std::vector<tracked_target_info> vec;
     inference_manager_->inference_on_device(zed_camera_);
     if (image_pub_ != nullptr) {
         cv::Mat img = slMat_to_cvMat(zed_camera_->get_left_image());
@@ -38,9 +39,8 @@ void VisionRunner::run() {
         image_pub_->img_ = img_new;
     }
     if (vision_pub_ != nullptr) {
-        std::vector<TrackedTargetInfo> vec;
         for (int i = 0; i < 3; i++) {
-            TrackedTargetInfo t(i*2,i*3,i*5,i);
+            tracked_target_info t(1.0f, 3.0f,2.0f,i);
             vec.push_back(t);
         }
         vision_pub_->targets_ = vec;

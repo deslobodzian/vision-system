@@ -11,9 +11,8 @@
 #include <Eigen/Dense>
 #include "map.hpp"
 
-class TrackedTargetInfo {
-private:
-    int id_;
+struct tracked_target_info {
+    uint8_t id_;
     float x_;
     float y_;
     float z_;
@@ -21,27 +20,34 @@ private:
     float vy_;
     float vz_;
 
-public:
-    TrackedTargetInfo();
-    TrackedTargetInfo(float x, float y, float z, int id);
-    TrackedTargetInfo(sl::Pose &pose, int id);
-    TrackedTargetInfo(const sl::ObjectData& object_data);
-    ~TrackedTargetInfo();
+    explicit tracked_target_info(const sl::ObjectData& data) :
+        id_(data.raw_label),
+        x_(data.position.x),
+        y_(data.position.y),
+        z_(data.position.z),
+        vx_(data.velocity.x),
+        vy_(data.velocity.y),
+        vz_(data.velocity.z) {
+    }
 
-    float get_x() const;
-    float get_y() const;
-    float get_z() const;
-    int get_id() const;
+    explicit tracked_target_info(const float x, const float y, const float z, const uint8_t id) :
+        id_(id),
+        x_(x),
+        y_(y),
+        z_(z),
+        vx_(0.0f),
+        vy_(0.0f),
+        vz_(0.0f) {
+    }
 
-    double get_distance();
-    double get_distance(double x_offset, double y_offset, double z_offset);
-    double get_distance(const sl::Transform& offset);
+    void encode(uint8_t* buffer) {
+        memcpy(buffer, &id_, sizeof(uint8_t));
+        memcpy(buffer + sizeof(uint8_t), &x_, sizeof(float) * 6);
+    }
 
-    double get_yaw_angle();
-    double get_pitch_angle();
-
-    std::vector<float> get_vec() const;
-
+    static int size() {
+        return sizeof(uint8_t) + (sizeof(float) * 6);
+    }
 };
 
 #endif //VISION_SYSTEM_TARGET_INFO_HPP

@@ -12,7 +12,7 @@
 
 struct vision_publishable : public publishable {
     const std::string topic_ = "vision";
-    std::vector<TrackedTargetInfo> targets_;
+    std::vector<tracked_target_info> targets_;
     std::unique_ptr<uint8_t[]> data_ptr_;
 
     uint8_t* get_byte_array() override {
@@ -23,18 +23,13 @@ struct vision_publishable : public publishable {
 
     void encode(uint8_t *buffer) override {
         int offset = 0;
-        for (const auto& tracked_object : targets_) {
-            offset += decode_float_array(
-                    buffer,
-                    offset,
-                    get_size(),
-                    tracked_object.get_vec().data(),
-                    tracked_object.get_vec().size()
-                    );
+        for (auto &target : targets_) {
+            target.encode(buffer + offset);
+            offset += tracked_target_info::size();
         }
     }
 
-    size_t get_size() const override{
+    size_t get_size() const override {
         return (7 * sizeof(float)) * targets_.size();
     }
 
