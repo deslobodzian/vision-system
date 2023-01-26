@@ -40,7 +40,7 @@ void VisionRunner::run() {
     }
     if (vision_pub_ != nullptr) {
         for (int i = 0; i < 3; i++) {
-            tracked_target_info t(1.0f, 4.0f,2.0f,i);
+            tracked_target_info t(1.0f, 3.0f,2.0f,i);
             vec.push_back(t);
         }
         vision_pub_->targets_ = vec;
