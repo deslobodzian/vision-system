@@ -126,6 +126,8 @@ struct zed_config {
     bool enable_tracking;
     bool enable_mask_output;
     sl::DETECTION_MODEL model;
+
+    float detection_confidence_threshold;
 };
 
 #endif //VISION_SYSTEM_CAMERA_CONFIG_HPP

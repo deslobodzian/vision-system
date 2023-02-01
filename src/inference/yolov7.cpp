@@ -86,7 +86,7 @@ bool Yolov7::prepare_inference(sl::Mat& img_sl, cv::Mat& img_cv_rgb) {
 void Yolov7::run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectData>* objs) {
     objs->clear();
 //    auto start = std::chrono::high_resolution_clock::now();
-    doInference(*context_, stream_, (void**)buffers_, output_buffer_host_, kBatchSize);
+    doInference(*context_, stream_, (void **)buffers_, output_buffer_host_, kBatchSize);
 //    auto stop = std::chrono::high_resolution_clock::now();
 //    info("Inference time: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count()) + "ms");
     std::vector<std::vector<Detection>> batch_res(kBatchSize);
@@ -100,10 +100,12 @@ void Yolov7::run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectD
         r = bounds & r;
 	    tmp.unique_object_id = sl::generate_unique_id();
 	    tmp.probability = it.conf;
+        debug("Detecton probability: " + std::to_string(it.conf));
 	    tmp.label = (int) it.class_id;
 	    tmp.bounding_box_2d = cvt(r);
 	    objs->push_back(tmp);
 	}
+//    debug("Objs size: " + std::to_string(objs->size()));
 }
 //
 void Yolov7::run_inference_test(cv::Mat& img_cv_rgb) {

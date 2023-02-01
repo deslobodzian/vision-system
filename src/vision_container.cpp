@@ -23,6 +23,7 @@ void VisionContainer::init() {
     zed_config.enable_tracking = true;
     zed_config.enable_mask_output = false;
     zed_config.model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
+    zed_config.detection_confidence_threshold = 70;
 
     zed_camera_ = new Zed(zed_config);
     // need to open camera before inference manager;
@@ -31,7 +32,7 @@ void VisionContainer::init() {
     info("[Vision Container]: Starting Inference Manager");
     inference_manager_ = new InferenceManager("../engines/pc.engine");
     inference_manager_->init();
-//    std::string folderpath = "/home/prometheus/projects/VisionSystem/image/*.jpg"; //images is the folder where the images are stored
+//    std::string folderpath = "/home/prometheus/Projects/VisionSystem/images/*.png"; //images is the folder where the images are stored
 //    std::vector<std::string> filenames;
 //    cv::glob(folderpath, filenames);
 //
@@ -53,8 +54,6 @@ void VisionContainer::init() {
 //    apriltag_config.refine_edges = true;
 
 //    tag_manager_ = new AprilTagManager<float>(apriltag_config);
-
-
 }
 
 void VisionContainer::detect_zed_targets() {

@@ -12,6 +12,8 @@ VisionRunner::VisionRunner(
 
 void VisionRunner::init() {
     info("initializing [VisionRunner]");
+    zed_camera_->enable_tracking();
+    zed_camera_->enable_object_detection();
 
     image_pub_ = new image_publishable;
     zmq_manager_->create_publisher(image_pub_, "tcp://*:5556");
@@ -28,6 +30,7 @@ void VisionRunner::run() {
         cv::Mat img_new;
         cv::cvtColor(img, img_new, cv::COLOR_BGRA2BGR);
         zed_camera_->retrieve_objects(objs_);
+        debug("Num objs: " + std::to_string(objs_.object_list.size()));
         for (auto& object : objs_.object_list) {
             cv::Point p1(object.bounding_box_2d.at(0).x, object.bounding_box_2d.at(0).y);
             cv::Point p2(object.bounding_box_2d.at(2).x, object.bounding_box_2d.at(2).y);

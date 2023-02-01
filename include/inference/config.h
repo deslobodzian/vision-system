@@ -32,7 +32,7 @@ const static int kMaxNumOutputBbox = 1000;
 const static int kNumAnchor = 3;
 
 // The bboxes whose confidence is lower than kIgnoreThresh will be ignored in yololayer plugin.
-const static float kIgnoreThresh = 0.1f;
+const static float kIgnoreThresh = 0.7f;
 
 /* --------------------------------------------------------
  * These configs are not related to tensorrt model, if these are changed,
