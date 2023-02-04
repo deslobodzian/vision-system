@@ -6,7 +6,6 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <sl/Camera.hpp>
-#include <sophus/geometry.hpp>
 
 inline void draw_vertical_line(
         cv::Mat &left_display,
@@ -76,22 +75,22 @@ inline sl::Vector3<T> calculate_plane_normal_vector(const sl::Vector3<T> &p1, co
     return u/u.norm();
 }
 
-template <typename T>
-inline Sophus::SO3<T> so3_from_normal_vec(const sl::Vector3<T> &normal_vec) {
-    return Sophus::SO3FromNormal(Eigen::Vector3<T>(normal_vec.x, normal_vec.y, normal_vec.z));
-}
+//template <typename T>
+//inline Sophus::SO3<T> so3_from_normal_vec(const sl::Vector3<T> &normal_vec) {
+//    return Sophus::SO3FromNormal(Eigen::Vector3<T>(normal_vec.x, normal_vec.y, normal_vec.z));
+//}
 
 template <typename T>
 inline sl::float3 sl_vec_to_float3(const sl::Vector3<T> &vec) {
     return{(float)vec.tx, (float)vec.ty, (float)vec.tz};
 }
 
-template <typename T>
-inline sl::Orientation orientation_from_normal_vec(const sl::Vector3<T> &normal_vec) {
-    Sophus::SO3<T> so3(so3_from_normal_vec(normal_vec));
-    typename Sophus::SO3<T>::QuaternionMember q = so3.unit_quaternion();
-    return {sl::Vector4<float>((float)q.x(), (float)q.y(), (float)q.z(), (float)q.w())};
-}
+//template <typename T>
+//inline sl::Orientation orientation_from_normal_vec(const sl::Vector3<T> &normal_vec) {
+//    Sophus::SO3<T> so3(so3_from_normal_vec(normal_vec));
+//    typename Sophus::SO3<T>::QuaternionMember q = so3.unit_quaternion();
+//    return {sl::Vector4<float>((float)q.x(), (float)q.y(), (float)q.z(), (float)q.w())};
+//}
 
 template <typename T>
 inline bool is_vec_nan(const sl::Vector3<T> &vec) {
