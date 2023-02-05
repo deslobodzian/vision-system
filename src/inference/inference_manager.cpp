@@ -13,6 +13,7 @@ void InferenceManager::init() {
 }
 
 void InferenceManager::inference_on_device(Zed *camera) {
+    zed_struct_.custom_obj_data_.clear();
     camera->fetch_measurements();
     camera->get_left_image(zed_struct_.sl_mat);
     detector_.prepare_inference(zed_struct_.sl_mat, zed_struct_.cv_mat);

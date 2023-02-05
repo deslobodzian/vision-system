@@ -32,7 +32,7 @@ const static int kMaxNumOutputBbox = 1000;
 const static int kNumAnchor = 3;
 
 // The bboxes whose confidence is lower than kIgnoreThresh will be ignored in yololayer plugin.
-const static float kIgnoreThresh = 0.7f;
+const static float kIgnoreThresh = 0.1f;
 
 /* --------------------------------------------------------
  * These configs are not related to tensorrt model, if these are changed,
@@ -40,8 +40,8 @@ const static float kIgnoreThresh = 0.7f;
  * --------------------------------------------------------*/
 
 // NMS overlapping thresh and final detection confidence thresh
-const static float kNmsThresh = 0.45f;
-const static float kConfThresh = 0.5f;
+const static float kNmsThresh = 0.7f;
+const static float kConfThresh = 0.85f;
 
 const static int kGpuId = 0;
 

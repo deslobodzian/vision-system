@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <sl/Camera.hpp>
+#include "vision/tracked_target_info.hpp"
 
 inline void draw_vertical_line(
         cv::Mat &left_display,
@@ -235,6 +236,12 @@ static inline int encode_cv_mat(const void *_buf, int offset, int maxlen, const 
 
     std::memcpy(buf + pos, mat.data, total_size);
     return total_size;
+}
+
+static inline void objects_to_tracked_target_info(const sl::Objects &obs, std::vector<tracked_target_info> *vec) {
+    for (const auto& object : obs.object_list) {
+        vec->push_back(tracked_target_info(object));
+    }
 }
 
 #endif

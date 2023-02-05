@@ -42,10 +42,7 @@ void VisionRunner::run() {
         image_pub_->img_ = img_new;
     }
     if (vision_pub_ != nullptr) {
-        for (int i = 0; i < 3; i++) {
-            tracked_target_info t(1.0f, 3.0f,2.0f,i);
-            vec.push_back(t);
-        }
+        objects_to_tracked_target_info(objs_, &vec);
         vision_pub_->targets_ = vec;
     }
     zmq_manager_->send_publishers();
