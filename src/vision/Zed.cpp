@@ -19,6 +19,8 @@ Zed::Zed(const zed_config &config) {
     obj_detection_params_.enable_mask_output = config.enable_mask_output;
     obj_detection_params_.detection_model = config.model;
 
+    obj_rt_params_.detection_confidence_threshold = config.detection_confidence_threshold;
+
 }
 bool Zed::successful_grab() {
     return (zed_.grab() == ERROR_CODE::SUCCESS);
@@ -57,7 +59,7 @@ int Zed::enable_tracking(const Eigen::Vector3f &init_pose) {
 }
 
 void Zed::enable_object_detection() {
-    if (zed_.enableObjectDetection(obj_detection_params_) == sl::ERROR_CODE::SUCCESS) {
+    if (zed_.enableObjectDetection(obj_detection_params_) != sl::ERROR_CODE::SUCCESS) {
         error("[ZED] Failed to enable object detection!");
     }
 }

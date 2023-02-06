@@ -23,17 +23,26 @@ void VisionContainer::init() {
     zed_config.enable_tracking = true;
     zed_config.enable_mask_output = false;
     zed_config.model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
+    zed_config.detection_confidence_threshold = 70;
 
     zed_camera_ = new Zed(zed_config);
+    // need to open camera before inference manager;
+    zed_camera_->open_camera();
 
     info("[Vision Container]: Starting Inference Manager");
-    inference_manager_ = new InferenceManager("../engines/best.engine");
+    inference_manager_ = new InferenceManager("../engines/pc_engine.engine");
     inference_manager_->init();
+//    std::string folderpath = "/home/prometheus/Projects/VisionSystem/images/*.png"; //images is the folder where the images are stored
+//    std::vector<std::string> filenames;
+//    cv::glob(folderpath, filenames);
+//
+//    for (size_t i=0; i<filenames.size(); i++) {
+//        cv::Mat im = cv::imread(filenames[i]);
+//        inference_manager_->test_inference(im);
+//        std::string name = "output" + std::to_string(i)+".jpg";
+//        cv::imwrite(name.c_str(), im);
+//    }
 
-    std::string file_name = "../image/test.jpg";
-    cv::Mat img = cv::imread(file_name);
-    inference_manager_->test_inference(img);
-    cv::imwrite("output.jpg", img);
 
 //    info("[VisionContainer]: Setting up AprilTag manager");
 //    detector_config apriltag_config {};
@@ -45,8 +54,6 @@ void VisionContainer::init() {
 //    apriltag_config.refine_edges = true;
 
 //    tag_manager_ = new AprilTagManager<float>(apriltag_config);
-
-
 }
 
 void VisionContainer::detect_zed_targets() {
@@ -59,16 +66,16 @@ void VisionContainer::run() {
     init();
     info("[VisionContainer]: Starting system");
 
-//    vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
-//
-//    vision_runner_->zed_camera_ = zed_camera_;
-//    vision_runner_->inference_manager_ = inference_manager_;
-//    vision_runner_->zmq_manager_ = zmq_manager_;
-//
-//    vision_runner_->start();
+    vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
+
+    vision_runner_->zed_camera_ = zed_camera_;
+    vision_runner_->inference_manager_ = inference_manager_;
+    vision_runner_->zmq_manager_ = zmq_manager_;
+
+    vision_runner_->start();
 
     for (;;) {
-//        usleep(1000000);
+        usleep(1000000);
     }
 }
 

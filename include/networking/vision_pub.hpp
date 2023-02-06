@@ -8,25 +8,29 @@
 #include "zmq_publisher.hpp"
 #include <memory>
 #include "utils/utils.hpp"
+#include "vision/tracked_target_info.hpp"
 
 struct vision_publishable : public publishable {
     const std::string topic_ = "vision";
-    float target_info[3];
+    std::vector<tracked_target_info> targets_;
     std::unique_ptr<uint8_t[]> data_ptr_;
-    size_t size_ = 3 * sizeof(float);
 
     uint8_t* get_byte_array() override {
-        data_ptr_ = std::make_unique<uint8_t[]>(size_);
+        data_ptr_ = std::make_unique<uint8_t[]>(get_size());
         encode(data_ptr_.get());
         return data_ptr_.get();
     }
 
     void encode(uint8_t *buffer) override {
-        encode_float_array(buffer, 0, size_, target_info, 3);
+        int offset = 0;
+        for (auto &target : targets_) {
+            target.encode(buffer + offset);
+            offset += tracked_target_info::size();
+        }
     }
 
-    size_t get_size() const override{
-        return size_;
+    size_t get_size() const override {
+        return (7 * sizeof(float)) * targets_.size();
     }
 
     std::string get_topic() const override {
