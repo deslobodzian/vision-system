@@ -12,8 +12,8 @@ void VisionContainer::init() {
 
     info("[VisionContainer]: Setting up zed camera");
     zed_config zed_config{};
-    zed_config.res = sl::RESOLUTION::VGA;
-    zed_config.fps = 100;
+    zed_config.res = sl::RESOLUTION::HD720;
+    zed_config.fps = 60;
     zed_config.depth_mode = sl::DEPTH_MODE::ULTRA;
     zed_config.sdk_verbose = true;
     zed_config.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
@@ -30,7 +30,7 @@ void VisionContainer::init() {
     zed_camera_->open_camera();
 
     info("[Vision Container]: Starting Inference Manager");
-    inference_manager_ = new InferenceManager("../engines/pc_engine.engine");
+    inference_manager_ = new InferenceManager("../engines/laptop.engine");
     inference_manager_->init();
 //    std::string folderpath = "/home/prometheus/Projects/VisionSystem/images/*.png"; //images is the folder where the images are stored
 //    std::vector<std::string> filenames;
@@ -66,7 +66,7 @@ void VisionContainer::run() {
     init();
     info("[VisionContainer]: Starting system");
 
-    vision_runner_ = new VisionRunner(&task_manager_, 0.05, "vision-runner");
+    vision_runner_ = new VisionRunner(&task_manager_, 0.02, "vision-runner");
 
     vision_runner_->zed_camera_ = zed_camera_;
     vision_runner_->inference_manager_ = inference_manager_;
