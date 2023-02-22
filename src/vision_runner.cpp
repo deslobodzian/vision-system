@@ -28,12 +28,11 @@ void VisionRunner::run() {
     std::vector<tracked_target_info> vec;
     inference_manager_->inference_on_device(zed_camera_);
     zed_camera_->retrieve_objects(objs_);
+
 //    if (image_pub_ != nullptr) {
 //        cv::Mat img = slMat_to_cvMat(zed_camera_->get_left_image());
-////        printf("Mat {w: %i, h %i}\n", img.rows, img.cols);
 //        cv::Mat img_new;
 //        cv::cvtColor(img, img_new, cv::COLOR_BGRA2BGR);
-//        zed_camera_->retrieve_objects(objs_);
 //        debug("Num objs: " + std::to_string(objs_.object_list.size()));
 //        for (auto& object : objs_.object_list) {
 //            cv::Point p1(object.bounding_box_2d.at(0).x, object.bounding_box_2d.at(0).y);
