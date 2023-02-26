@@ -18,6 +18,7 @@ void InferenceManager::inference_on_device(Zed *camera) {
     camera->get_left_image(zed_struct_.sl_mat);
     detector_.prepare_inference(zed_struct_.sl_mat, zed_struct_.cv_mat);
     detector_.run_inference(zed_struct_.cv_mat, &zed_struct_.custom_obj_data_);
+//    debug("Number of Object (inference_on_device): " + std::to_string(zed_struct_.custom_obj_data_.size()));
     camera->ingest_custom_objects(zed_struct_.custom_obj_data_);
 }
 

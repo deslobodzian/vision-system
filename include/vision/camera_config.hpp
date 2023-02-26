@@ -115,6 +115,7 @@ struct zed_config {
     // Initial Parameters;
     sl::RESOLUTION res;
     int fps;
+    int flip_camera;
     sl::DEPTH_MODE depth_mode;
     bool sdk_verbose;
     sl::COORDINATE_SYSTEM coordinate_system;

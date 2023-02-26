@@ -7,6 +7,7 @@ Zed::Zed(const zed_config &config) {
     // Initial Parameters
     init_params_.camera_resolution = config.res;
     init_params_.camera_fps = config.fps;
+    init_params_.camera_image_flip = config.flip_camera;
     init_params_.depth_mode = config.depth_mode;
     init_params_.sdk_verbose = config.sdk_verbose;
     init_params_.coordinate_system = config.coordinate_system;
@@ -67,6 +68,8 @@ void Zed::enable_object_detection() {
 void Zed::fetch_measurements() {
     if (successful_grab()) {
         zed_.retrieveImage(measurements_.left_image, VIEW::LEFT);
+        zed_.getSensorsData(measurements_.sensor_data, TIME_REFERENCE::IMAGE);
+        measurements_.imu_data = measurements_.sensor_data.imu;
         measurements_.timestamp = measurements_.left_image.timestamp;
 //        zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
 //        zed_.retrieveMeasure(measurements_.point_cloud, MEASURE::XYZRGBA);
@@ -82,6 +85,7 @@ sl::Mat Zed::get_depth_map() const {
 sl::Mat Zed::get_point_cloud() const {
     return measurements_.point_cloud;
 }
+
 
 sl::float3 Zed::get_position_from_pixel(int x, int y) const {
     sl::float4 point3d;
@@ -114,6 +118,10 @@ sl::Pose Zed::get_camera_pose() const {
 
 Timestamp Zed::get_measurement_timestamp() const {
     return measurements_.timestamp;
+}
+
+SensorsData::IMUData Zed::get_imu_data() const {
+    return measurements_.imu_data;
 }
 
 void Zed::ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs) {

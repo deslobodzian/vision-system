@@ -21,6 +21,8 @@ typedef struct {
     Pose camera_pose;
     Mat depth_map;
     Mat point_cloud;
+    SensorsData sensor_data;
+    SensorsData::IMUData imu_data;
 } ZedMeasurements;
 
 class Zed : public GenericCamera {
@@ -61,6 +63,8 @@ public:
 
     // gets the timestamp from the last fetched measurement information.
     Timestamp get_measurement_timestamp() const;
+    // get IMU data from last fetched measurement information.
+    SensorsData::IMUData get_imu_data() const;
 
     // Ingest the CustomObjects into the zed SDK
     void ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs);

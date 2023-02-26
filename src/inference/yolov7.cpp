@@ -103,6 +103,7 @@ void Yolov7::run_inference(cv::Mat& img_cv_rgb, std::vector<sl::CustomBoxObjectD
         debug("Detecton probability: " + std::to_string(it.conf));
 	    tmp.label = (int) it.class_id;
 	    tmp.bounding_box_2d = cvt(r);
+        tmp.is_grounded = false;
 	    objs->push_back(tmp);
 	}
 //    debug("Objs size: " + std::to_string(objs->size()));

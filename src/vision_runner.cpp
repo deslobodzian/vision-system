@@ -13,9 +13,8 @@ VisionRunner::VisionRunner(
 
 void VisionRunner::init() {
     info("initializing [VisionRunner]");
-    zed_camera_->enable_tracking();
-    zed_camera_->enable_object_detection();
     std::string ip_address = "10.56.87.20";
+//    std::string ip_address = "*";
 
 //    image_pub_ = new image_publishable;
 //    zmq_manager_->create_publisher(image_pub_, "tcp://" + ip_address + ":5556");
@@ -28,12 +27,11 @@ void VisionRunner::run() {
     std::vector<tracked_target_info> vec;
     inference_manager_->inference_on_device(zed_camera_);
     zed_camera_->retrieve_objects(objs_);
-
 //    if (image_pub_ != nullptr) {
 //        cv::Mat img = slMat_to_cvMat(zed_camera_->get_left_image());
 //        cv::Mat img_new;
 //        cv::cvtColor(img, img_new, cv::COLOR_BGRA2BGR);
-//        debug("Num objs: " + std::to_string(objs_.object_list.size()));
+//        debug("Num objs (image_sender): " + std::to_string(objs_.object_list.size()));
 //        for (auto& object : objs_.object_list) {
 //            cv::Point p1(object.bounding_box_2d.at(0).x, object.bounding_box_2d.at(0).y);
 //            cv::Point p2(object.bounding_box_2d.at(2).x, object.bounding_box_2d.at(2).y);
@@ -46,9 +44,10 @@ void VisionRunner::run() {
 //    }
     if (vision_pub_ != nullptr) {
         objects_to_tracked_target_info(objs_, &vec);
+//        debug("Is objects new: " + std::to_string(objs_.is_new));
         vision_pub_->targets_ = vec;
     }
-    zmq_manager_->send_publishers();
+//    zmq_manager_->send_publishers();
     //auto end = std::chrono::high_resolution_clock::now();
     //std::chrono::duration<double, std::milli> elapsed = end - start;
     //debug("Time took: " + std::to_string(elapsed.count()));

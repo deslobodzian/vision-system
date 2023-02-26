@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <sl/Camera.hpp>
+#include <valarray>
 #include "vision/tracked_target_info.hpp"
 
 inline void draw_vertical_line(
@@ -139,7 +140,16 @@ inline int encode_int32_t_array(void *_buf, int offset, int maxlen, const int32_
     return total_size;
 }
 inline int encode_float_array(void *_buf, int offset, int maxlen, const float *p, int elements) {
-    return encode_int32_t_array(_buf, offset, maxlen, reinterpret_cast<const int32_t *>(p), elements);
+    int total_size = elements * sizeof(float);
+    auto *buf = (uint8_t *)_buf;
+    int pos = offset;
+
+    if (maxlen < total_size) {
+        return -1;
+    }
+
+    std::memcpy(buf + pos, p, total_size);
+    return total_size;
 }
 /*
  * decode uint8_t to uint8_t from LCM package.
