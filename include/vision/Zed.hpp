@@ -80,6 +80,7 @@ private:
     RuntimeParameters runtime_params_;
     ObjectDetectionParameters obj_detection_params_;
     ObjectDetectionRuntimeParameters obj_rt_params_;
+    BatchParameters batch_params_;
 
     float left_offset_to_center_{};
     bool successful_grab();

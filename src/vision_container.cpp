@@ -21,10 +21,14 @@ void VisionContainer::init() {
     zed_config.units = sl::UNIT::METER;
     zed_config.max_depth = 20.0;
     zed_config.reference_frame = REFERENCE_FRAME::CAMERA;
-    zed_config.enable_tracking = false;
+    zed_config.enable_tracking = true;
+    zed_config.prediction_timeout_s = 0.2f;
     zed_config.enable_mask_output = false;
+    zed_config.enable_batch = false;
+    zed_config.batch_latency = 2.f;
+    zed_config.id_retention_time = 240.f;
     zed_config.model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
-    zed_config.detection_confidence_threshold = 70;
+    zed_config.detection_confidence_threshold = 50;
 
     zed_camera_ = new Zed(zed_config);
     // need to open camera before inference manager;
@@ -34,11 +38,12 @@ void VisionContainer::init() {
 
     info("[Vision Container]: Starting Inference Manager");
     inference_manager_ = new InferenceManager("/home/team5687/VisionSystem/engines/jetson_comp.engine");
+//    inference_manager_ = new InferenceManager("../engines/laptop.engine");
     inference_manager_->init();
 
-    info("[Vision Container]: Creating IMU publisher");
-    imu_pub_ = new imu_publishable;
-    zmq_manager_->create_publisher(imu_pub_, "tcp://10.56.87.20:5558");
+//    info("[Vision Container]: Creating IMU publisher");
+//    imu_pub_ = new imu_publishable;
+//    zmq_manager_->create_publisher(imu_pub_, "tcp://10.56.87.20:5558");
 //    std::string folderpath = "/home/prometheus/Projects/VisionSystem/images/*.png"; //images is the folder where the images are stored
 //    std::vector<std::string> filenames;
 //    cv::glob(folderpath, filenames);
@@ -101,26 +106,26 @@ void VisionContainer::run() {
     vision_runner_->zmq_manager_ = zmq_manager_;
     vision_runner_->start();
 
-    info("[VisionContainer]: Starting IMU reading task");
-    PeriodicMemberFunction<VisionContainer> imu_task(
-            &task_manager_,
-            0.01,
-            "imu",
-            &VisionContainer::read_imu,
-            this
-    );
-    imu_task.start();
+//    info("[VisionContainer]: Starting IMU reading task");
+//    PeriodicMemberFunction<VisionContainer> imu_task(
+//            &task_manager_,
+//            0.01,
+//            "imu",
+//            &VisionContainer::read_imu,
+//            this
+//    );
+//    imu_task.start();
 
-    info("[VisionContainer]: Starting publisher task");
-    PeriodicMemberFunction<VisionContainer> publisher_task(
-            &task_manager_,
-            0.001,
-            "imu",
-            &VisionContainer::zmq_publish,
-            this
-    );
-    publisher_task.start();
-    info("[VisionContainer]: Publisher task started");
+//    info("[VisionContainer]: Starting publisher task");
+//    PeriodicMemberFunction<VisionContainer> publisher_task(
+//            &task_manager_,
+//            0.001,
+//            "imu",
+//            &VisionContainer::zmq_publish,
+//            this
+//    );
+//    publisher_task.start();
+//    info("[VisionContainer]: Publisher task started");
 
     for (;;) {
         usleep(1000000);

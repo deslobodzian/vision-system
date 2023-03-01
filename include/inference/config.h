@@ -40,8 +40,8 @@ const static float kIgnoreThresh = 0.1f;
  * --------------------------------------------------------*/
 
 // NMS overlapping thresh and final detection confidence thresh
-const static float kNmsThresh = 0.7f;
-const static float kConfThresh = 0.85f;
+const static float kNmsThresh = 0.5f;
+const static float kConfThresh = 0.5f;
 
 const static int kGpuId = 0;
 

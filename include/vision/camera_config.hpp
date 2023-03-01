@@ -125,10 +125,16 @@ struct zed_config {
     sl::REFERENCE_FRAME reference_frame;
 
     bool enable_tracking;
+    float prediction_timeout_s;
     bool enable_mask_output;
     sl::DETECTION_MODEL model;
 
     float detection_confidence_threshold;
+
+    bool enable_batch;
+    float id_retention_time;
+    float batch_latency;
+
 };
 
 #endif //VISION_SYSTEM_CAMERA_CONFIG_HPP

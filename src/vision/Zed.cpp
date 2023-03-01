@@ -19,8 +19,14 @@ Zed::Zed(const zed_config &config) {
     obj_detection_params_.enable_tracking = config.enable_tracking;
     obj_detection_params_.enable_mask_output = config.enable_mask_output;
     obj_detection_params_.detection_model = config.model;
+    obj_detection_params_.prediction_timeout_s = config.prediction_timeout_s;
 
     obj_rt_params_.detection_confidence_threshold = config.detection_confidence_threshold;
+    batch_params_.enable = config.enable_batch;
+    batch_params_.id_retention_time = config.id_retention_time;
+    batch_params_.latency = config.batch_latency;
+
+    obj_detection_params_.batch_parameters = batch_params_;
 
 }
 bool Zed::successful_grab() {
