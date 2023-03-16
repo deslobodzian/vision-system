@@ -7,11 +7,10 @@
 
 template <typename T>
 TagDetector<T>::TagDetector() {
-    tf_ = tag36h11_create();
+    tf_ = tag16h5_create();
     td_ = apriltag_detector_create();
 
     apriltag_detector_add_family(td_, tf_);
-    cudaMalloc(&gpu_image_, sizeof(unsigned char));
 }
 
 template <typename T>
@@ -26,37 +25,25 @@ TagDetector<T>::TagDetector(detector_config cfg) {
     td_->nthreads = cfg.nthreads;
     td_->debug = cfg.debug;
     td_->refine_edges = cfg.refine_edges;
-    cudaMalloc(&gpu_image_, sizeof(unsigned char));
 }
 
 template <typename T>
 TagDetector<T>::~TagDetector() {
     apriltag_detector_destroy(td_);
     apriltag_detections_destroy(current_detections_);
-    cudaFree(gpu_image_);
-}
-
-template <typename T>
-void TagDetector<T>::copy_image_to_gpu(const cv::Mat &img) {
-    cv::Mat gray_img;
-    cv::cvtColor(img, gray_img, cv::COLOR_BGR2GRAY);
-
-    cudaMalloc(&gpu_image_, gray_img.total() * sizeof(unsigned char));
-    cudaMemcpy(gpu_image_, gray_img.data, gray_img.total() * sizeof(unsigned char), cudaMemcpyHostToDevice);
 }
 
 template <typename T>
 zarray_t* TagDetector<T>::get_detections(const cv::Mat &img) {
-    copy_image_to_gpu(img);
+    cv::Mat gray_img;
+    cv::cvtColor(img, gray_img, cv::COLOR_BGR2GRAY);
     image_u8_t im = {
-            .width = img.cols,
-            .height = img.rows,
-            .stride = img.cols,
-            .buf = gpu_image_
+            .width = gray_img.cols,
+            .height = gray_img.rows,
+            .stride = gray_img.cols,
+            .buf = gray_img.data
     };
-    zarray_t* detections = apriltag_detector_detect(td_, &im);
-    cudaFree(gpu_image_);
-    return detections;
+    return apriltag_detector_detect(td_, &im);
 }
 
 template <typename T>

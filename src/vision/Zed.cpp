@@ -78,7 +78,7 @@ void Zed::fetch_measurements() {
         measurements_.imu_data = measurements_.sensor_data.imu;
         measurements_.timestamp = measurements_.left_image.timestamp;
 //        zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
-//        zed_.retrieveMeasure(measurements_.point_cloud, MEASURE::XYZRGBA);
+        zed_.retrieveMeasure(measurements_.point_cloud, MEASURE::XYZ);
 //        zed_.getPosition(measurements_.camera_pose);
     }
 }

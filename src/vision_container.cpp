@@ -37,8 +37,8 @@ void VisionContainer::init() {
     zed_camera_->enable_object_detection();
 
     info("[Vision Container]: Starting Inference Manager");
-    inference_manager_ = new InferenceManager("/home/team5687/VisionSystem/engines/jetson_comp.engine");
-//    inference_manager_ = new InferenceManager("../engines/laptop.engine");
+//    inference_manager_ = new InferenceManager("/home/team5687/VisionSystem/engines/jetson_comp.engine");
+    inference_manager_ = new InferenceManager("../engines/laptop.engine");
     inference_manager_->init();
 
 //    info("[Vision Container]: Creating IMU publisher");
@@ -56,16 +56,17 @@ void VisionContainer::init() {
 //    }
 
 
-    info("[VisionContainer]: Setting up AprilTag manager");
-    detector_config apriltag_config {};
-    apriltag_config.tf = tag16h5;
-    apriltag_config.quad_decimate = 1;
-    apriltag_config.quad_sigma = 0.5;
-    apriltag_config.nthreads = 2;
-    apriltag_config.debug = false;
-    apriltag_config.refine_edges = true;
-
-    tag_manager_ = new AprilTagManager<float>(apriltag_config);
+//    info("[VisionContainer]: Setting up AprilTag manager");
+//    detector_config apriltag_config {};
+//    apriltag_config.tf = tag16h5;
+//    apriltag_config.quad_decimate = 1;
+//    apriltag_config.quad_sigma = 0.1;
+//    apriltag_config.nthreads = 8;
+//    apriltag_config.debug = false;
+//    apriltag_config.refine_edges = true;
+//    apriltag_config.decision_margin = 40.0f;
+//
+//    tag_manager_ = new AprilTagManager<float>(apriltag_config);
 }
 
 //void VisionContainer::detect_april_tags() {
@@ -104,7 +105,7 @@ void VisionContainer::run() {
     vision_runner_->zed_camera_ = zed_camera_;
     vision_runner_->inference_manager_ = inference_manager_;
     vision_runner_->zmq_manager_ = zmq_manager_;
-    vision_runner_->tag_manager_ = tag_manager_;
+//    vision_runner_->tag_manager_ = tag_manager_;
     vision_runner_->start();
 
 //    info("[VisionContainer]: Starting IMU reading task");

@@ -3,6 +3,7 @@
 template <typename T>
 AprilTagManager<T>::AprilTagManager(const detector_config &cfg) :
         zed_detector_(cfg), monocular_detector_(cfg){
+        decision_margin_ = cfg.decision_margin;
 }
 
 template <typename T>
@@ -13,26 +14,28 @@ void AprilTagManager<T>::detect_tags(std::vector<tracked_target_info> *targets, 
     zed_detector_.fetch_detections(slMat_to_cvMat(img));
 	if (zed_detector_.has_targets()) {
         targets->clear();
-//        info("Zed: " + std::to_string(zed_detector_.get_current_number_of_targets()));
+        info("Zed: " + std::to_string(zed_detector_.get_current_number_of_targets()));
         for (int i = 0; i < zed_detector_.get_current_number_of_targets(); i++) {
             zarray_get(zed_detector_.get_current_detections(), i, &det);
-            Corners c = zed_detector_.get_detection_corners(det);
-            sl::Vector3<T> tr = get_position_from_pixel(c.tr, point_cloud);
-            sl::Vector3<T> tl = get_position_from_pixel(c.tl, point_cloud);
-            sl::Vector3<T> br = get_position_from_pixel(c.br, point_cloud);
-            if (is_vec_nan(tr) || is_vec_nan(tl) || is_vec_nan(br)){
+            if (det->decision_margin > decision_margin_) {
+                Corners c = zed_detector_.get_detection_corners(det);
+                sl::Vector3<T> tr = get_position_from_pixel(c.tr, point_cloud);
+                sl::Vector3<T> tl = get_position_from_pixel(c.tl, point_cloud);
+                sl::Vector3<T> br = get_position_from_pixel(c.br, point_cloud);
+                if (is_vec_nan(tr) || is_vec_nan(tl) || is_vec_nan(br)) {
 //              error("Vec is nan");
-            } else {
-                sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
-                error("Found tag: " + std::to_string(det->id));
-                // + 1 so that ID 1 will be 2 to not interfere with cube detection id.
-                targets->emplace_back(tracked_target_info(pose, det->id + 1));
+                } else {
+                    sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
+                    error("Found tag: " + std::to_string(det->id));
+                    // + 1 so that ID 1 will be 2 to not interfere with cube detection id.
+                    targets->emplace_back(tracked_target_info(pose, det->id + 1));
+                }
             }
         }
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         zed_dt_ = duration.count();
-//        print_zed_dt();
+        print_zed_dt();
 	}
 }
 

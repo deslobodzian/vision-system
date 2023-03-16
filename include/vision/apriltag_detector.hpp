@@ -52,6 +52,7 @@ struct detector_config {
     int nthreads;
     bool debug;
     bool refine_edges;
+    float decision_margin;
 };
 
 template <typename T>
@@ -59,7 +60,6 @@ class TagDetector {
 private:
     apriltag_detector *td_;
     apriltag_family_t *tf_ = NULL;
-    unsigned char* gpu_image_;
     apriltag_family_t* create_tag(tag_family tf);
     zarray_t* current_detections_;
 

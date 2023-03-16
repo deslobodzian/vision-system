@@ -12,7 +12,7 @@ VisionRunner::VisionRunner(
 }
 
 void VisionRunner::init() {
-    info("initializing [VisionRunner]");
+    info("Initializing [VisionRunner]");
     std::string ip_address = "10.56.87.20";
 //    std::string ip_address = "*";
 
@@ -24,8 +24,9 @@ void VisionRunner::init() {
 
 void VisionRunner::run() {
     auto start = std::chrono::high_resolution_clock::now();
+    zed_camera_->fetch_measurements();
     std::vector<tracked_target_info> vec;
-    tag_manager_->detect_tags(zed_camera_, &vec);
+//    tag_manager_->detect_tags(zed_camera_, &vec);
     inference_manager_->inference_on_device(zed_camera_);
     zed_camera_->retrieve_objects(objs_);
 //    if (image_pub_ != nullptr) {

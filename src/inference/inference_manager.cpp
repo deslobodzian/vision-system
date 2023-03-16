@@ -12,9 +12,12 @@ void InferenceManager::init() {
     detector_.initialize_engine(engine_name_);
 }
 
+/**
+ * runs inference on device, make sure to fetch camera before calling.
+ * @param camera
+ */
 void InferenceManager::inference_on_device(Zed *camera) {
     zed_struct_.custom_obj_data_.clear();
-    camera->fetch_measurements();
     camera->get_left_image(zed_struct_.sl_mat);
     detector_.prepare_inference(zed_struct_.sl_mat, zed_struct_.cv_mat);
     detector_.run_inference(zed_struct_.cv_mat, &zed_struct_.custom_obj_data_);

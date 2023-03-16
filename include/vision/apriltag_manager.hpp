@@ -49,6 +49,7 @@ private:
     TagDetector<T> monocular_detector_;
     std::mutex monocular_mtx_;
     std::vector<tracked_target_info> monocular_targets_;
+    float decision_margin_;
     long zed_dt_{};
     long monocular_dt_{};
 
