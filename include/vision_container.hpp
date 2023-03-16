@@ -31,11 +31,11 @@ protected:
     ZmqManager* zmq_manager_ = nullptr;
     InferenceManager* inference_manager_ = nullptr;
     Zed* zed_camera_ = nullptr;
-//    AprilTagManager<float>* tag_manager_ = nullptr;
+    AprilTagManager<float>* tag_manager_ = nullptr;
     VisionRunner* vision_runner_ = nullptr;
     imu_publishable* imu_pub_ = nullptr;
 
-    void detect_zed_targets();
+    void detect_april_tags();
     void read_imu();
     void zmq_publish();
 //    void detect_monocular_targets();

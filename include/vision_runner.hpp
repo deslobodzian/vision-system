@@ -7,6 +7,7 @@
 
 #include "utils/task.hpp"
 #include "estimator/estimator.hpp"
+#include "vision/apriltag_manager.hpp"
 #include "estimator/mcl_pose_estimator.hpp"
 #include "inference/inference_manager.hpp"
 #include "networking/zmq_manager.hpp"
@@ -23,6 +24,7 @@ public:
     Zed* zed_camera_;
     InferenceManager* inference_manager_;
     ZmqManager* zmq_manager_;
+    AprilTagManager<float>* tag_manager_;
 
     virtual ~VisionRunner();
 

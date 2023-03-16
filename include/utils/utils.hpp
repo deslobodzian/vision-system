@@ -76,7 +76,15 @@ inline sl::Vector3<T> calculate_plane_normal_vector(const sl::Vector3<T> &p1, co
     sl::Vector3<T> u = sl::Vector3<T>::cross((p3 - p1), (p2 - p1));
     return u/u.norm();
 }
+inline sl::float3 get_position_from_pixel(int x, int y, const sl::Mat &point_cloud) {
+    sl::float4 point3d;
+    point_cloud.getValue(x, y, &point3d);
+    return {point3d.x, point3d.y, point3d.z};
+}
 
+inline sl::float3 get_position_from_pixel(const cv::Point &p, const sl::Mat &point_cloud) {
+    return get_position_from_pixel(p.x, p.y, point_cloud);
+}
 //template <typename T>
 //inline Sophus::SO3<T> so3_from_normal_vec(const sl::Vector3<T> &normal_vec) {
 //    return Sophus::SO3FromNormal(Eigen::Vector3<T>(normal_vec.x, normal_vec.y, normal_vec.z));

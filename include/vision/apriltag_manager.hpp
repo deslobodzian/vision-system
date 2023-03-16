@@ -39,18 +39,15 @@ public:
     ~AprilTagManager();
 
 	void detect_tags_monocular(MonocularCamera<T>* camera);
-	void detect_tags_zed(Zed* zed);
+    void detect_tags(Zed* camera, std::vector<tracked_target_info> *targets);
+	void detect_tags(std::vector<tracked_target_info> *targets, const sl::Mat &img, const sl::Mat &point_cloud);
     void print_monocular_dt() const;
     void print_zed_dt() const;
 
-    std::vector<tracked_target_info> get_zed_targets();
-    std::vector<tracked_target_info> get_monocular_targets();
 private:
     TagDetector<T> zed_detector_;
     TagDetector<T> monocular_detector_;
-    std::mutex zed_mtx_;
     std::mutex monocular_mtx_;
-    std::vector<tracked_target_info> zed_targets_;
     std::vector<tracked_target_info> monocular_targets_;
     long zed_dt_{};
     long monocular_dt_{};

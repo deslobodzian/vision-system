@@ -40,6 +40,16 @@ struct tracked_target_info {
         vz_(0.0f) {
     }
 
+    explicit tracked_target_info(sl::Pose pose, const uint8_t id) :
+        id_(id),
+        x_(pose.getTranslation().tx),
+        y_(pose.getTranslation().ty),
+        z_(pose.getTranslation().tz),
+        vx_(0.0f),
+        vy_(0.0f),
+        vz_(0.0f) {
+    }
+
     void encode(uint8_t* buffer) {
         memcpy(buffer, &id_, sizeof(uint8_t));
         memcpy(buffer + sizeof(uint8_t), &x_, sizeof(float) * 6);

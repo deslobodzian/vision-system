@@ -6,36 +6,39 @@ AprilTagManager<T>::AprilTagManager(const detector_config &cfg) :
 }
 
 template <typename T>
-void AprilTagManager<T>::detect_tags_zed(Zed* camera) {
-    std::vector<tracked_target_info> targets;
+void AprilTagManager<T>::detect_tags(std::vector<tracked_target_info> *targets, const sl::Mat &img, const sl::Mat &point_cloud) {
     apriltag_detection_t *det;
     auto start = std::chrono::high_resolution_clock::now();
-    camera->fetch_measurements();
 
-    zed_detector_.fetch_detections(slMat_to_cvMat(camera->get_left_image()));
+    zed_detector_.fetch_detections(slMat_to_cvMat(img));
 	if (zed_detector_.has_targets()) {
-        targets.clear();
+        targets->clear();
 //        info("Zed: " + std::to_string(zed_detector_.get_current_number_of_targets()));
         for (int i = 0; i < zed_detector_.get_current_number_of_targets(); i++) {
             zarray_get(zed_detector_.get_current_detections(), i, &det);
             Corners c = zed_detector_.get_detection_corners(det);
-            sl::Vector3<T> tr = camera->get_position_from_pixel(c.tr);
-            sl::Vector3<T> tl = camera->get_position_from_pixel(c.tl);
-            sl::Vector3<T> br = camera->get_position_from_pixel(c.br);
+            sl::Vector3<T> tr = get_position_from_pixel(c.tr, point_cloud);
+            sl::Vector3<T> tl = get_position_from_pixel(c.tl, point_cloud);
+            sl::Vector3<T> br = get_position_from_pixel(c.br, point_cloud);
             if (is_vec_nan(tr) || is_vec_nan(tl) || is_vec_nan(br)){
 //              error("Vec is nan");
             } else {
                 sl::Pose pose = zed_detector_.get_estimated_target_pose(tr, tl, br);
-//                targets.emplace_back(TrackedTargetInfo(pose, det->id));
+                error("Found tag: " + std::to_string(det->id));
+                // + 1 so that ID 1 will be 2 to not interfere with cube detection id.
+                targets->emplace_back(tracked_target_info(pose, det->id + 1));
             }
         }
-        const std::lock_guard<std::mutex> lock(zed_mtx_);
-        zed_targets_ = targets;
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         zed_dt_ = duration.count();
 //        print_zed_dt();
 	}
+}
+
+template <typename T>
+void AprilTagManager<T>::detect_tags(Zed *camera, std::vector<tracked_target_info> *targets) {
+    detect_tags(targets, camera->get_left_image(), camera->get_point_cloud());
 }
 
 template <typename T>
@@ -71,18 +74,6 @@ void AprilTagManager<T>::detect_tags_monocular(MonocularCamera<T>* camera) {
         monocular_dt_ = duration.count();
 //        print_monocular_dt();
     }
-}
-
-template <typename T>
-std::vector<tracked_target_info> AprilTagManager<T>::get_zed_targets() {
-    const std::lock_guard<std::mutex> lock(zed_mtx_);
-    return zed_targets_;
-}
-
-template <typename T>
-std::vector<tracked_target_info> AprilTagManager<T>::get_monocular_targets() {
-    const std::lock_guard<std::mutex> lock(monocular_mtx_);
-    return monocular_targets_;
 }
 
 template <typename T>

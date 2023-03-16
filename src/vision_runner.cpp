@@ -25,6 +25,7 @@ void VisionRunner::init() {
 void VisionRunner::run() {
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<tracked_target_info> vec;
+    tag_manager_->detect_tags(zed_camera_, &vec);
     inference_manager_->inference_on_device(zed_camera_);
     zed_camera_->retrieve_objects(objs_);
 //    if (image_pub_ != nullptr) {

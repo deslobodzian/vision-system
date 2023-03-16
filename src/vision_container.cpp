@@ -56,22 +56,22 @@ void VisionContainer::init() {
 //    }
 
 
-//    info("[VisionContainer]: Setting up AprilTag manager");
-//    detector_config apriltag_config {};
-//    apriltag_config.tf = tag16h5;
-//    apriltag_config.quad_decimate = 1;
-//    apriltag_config.quad_sigma = 0.5;
-//    apriltag_config.nthreads = 2;
-//    apriltag_config.debug = false;
-//    apriltag_config.refine_edges = true;
+    info("[VisionContainer]: Setting up AprilTag manager");
+    detector_config apriltag_config {};
+    apriltag_config.tf = tag16h5;
+    apriltag_config.quad_decimate = 1;
+    apriltag_config.quad_sigma = 0.5;
+    apriltag_config.nthreads = 2;
+    apriltag_config.debug = false;
+    apriltag_config.refine_edges = true;
 
-//    tag_manager_ = new AprilTagManager<float>(apriltag_config);
+    tag_manager_ = new AprilTagManager<float>(apriltag_config);
 }
 
-void VisionContainer::detect_zed_targets() {
-//    tag_manager_->detect_tags_zed(zed_camera_);
-    inference_manager_->inference_on_device(zed_camera_);
-}
+//void VisionContainer::detect_april_tags() {
+//    zed_camera_->fetch_measurements();
+//    tag_manager_->detect_tags();
+//}
 
 void VisionContainer::zmq_publish() {
     if (zmq_manager_ != nullptr) {
@@ -104,6 +104,7 @@ void VisionContainer::run() {
     vision_runner_->zed_camera_ = zed_camera_;
     vision_runner_->inference_manager_ = inference_manager_;
     vision_runner_->zmq_manager_ = zmq_manager_;
+    vision_runner_->tag_manager_ = tag_manager_;
     vision_runner_->start();
 
 //    info("[VisionContainer]: Starting IMU reading task");

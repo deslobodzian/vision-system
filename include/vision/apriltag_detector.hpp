@@ -9,6 +9,9 @@
 #include "vision/camera_config.hpp"
 #include "utils/utils.hpp"
 #include "tracked_target_info.hpp"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <cuda_runtime_api.h>
 
 extern "C" {
     #include "apriltag.h"
@@ -56,9 +59,11 @@ class TagDetector {
 private:
     apriltag_detector *td_;
     apriltag_family_t *tf_ = NULL;
-
+    unsigned char* gpu_image_;
     apriltag_family_t* create_tag(tag_family tf);
     zarray_t* current_detections_;
+
+    void copy_image_to_gpu(const cv::Mat &img);
     void destroy_tag(tag_family tag_family_class, apriltag_family_t *tf);
 public:
     TagDetector();
