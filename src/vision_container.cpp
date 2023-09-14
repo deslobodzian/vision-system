@@ -23,11 +23,11 @@ void VisionContainer::init() {
     zed_config.reference_frame = REFERENCE_FRAME::CAMERA;
     zed_config.enable_tracking = true;
     zed_config.prediction_timeout_s = 0.2f;
-    zed_config.enable_mask_output = false;
+    zed_config.enable_segmentation = false;
     zed_config.enable_batch = false;
     zed_config.batch_latency = 2.f;
     zed_config.id_retention_time = 240.f;
-    zed_config.model = sl::DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
+    zed_config.model = sl::OBJECT_DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
     zed_config.detection_confidence_threshold = 50;
 
     zed_camera_ = new Zed(zed_config);

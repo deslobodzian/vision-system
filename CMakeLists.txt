@@ -35,8 +35,8 @@ link_directories(${CUDA_LIBRARY_DIRS})
 link_directories(${apriltag_LIBDIR})
 
 # cuda
-include_directories(/usr/local/cuda/include)
-link_directories(/usr/local/cuda/lib64)
+include_directories(/usr/lib/cuda/include)
+link_directories(/usr/lib/cuda/lib64)
 # tensorrt
 include_directories(/usr/include/x86_64-linux-gnu/)
 link_directories(/usr/lib/x86_64-linux-gnu/)

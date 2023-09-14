@@ -126,8 +126,8 @@ struct zed_config {
 
     bool enable_tracking;
     float prediction_timeout_s;
-    bool enable_mask_output;
-    sl::DETECTION_MODEL model;
+    bool enable_segmentation;
+    sl::OBJECT_DETECTION_MODEL model;
 
     float detection_confidence_threshold;
 

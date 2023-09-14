@@ -17,7 +17,7 @@ Zed::Zed(const zed_config &config) {
     runtime_params_.measure3D_reference_frame = config.reference_frame;
 
     obj_detection_params_.enable_tracking = config.enable_tracking;
-    obj_detection_params_.enable_mask_output = config.enable_mask_output;
+    obj_detection_params_.enable_segmentation = config.enable_segmentation;
     obj_detection_params_.detection_model = config.model;
     obj_detection_params_.prediction_timeout_s = config.prediction_timeout_s;
 
