@@ -1,5 +1,5 @@
-#ifndef VISION_SYSTEM_TRTX_CUDA_UTILS_H_
-#define VISION_SYSTEM_TRTX_CUDA_UTILS_H_
+#ifndef VISION_SYSTEM_CUDA_UTILS_H
+#define VISION_SYSTEM_CUDA_UTILS_H
 
 #include <cuda_runtime_api.h>
 
@@ -14,5 +14,4 @@
     }
 #endif  // CUDA_CHECK
 
-#endif  // VISION_SYSTEM_TRTX_CUDA_UTILS_H_
-
+#endif /* VISION_SYSTEM_CUDA_UTILS_H */
