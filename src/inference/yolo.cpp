@@ -25,8 +25,6 @@ Yolo::~Yolo() {
 }
 
 int Yolo::build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile) {
-
-
     std::vector<uint8_t> onnx_file_content;
     if (readFile(onnx_path, onnx_file_content)) return 1;
 
@@ -124,10 +122,13 @@ int Yolo::init(std::string engine_name) {
         std::cerr << "[Error] read " <<engine_name << " failed!\n";
         return -1;
     }
+    info("Read engine name: "+ engine_name + " suceesfully");
 
     char *trt_model_stream = nullptr;
     size_t size = 0;
     file.seekg(0, file.end);
+    size = file.tellg();
+    file.seekg(0, file.beg);
     trt_model_stream = new char[size];
     if (!trt_model_stream) return 1;
     file.read(trt_model_stream, size);

@@ -194,10 +194,8 @@ inline std::vector<sl::uint2> cvt(const BBox &bbox_in) {
     return bbox_out;
 }
 
-inline cv::Rect cvt_rect(const BBox &bbox_in) {
-    cv::Point2d p1 = cv::Point2d(bbox_in.x1, bbox_in.y1);
-    cv::Point2d p2 = cv::Point2d(bbox_in.x2, bbox_in.y2);
-    return cv::Rect(p1, p2);
+inline cv::Rect cvt_rect(const BBox &box) {
+    return cv::Rect(round(box.x1), round(box.y1), round(box.x2 - box.x1), round(box.y2 - box.y1));
 }
 
 inline std::vector<sl::uint2> rect_to_sl(const cv::Rect& rect_in) {

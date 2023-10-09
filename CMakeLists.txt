@@ -4,6 +4,7 @@ PROJECT(Vision_System)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")
+set(CMAKE_BUILD_TYPE Release)
 
 option(LINK_SHARED_ZED "Link with the ZED SDK shared executable" ON)
 
@@ -11,7 +12,7 @@ if (NOT LINK_SHARED_ZED AND MSVC)
     message(FATAL_ERROR "LINK_SHARED_ZED OFF : ZED SDK static libraries not available on Windows")
 endif()
 
-find_package(ZED 3 REQUIRED)
+find_package(ZED 4 REQUIRED)
 find_package(CUDA ${ZED_CUDA_VERSION} REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
@@ -57,6 +58,7 @@ SET(TRT_LIBS nvinfer nvonnxparser)
 
 TARGET_LINK_LIBRARIES(
 	${PROJECT_NAME}
+	${TRT_LIBS}
 	${ZED_LIBS}
 	${OpenCV_LIBRARIES}
 	${apriltag_LIBRARIES}
