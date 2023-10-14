@@ -22,6 +22,10 @@ void signal_callback_handler(int signum) {
 }
 
 MODE args_interpreter(int argc, char **argv) {
+    if (argc < 2) {
+        info("Running realtime!");
+        return REALTIME;
+    }
     if (std::string(argv[1]) == "-s" && argc >= 4) {
         // Building engine
         std::string onnx_path = argv[2];

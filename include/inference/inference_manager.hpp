@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 // #include "yolov7.hpp"
+#include <chrono>
 #include "yolo.hpp"
 #include "vision/Zed.hpp"
 #include "inference_utils.hpp"
@@ -36,6 +37,7 @@ private:
 //     Yolov7 detector_;
     ZedInferenceStruct zed_struct_;
     int camera_resolution_h_, camera_resolution_w_;
+    std::chrono::high_resolution_clock::time_point t1, t2;  // Add these for latency calculation
 };
 
 #endif //VISION_SYSTEM_INFERENCE_MANAGER_HPP

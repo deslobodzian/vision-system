@@ -19,8 +19,15 @@ void InferenceManager::init(int camera_resolution_h, int camera_resolution_w) {
  * @param camera
  */
 void InferenceManager::inference_on_device(Zed *camera) {
+    t1 = std::chrono::high_resolution_clock::now();
     zed_struct_.custom_obj_data_.clear();
     camera->get_left_image(zed_struct_.sl_mat);
+    t2 = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    info("Camera fetch time: " + std::to_string(duration) + " microseconds");
+
+    t1 = std::chrono::high_resolution_clock::now();
     auto detections = detector_.run(zed_struct_.sl_mat, camera_resolution_h_, camera_resolution_w_, CONF_THRESH);
     cv::Rect bounds = cv::Rect(0, 0, camera_resolution_w_, camera_resolution_h_);
     for (auto &it : detections) {
@@ -36,7 +43,16 @@ void InferenceManager::inference_on_device(Zed *camera) {
         // others are tracked in full 3D space                
         zed_struct_.custom_obj_data_.push_back(tmp);
     }
+    t2 = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    info("Detection took : " + std::to_string(duration) + " microseconds");
+
+    t1 = std::chrono::high_resolution_clock::now();
     camera->ingest_custom_objects(zed_struct_.custom_obj_data_);
+    t2 = std::chrono::high_resolution_clock::now();
+
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    info("SDK Injest took : " + std::to_string(duration) + " microseconds");
 }
 
 // void InferenceManager::test_inference(cv::Mat& img) {
