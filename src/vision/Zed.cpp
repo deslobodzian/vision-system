@@ -73,7 +73,7 @@ void Zed::enable_object_detection() {
 
 void Zed::fetch_measurements() {
     if (successful_grab()) {
-        zed_.retrieveImage(measurements_.left_image, VIEW::LEFT);
+        zed_.retrieveImage(measurements_.left_image, VIEW::LEFT, MEM::GPU);
         zed_.getSensorsData(measurements_.sensor_data, TIME_REFERENCE::IMAGE);
         measurements_.imu_data = measurements_.sensor_data.imu;
         measurements_.timestamp = measurements_.left_image.timestamp;

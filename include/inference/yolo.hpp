@@ -8,6 +8,7 @@
 #include "cuda_utils.h"
 #include "inference_utils.hpp"
 #include "utils/utils.hpp"
+#include "preprocess.h"
 
 class Yolo {
     public:

@@ -37,10 +37,13 @@ void DetectionsPlayback::detect() {
 
     while (running_) {
         auto ret = zed_.grab();
-        zed_.retrieveImage(left_sl, sl::VIEW::LEFT);
+        zed_.retrieveImage(left_sl, sl::VIEW::LEFT, sl::MEM::GPU);
+        // zed_.retrieveImage(left_sl, sl::VIEW::LEFT, sl::MEM::CPU);
         auto detections = yolo_.run(left_sl, display_resolution.height, display_resolution.width, CONF_THRESH);
 
-        left_cv = slMat_to_cvMat(left_sl);
+        if (left_sl.updateCPUfromGPU() == sl::ERROR_CODE::SUCCESS) {
+            left_cv = slMat_to_cvMat(left_sl);
+        }
 
         std::vector<sl::CustomBoxObjectData> objects_in;
         for (auto &it : detections) {

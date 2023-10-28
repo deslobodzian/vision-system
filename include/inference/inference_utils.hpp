@@ -80,6 +80,7 @@ inline cv::Mat preprocess_img(cv::Mat& img, int input_w, int input_h) {
         x = (input_w - w) / 2;
         y = 0;
     }
+    printf("x_off = %f, y_off = %f\n", x, y);
     cv::Mat re(h, w, CV_8UC3);
     cv::resize(img, re, re.size(), 0, 0, cv::INTER_LINEAR);
     cv::Mat out(input_h, input_w, CV_8UC3, cv::Scalar(128, 128, 128));

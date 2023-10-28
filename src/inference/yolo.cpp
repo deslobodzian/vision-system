@@ -192,27 +192,43 @@ std::vector<BBoxInfo> Yolo::run(sl::Mat left_img, int orig_image_h, int orig_ima
     std::vector<BBoxInfo> binfo;
 
     size_t frame_s = input_height_ * input_width_;
+    auto start = std::chrono::high_resolution_clock::now();
 
-    cv::Mat left_cv_rgba = slMat_to_cvMat(left_img);
-    cv::cvtColor(left_cv_rgba, left_cv_rgb_, cv::COLOR_BGRA2BGR);
-    if (left_cv_rgb_.empty()) return binfo;
-    cv::Mat pr_img = preprocess_img(left_cv_rgb_, input_width_, input_height_); // letterbox BGR to RGB
-    int i = 0;
+    // Batch size of 1 idx 0 
     int batch = 0;
-    for (int row = 0; row < input_height_; ++row) {
-        uchar* uc_pixel = pr_img.data + row * pr_img.step;
-        for (int col = 0; col < input_width_; ++col) {
-            h_input_[batch * 3 * frame_s + i] = (float) uc_pixel[2] / 255.0;
-            h_input_[batch * 3 * frame_s + i + frame_s] = (float) uc_pixel[1] / 255.0;
-            h_input_[batch * 3 * frame_s + i + 2 * frame_s] = (float) uc_pixel[0] / 255.0;
-            uc_pixel += 3;
-            ++i;
-        }
-    }
+    preprocess(left_img, d_input_, input_width_, input_height_, frame_s, batch, stream_);
 
+    // if (left_img.updateCPUfromGPU() == sl::ERROR_CODE::SUCCESS) {
+    //     cv::Mat left_cv_rgba = slMat_to_cvMat(left_img);
+    //     cv::cvtColor(left_cv_rgba, left_cv_rgb_, cv::COLOR_BGRA2BGR);
+    //     if (left_cv_rgb_.empty()) return binfo;
+    //     cv::Mat pr_img = preprocess_img(left_cv_rgb_, input_width_, input_height_); // letterbox BGR to RGB
+    //     int i = 0;
+    //     int batch = 0;
+    //     for (int row = 0; row < input_height_; ++row) {
+    //         uchar* uc_pixel = pr_img.data + row * pr_img.step;
+    //         for (int col = 0; col < input_width_; ++col) {
+    //             h_input_[batch * 3 * frame_s + i] = (float) uc_pixel[2] / 255.0;
+    //             h_input_[batch * 3 * frame_s + i + frame_s] = (float) uc_pixel[1] / 255.0;
+    //             h_input_[batch * 3 * frame_s + i + 2 * frame_s] = (float) uc_pixel[0] / 255.0;
+    //             uc_pixel += 3;
+    //             ++i;
+    //         }
+    //     }
+    //     std::string filename = "cpu_input.png";
+    //     cv::imwrite(filename, pr_img);
+    // }
+
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+    debug("Preprocess took: " + std::to_string(elapsed.count()));
+
+
+    start = std::chrono::high_resolution_clock::now();
      /////// INFERENCE
     // DMA input batch data to device, infer on the batch asynchronously, and DMA output back to host
-    CUDA_CHECK(cudaMemcpyAsync(d_input_, h_input_, batch_size_ * 3 * frame_s * sizeof (float), cudaMemcpyHostToDevice, stream_));
+    // CUDA_CHECK(cudaMemcpyAsync(d_input_, h_input_, batch_size_ * 3 * frame_s * sizeof (float), cudaMemcpyHostToDevice, stream_));
 
     std::vector<void*> d_buffers_nvinfer(2);
     d_buffers_nvinfer[input_index_] = d_input_;
@@ -221,6 +237,10 @@ std::vector<BBoxInfo> Yolo::run(sl::Mat left_img, int orig_image_h, int orig_ima
 
     CUDA_CHECK(cudaMemcpyAsync(h_output_, d_output_, batch_size_ * output_size_ * sizeof (float), cudaMemcpyDeviceToHost, stream_));
     cudaStreamSynchronize(stream_);
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    debug("Inference took: " + std::to_string(elapsed.count()));
+    start = std::chrono::high_resolution_clock::now();
     
     float scalingFactor = std::min(static_cast<float> (input_width_) / orig_image_w, static_cast<float> (input_height_) / orig_image_h);
     float xOffset = (input_width_ - scalingFactor * orig_image_w) * 0.5f;
@@ -287,6 +307,10 @@ std::vector<BBoxInfo> Yolo::run(sl::Mat left_img, int orig_image_h, int orig_ima
         }
     }
     binfo = non_maximum_suppression(nms_, binfo);
+    info("Objects detected: " + std::to_string(binfo.size()));
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    debug("Post-Process took: " + std::to_string(elapsed.count()));
     return binfo;
 }
 
