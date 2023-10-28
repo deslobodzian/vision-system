@@ -38,8 +38,8 @@ void VisionContainer::init() {
 
     info("[Vision Container]: Starting Inference Manager");
 //    inference_manager_ = new InferenceManager("/home/team5687/VisionSystem/engines/jetson_comp.engine");
-    inference_manager_ = new InferenceManager("../engines/laptop.engine");
-    inference_manager_->init(1920, 1080);
+    inference_manager_ = new InferenceManager("../build/yolov8n.engine");
+    inference_manager_->init(672, 376);
 
 //    info("[Vision Container]: Creating IMU publisher");
 //    imu_pub_ = new imu_publishable;

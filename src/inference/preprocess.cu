@@ -1,7 +1,7 @@
 #include "inference/preprocess.h"
 // #include <opencv2/opencv.hpp> 
 
-__global__ void kernel_preprocess_and_populate(const unsigned char* d_bgr, float* d_output, int input_height, int input_width, int frame_s, int batch) {
+__global__ void kernel_preprocess_to_tensor(const unsigned char* d_bgr, float* d_output, int input_height, int input_width, int frame_s, int batch) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -56,7 +56,7 @@ __global__ void kernel_convert_to_rgb(unsigned char* input, unsigned char* outpu
     output[outIdx + 2] = input[inIdx];      // Blue
 }
 
-__global__ void kernel_preprocess_and_letterbox_to_img(const unsigned char* d_bgr, unsigned char* d_output_image, int input_width, int input_height, int image_width, int image_height) {
+__global__ void kernel_preprocess_letterbox(const unsigned char* d_bgr, unsigned char* d_output_image, int input_width, int input_height, int image_width, int image_height) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -131,17 +131,17 @@ void preprocess(sl::Mat& left_img, float* d_input, int input_width, int input_he
         return;
     }
 
-    kernel_preprocess_and_letterbox_to_img<<<grid_output, block, 0, stream>>>(d_bgr, d_output, input_width, input_height, image_width, image_height);
+    kernel_preprocess_letterbox<<<grid_output, block, 0, stream>>>(d_bgr, d_output, input_width, input_height, image_width, image_height);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("kernel_preprocess_and_letterbox launch failed: %s\n", cudaGetErrorString(err));
         return;
     }
 
-    kernel_preprocess_and_populate<<<grid_output, block, 0, stream>>>(d_output, d_input, input_height, input_width, frame_s, batch);
+    kernel_preprocess_to_tensor<<<grid_output, block, 0, stream>>>(d_output, d_input, input_height, input_width, frame_s, batch);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
-        printf("kernel_preprocess_and_populate launch failed: %s\n", cudaGetErrorString(err));
+        printf("kernel_preprocess_to_tensor launch failed: %s\n", cudaGetErrorString(err));
         return;
     }
 

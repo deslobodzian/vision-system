@@ -25,10 +25,17 @@ void VisionRunner::init() {
 void VisionRunner::run() {
     auto start = std::chrono::high_resolution_clock::now();
     zed_camera_->fetch_measurements();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+    debug("Fetch took: " + std::to_string(elapsed.count()));
     std::vector<tracked_target_info> vec;
 //    tag_manager_->detect_tags(zed_camera_, &vec);
+    start = std::chrono::high_resolution_clock::now();
     inference_manager_->inference_on_device(zed_camera_);
     zed_camera_->retrieve_objects(objs_);
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    debug("Inference retrieve took: " + std::to_string(elapsed.count()));
 //    if (image_pub_ != nullptr) {
 //        cv::Mat img = slMat_to_cvMat(zed_camera_->get_left_image());
 //        cv::Mat img_new;
@@ -50,9 +57,6 @@ void VisionRunner::run() {
         vision_pub_->targets_ = vec;
     }
     zmq_manager_->send_publishers();
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    debug("Time took: " + std::to_string(elapsed.count()));
 }
 
 VisionRunner::~VisionRunner() {
