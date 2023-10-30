@@ -14,6 +14,8 @@ Yolo::~Yolo() {
         CUDA_CHECK(cudaFree(d_input_));
         CUDA_CHECK(cudaFree(d_output_));
 
+        free_preprocess_resources(); 
+
         context_->destroy();
         engine_->destroy();
         runtime_->destroy();
@@ -188,16 +190,14 @@ int Yolo::init(std::string engine_name) {
     return 0;
 }
 
-std::vector<BBoxInfo> Yolo::run(sl::Mat left_img, int orig_image_h, int orig_image_w, float thres) {
-    std::vector<BBoxInfo> binfo;
-
-    size_t frame_s = input_height_ * input_width_;
-    auto start = std::chrono::high_resolution_clock::now();
-
-    // Batch size of 1 idx 0 
+// Current GPU based, modify for the option of CPU later
+void Yolo::yolo_preprocess(const sl::Mat& img) {
+    // this will always be 0
     int batch = 0;
-    preprocess(left_img, d_input_, input_width_, input_height_, frame_s, batch, stream_);
+    size_t frame_s = input_height_ * input_width_;
+    preprocess(img, d_input_, input_width_, input_height_, frame_s, batch, stream_);
 
+    /* CPU Stuff */
     // if (left_img.updateCPUfromGPU() == sl::ERROR_CODE::SUCCESS) {
     //     cv::Mat left_cv_rgba = slMat_to_cvMat(left_img);
     //     cv::cvtColor(left_cv_rgba, left_cv_rgb_, cv::COLOR_BGRA2BGR);
@@ -215,9 +215,19 @@ std::vector<BBoxInfo> Yolo::run(sl::Mat left_img, int orig_image_h, int orig_ima
     //             ++i;
     //         }
     //     }
-    //     std::string filename = "cpu_input.png";
-    //     cv::imwrite(filename, pr_img);
     // }
+
+}
+
+std::vector<BBoxInfo> Yolo::run(sl::Mat left_img, int orig_image_h, int orig_image_w, float thres) {
+    std::vector<BBoxInfo> binfo;
+
+    size_t frame_s = input_height_ * input_width_;
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Batch size of 1 idx 0 
+    yolo_preprocess(left_img);
+    // preprocess(left_img, d_input_, input_width_, input_height_, frame_s, batch, stream_);
 
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -226,8 +236,8 @@ std::vector<BBoxInfo> Yolo::run(sl::Mat left_img, int orig_image_h, int orig_ima
 
 
     start = std::chrono::high_resolution_clock::now();
-     /////// INFERENCE
-    // DMA input batch data to device, infer on the batch asynchronously, and DMA output back to host
+    /* INFERENCE */
+    // Need to copy memory if cpu based version
     // CUDA_CHECK(cudaMemcpyAsync(d_input_, h_input_, batch_size_ * 3 * frame_s * sizeof (float), cudaMemcpyHostToDevice, stream_));
 
     std::vector<void*> d_buffers_nvinfer(2);
@@ -306,6 +316,7 @@ std::vector<BBoxInfo> Yolo::run(sl::Mat left_img, int orig_image_h, int orig_ima
             binfo.push_back(bbi);
         }
     }
+
     binfo = non_maximum_suppression(nms_, binfo);
     info("Objects detected: " + std::to_string(binfo.size()));
     end = std::chrono::high_resolution_clock::now();

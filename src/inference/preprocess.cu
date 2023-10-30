@@ -1,6 +1,9 @@
 #include "inference/preprocess.h"
 // #include <opencv2/opencv.hpp> 
 
+unsigned char* d_bgr = nullptr;
+unsigned char* d_output = nullptr;
+
 __global__ void kernel_preprocess_to_tensor(const unsigned char* d_bgr, float* d_output, int input_height, int input_width, int frame_s, int batch) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -102,16 +105,19 @@ __global__ void kernel_preprocess_letterbox(const unsigned char* d_bgr, unsigned
     }
 }
 
-void preprocess(sl::Mat& left_img, float* d_input, int input_width, int input_height, size_t frame_s, int batch, cudaStream_t& stream) {
+void init_preprocess_resources(int image_width, int image_height, int input_width, int input_height) {
+    CUDA_CHECK(cudaMalloc(&d_bgr, image_width * image_height * 3 * sizeof(unsigned char)));
+    CUDA_CHECK(cudaMalloc(&d_output, input_width * input_height * 3 * sizeof(unsigned char)));
+}
+
+void preprocess(const sl::Mat& left_img, float* d_input, int input_width, int input_height, size_t frame_s, int batch, cudaStream_t& stream) {
     int image_width = left_img.getWidth();
     int image_height = left_img.getHeight();
-    
-    unsigned char* d_bgr;
-    cudaError_t err = cudaMalloc(&d_bgr, image_width * image_height * 3 * sizeof(unsigned char));
-    if (err != cudaSuccess) {
-        printf("CUDA malloc for d_bgr failed: %s\n", cudaGetErrorString(err));
-        return;
+
+    if (d_bgr == nullptr || d_output == nullptr) {
+        init_preprocess_resources(image_width, image_height, input_width, input_height);
     }
+    cudaError_t err;
 
     dim3 block(16, 16);
     dim3 grid_input((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
@@ -121,13 +127,6 @@ void preprocess(sl::Mat& left_img, float* d_input, int input_width, int input_he
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
-        return;
-    }
-
-    unsigned char* d_output;
-    err = cudaMalloc(&d_output, input_width * input_height * 3 * sizeof(unsigned char));
-    if (err != cudaSuccess) {
-        printf("CUDA malloc for d_output failed: %s\n", cudaGetErrorString(err));
         return;
     }
 
@@ -156,7 +155,9 @@ void preprocess(sl::Mat& left_img, float* d_input, int input_width, int input_he
     // std::string filename = "kernel_letter_output.png";
     // cv::imwrite(filename, kernel_out);
     // delete[] h_letter;
-    
+}
+
+void free_preprocess_resources() {
     cudaFree(d_bgr);
     cudaFree(d_output);
 }

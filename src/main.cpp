@@ -46,14 +46,11 @@ MODE args_interpreter(int argc, char **argv) {
         return BUILD_ENGINE;
     }
     else if (std::string(argv[1]) == "-p" && argc >= 3) {
-        // Playback mode
         std::string playback_file = argv[2];
         DetectionsPlayback playback(playback_file);
         playback.detect();
-        // Your logic to handle playback using playback_file
         return PLAYBACK;
     }
-    // Add more conditions for REALTIME
     return REALTIME;
 }
 
@@ -78,7 +75,7 @@ int main(int argc, char** argv) {
     
     VisionContainer container;
     container.run();
-    signal(SIGINT, signal_callback_handler);  // Assuming signal_callback_handler is defined
+    signal(SIGINT, signal_callback_handler); 
     return EXIT_SUCCESS;
 }
 

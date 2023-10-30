@@ -17,6 +17,7 @@ class Yolo {
 
         static int build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile);
         int init(std::string engine_name);
+        void yolo_preprocess(const sl::Mat& img);
         std::vector<BBoxInfo> run(sl::Mat left_img, int orig_image_h, int orig_image_w, float thres);
 
         sl::Resolution getInferenceSize() {
