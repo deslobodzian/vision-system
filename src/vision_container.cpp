@@ -39,7 +39,9 @@ void VisionContainer::init() {
     info("[Vision Container]: Starting Inference Manager");
 //    inference_manager_ = new InferenceManager("/home/team5687/VisionSystem/engines/jetson_comp.engine");
     inference_manager_ = new InferenceManager("../build/yolov8n.engine");
-    inference_manager_->init(672, 376);
+
+    sl::Resolution current_res = sl::getResolution(zed_config.res);
+    inference_manager_->init(current_res.height, current_res.width);
 
 //    info("[Vision Container]: Creating IMU publisher");
 //    imu_pub_ = new imu_publishable;

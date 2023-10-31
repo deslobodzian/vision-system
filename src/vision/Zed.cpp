@@ -92,7 +92,6 @@ sl::Mat Zed::get_point_cloud() const {
     return measurements_.point_cloud;
 }
 
-
 sl::float3 Zed::get_position_from_pixel(int x, int y) const {
     sl::float4 point3d;
     get_point_cloud().getValue(x, y, &point3d);
