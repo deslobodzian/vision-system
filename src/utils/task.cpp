@@ -38,6 +38,7 @@ void Task::stop() {
 
 void Task::loop() {
     Timer timer;
+    init(); // moving here such that in the case the thread restarts the initialization will occur again.
 #ifdef __linux__
     auto timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
     if (timer_fd == -1) {
@@ -57,7 +58,6 @@ void Task::loop() {
     }
 
     uint64_t missed = 0;
-    init(); // moving here such that in the case the thread restarts the initialization will occur again.
 
     while (running_) {
         timer.start();
