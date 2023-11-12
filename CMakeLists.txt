@@ -1,69 +1,62 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
-PROJECT(Vision_System)
+cmake_minimum_required(VERSION 3.5)
+project(Vision_System)
 
+# Set the C++ standard to C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")
 set(CMAKE_BUILD_TYPE Release)
 
-option(LINK_SHARED_ZED "Link with the ZED SDK shared executable" ON)
+# Compiler options
+add_compile_options(-pthread -O3)
 
-if (NOT LINK_SHARED_ZED AND MSVC)
-    message(FATAL_ERROR "LINK_SHARED_ZED OFF : ZED SDK static libraries not available on Windows")
-endif()
-
-find_package(ZED 4 REQUIRED)
-find_package(CUDA ${ZED_CUDA_VERSION} REQUIRED)
+# Find OpenCV package for all platforms
 find_package(OpenCV REQUIRED)
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-find_package(fmt REQUIRED)
-find_package(ZeroMQ REQUIRED)
 
-find_package(PkgConfig)
-pkg_search_module(apriltag REQUIRED apriltag)
-set(apriltag_INCLUDE_DIRS "${apriltag_INCLUDE_DIRS}/apriltag")
-
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${CUDA_INCLUDE_DIRS})
-include_directories(${ZED_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${apriltag_INCLUDE_DIRS})
-include_directories(${ZeroMQ_INCLUDE_DIRS})
-
-link_directories(${OpenCV_LIBRARY_DIRS})
-link_directories(${ZED_LIBRARY_DIR})
-link_directories(${CUDA_LIBRARY_DIRS})
-link_directories(${apriltag_LIBDIR})
-
-# cuda
-include_directories(/usr/lib/cuda/include)
-link_directories(/usr/lib/cuda/lib64)
-# tensorrt
-include_directories(/usr/include/x86_64-linux-gnu/)
-link_directories(/usr/lib/x86_64-linux-gnu/)
-
-FILE(GLOB_RECURSE SRC_FILES src/*.c*)
-FILE(GLOB_RECURSE HDR_FILES include/*.h*)
-
-cuda_add_executable(${PROJECT_NAME} ${HDR_FILES} ${SRC_FILES})
-add_definitions(-O3 -D_MWAITXINTRIN_H_INCLUDED -Wno-deprecated-declarations)
-
-if (LINK_SHARED_ZED)
-	SET(ZED_LIBS ${ZED_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
-else()
-	SET(ZED_LIBS ${ZED_STATIC_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_LIBRARY})
+# Define platform-specific preprocessor flags
+if(APPLE)
+    add_definitions(-DAPPLE)
+    message(STATUS "Configuring for MacBook")
+elseif(UNIX AND NOT APPLE)
+    message(STATUS "Configuring for Linux")
+    
+    # Check for CUDA using the language support
+    enable_language(CUDA)
+    find_package(CUDA)
+    if(CUDA_FOUND)
+        add_definitions(-DLINUX_WITH_CUDA)
+        message(STATUS "CUDA found: Compiling for Linux with GPU support")
+        
+        # Find and configure ZED SDK if CUDA is found
+        find_package(ZED 4 REQUIRED)
+        include_directories(${ZED_INCLUDE_DIRS})
+        include_directories(${CUDA_INCLUDE_DIRS})
+        link_directories(${ZED_LIBRARY_DIR})
+        link_directories(${CUDA_LIBRARY_DIRS})
+    else()
+        add_definitions(-DLINUX_WITHOUT_CUDA)
+        message(STATUS "No CUDA found: Compiling for Linux without GPU support")
+    endif()
 endif()
 
-SET(TRT_LIBS nvinfer nvonnxparser)
-
-TARGET_LINK_LIBRARIES(
-	${PROJECT_NAME}
-	${TRT_LIBS}
-	${ZED_LIBS}
-	${OpenCV_LIBRARIES}
-	${apriltag_LIBRARIES}
-	Eigen3::Eigen
-	fmt::fmt
-	${TRT_LIBS}
-	${ZeroMQ_LIBRARY}
+# Include header files
+include_directories(
+    ${OpenCV_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/include
 )
+
+# Define source and header files for the target
+file(GLOB_RECURSE SRC_FILES src/*.cpp)
+file(GLOB_RECURSE HDR_FILES include/*.h include/*.hpp)
+
+# Add executable target
+add_executable(${PROJECT_NAME} ${SRC_FILES})
+
+# Configure target dependencies
+target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCV_LIBRARIES})
+
+if(UNIX AND NOT APPLE AND CUDA_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${CUDA_LIBRARIES} ${CUDA_CUDART_LIBRARY}
+        ${ZED_LIBRARIES}
+    )
+endif()
