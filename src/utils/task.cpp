@@ -15,9 +15,12 @@
 #include <iostream>
 
 #include "utils/timer.h"
+#include "utils/logger.hpp"
 
 Task::Task(std::shared_ptr<TaskManager> manager, float period, const std::string& name)
     : manager_(manager), period_(period), name_(name) {
+    LOG_INFO("Test");
+    LOG_DEBUG("Task created with name: ", name_, " and period: ", period_);
 }
 
 void Task::start() {
@@ -81,12 +84,10 @@ void Task::loop() {
         if (current_time < next_run) {
             std::this_thread::sleep_until(next_run);
         }
-        std::cout << "Run duration: " << run_duration << " ns" << std::endl;
-
         auto actual_start = std::chrono::high_resolution_clock::now();
 
         if (run_duration > ns_period.count()) {
-            std::cerr << "Overrun in task " << name_ << ": " << run_duration - ns_period.count() << " ns\n";
+            // logger::error("Overrun in task ", name_, ": ", run_duration - ns_period.count(), " ns");
         }
     }
 #endif

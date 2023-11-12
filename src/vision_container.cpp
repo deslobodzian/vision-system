@@ -3,16 +3,20 @@
 //
 
 #include "vision_container.hpp"
+#include "inference/onnxruntime_inference_engine.hpp"
 #include <chrono>
 
 VisionContainer::VisionContainer() : 
     vision_runner_(nullptr),
     task_manager_(std::make_shared<TaskManager>()) {
-
 }
 
 void VisionContainer::init() {
-
+    printf("Init Vision container called\n");
+    ONNXRuntimeInferenceEngine engine;
+    printf("Loading model\n");
+    engine.load_model("yolov8n.onnx");
+    printf("Model loaded\n");
 }
 
 void VisionContainer::run() {
