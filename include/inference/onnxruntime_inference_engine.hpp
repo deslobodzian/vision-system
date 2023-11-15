@@ -4,6 +4,7 @@
 #include <onnxruntime_cxx_api.h>
 #include <string>
 #include "inference_engine.hpp"
+#include "tensor.hpp"
 
 class ONNXRuntimeInferenceEngine : public InferenceEngine<ONNXRuntimeInferenceEngine> {
 public:
