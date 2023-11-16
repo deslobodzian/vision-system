@@ -10,6 +10,7 @@
 #include <numeric>
 #include <initializer_list>
 #include <stdexcept>
+#include <opencv2/opencv.hpp>
 
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
@@ -34,6 +35,9 @@ class Tensor {
 public:
     Tensor(std::initializer_list<int64_t> shape, Device device);
     Tensor(Shape shape, Device device);
+    Tensor(T* array, const Shape& shape, Device device, bool owns_data = false);
+    Tensor(cv::Mat& mat, Device device);
+
     ~Tensor(); 
 
     Tensor(Tensor&& other) noexcept;
@@ -51,6 +55,7 @@ public:
     const Shape& get_shape() const; 
     T* get_data() const;
     void reshape(const Shape& new_shape);
+    void scale(T factor);
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& os, const Tensor& tensor) {
         return os << tensor.to_string();
@@ -60,6 +65,7 @@ private:
     Shape shape_;
     Device device_;
     std::unique_ptr<T[], void (*)(T*)> data_;
+    bool owns_data_;
 
     size_t calculate_size() const {
         return std::accumulate(shape_.begin(), shape_.end(), 1, std::multiplies<size_t>());
@@ -68,18 +74,38 @@ private:
 
 template <typename T>
 Tensor<T>::Tensor(std::initializer_list<int64_t> shape, Device device)
-    : shape_(shape), device_(device),
+    : shape_(shape), device_(device), owns_data_(true),
       data_(nullptr, device == Device::CPU ? cpu_deleter<T> : gpu_deleter<T>) {
     allocate_memory();
 }
 
 template <typename T>
 Tensor<T>::Tensor(Shape shape, Device device)
-    : shape_(std::move(shape)), device_(device),
+    : shape_(std::move(shape)), device_(device), owns_data_(true),
       data_(nullptr, device == Device::CPU ? cpu_deleter<T> : gpu_deleter<T>) {
     allocate_memory();
 }
 
+template <typename T>
+Tensor<T>::Tensor(T* array, const Shape& shape, Device device, bool owns_data)
+    : shape_(shape), device_(device), owns_data_(owns_data),
+      data_(array, owns_data ? [](T* p) { delete[] p; } : [](T*) {}) {
+    if (device != Device::CPU) {
+        throw std::runtime_error("Non-CPU tensor construction from array not supported in this implementation.");
+    }
+
+}
+
+template <typename T>
+Tensor<T>::Tensor(cv::Mat& mat, Device device) 
+    : shape_({static_cast<int64_t>(mat.rows), static_cast<int64_t>(mat.cols)}),
+      device_(device), 
+      data_(reinterpret_cast<T*>(mat.data), [](T*){}), // Use a no-op deleter
+      owns_data_(false) {
+    if (device != Device::CPU) {
+        throw std::runtime_error("Creating Tensor from cv::Mat is only supported for CPU device.");
+    }
+}
 
 template <typename T>
 Tensor<T>::~Tensor() {
@@ -175,6 +201,19 @@ void Tensor<T>::reshape(const Shape& new_shape) {
     shape_ = new_shape;
 }
 
+template <typename T>
+void Tensor<T>::scale(T factor) {
+    if (device_ != Device::CPU) {
+        throw std::runtime_error("Scaling on GPU not supported in this implementation.");
+    }
+
+    size_t total_size = calculate_size();
+    T* data_ptr = data_.get();
+
+    for (size_t i = 0; i < total_size; ++i) {
+        data_ptr[i] *= factor;
+    }
+}
 // template <typename T>
 // std::string Tensor<T>::to_string() const {
 //     if (device_ == Device::GPU) {

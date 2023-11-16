@@ -22,6 +22,20 @@ void ONNXRuntimeInferenceEngine::load_model_implementation(const std::string& mo
     LOG_INFO(tensor_shape_to_string(t.get_shape()));
     LOG_INFO(t);
 
+    cv::Mat mat(32, 32, CV_32F);
+
+    for (int i = 0; i < mat.rows; ++i) {
+        for (int j = 0; j < mat.cols; ++j) {
+            mat.at<float>(i, j) = static_cast<float>(i * mat.cols + j); 
+    }
+
+    Tensor<float> test(reinterpret_cast<float*>(mat.data), {32, 32}, Device::CPU, false);
+
+    LOG_INFO(test);
+    test.reshape({1, 32, 32});
+    test.scale(2.f);
+    LOG_INFO(test);
+
     Ort::SessionOptions session_options;
     session_options.SetInterOpNumThreads(1); // just for now 1 thread
     session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED); // might as well optimize :)
