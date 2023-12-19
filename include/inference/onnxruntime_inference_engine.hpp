@@ -17,8 +17,12 @@ private:
     Ort::Env env_;
     Ort::Session session_{nullptr};
     Ort::AllocatorWithDefaultOptions allocator_;
-    Ort::Value input_tensor_{nullptr};
-};
+    Ort::MemoryInfo memory_info_{nullptr};
 
+    std::string input_node_name_;
+    std::vector<int64_t> input_node_dims_;
+    std::string output_node_name_;
+    std::vector<int64_t> output_node_dims_;
+};
 
 #endif /* VISION_SYSTEM_ONNXRUNTIME_INFERENCE_ENGINE_HPP */

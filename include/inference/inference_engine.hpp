@@ -17,7 +17,7 @@ public:
     For now assume all CPU and use opencv Mat
     */
     std::vector<float> run_inference(const cv::Mat& image) {
-        return static_cast<Implementation*>(this)->run_model_implementation(image);
+        return static_cast<Implementation*>(this)->run_inference_implementation(image);
     }
 
     ~InferenceEngine() = default;

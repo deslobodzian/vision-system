@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <opencv2/opencv.hpp>
 
+#include <onnxruntime_cxx_api.h>
+
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
 #endif
@@ -36,7 +38,6 @@ public:
     Tensor(std::initializer_list<int64_t> shape, Device device);
     Tensor(Shape shape, Device device);
     Tensor(T* array, const Shape& shape, Device device, bool owns_data = false);
-    Tensor(cv::Mat& mat, Device device);
 
     ~Tensor(); 
 
@@ -52,13 +53,21 @@ public:
     void to_cpu();
     void to_gpu();
 
-    const Shape& get_shape() const; 
-    T* get_data() const;
+    const Shape& shape() const; 
+    const size_t size() const;
+    T* data() const;
     void reshape(const Shape& new_shape);
     void scale(T factor);
+
+    std::string print_shape() const;
     std::string to_string() const;
+
     friend std::ostream& operator<<(std::ostream& os, const Tensor& tensor) {
         return os << tensor.to_string();
+    }
+
+    Device device() const {
+        return device_;
     }
 
 private:
@@ -94,17 +103,6 @@ Tensor<T>::Tensor(T* array, const Shape& shape, Device device, bool owns_data)
         throw std::runtime_error("Non-CPU tensor construction from array not supported in this implementation.");
     }
 
-}
-
-template <typename T>
-Tensor<T>::Tensor(cv::Mat& mat, Device device) 
-    : shape_({static_cast<int64_t>(mat.rows), static_cast<int64_t>(mat.cols)}),
-      device_(device), 
-      data_(reinterpret_cast<T*>(mat.data), [](T*){}), // Use a no-op deleter
-      owns_data_(false) {
-    if (device != Device::CPU) {
-        throw std::runtime_error("Creating Tensor from cv::Mat is only supported for CPU device.");
-    }
 }
 
 template <typename T>
@@ -181,12 +179,17 @@ void Tensor<T>::to_gpu() {
 }
 
 template <typename T>
-const Shape& Tensor<T>::get_shape() const {
+const Shape& Tensor<T>::shape() const {
     return shape_;
 }
 
 template <typename T>
-T* Tensor<T>::get_data() const {
+const size_t Tensor<T>::size() const {
+    return calculate_size();
+}
+
+template <typename T>
+T* Tensor<T>::data() const {
     if (device_ == Device::GPU) {
         throw std::runtime_error("Data on GPU, transfer to CPU to access.");
     }
@@ -214,18 +217,17 @@ void Tensor<T>::scale(T factor) {
         data_ptr[i] *= factor;
     }
 }
-// template <typename T>
-// std::string Tensor<T>::to_string() const {
-//     if (device_ == Device::GPU) {
-//         throw std::runtime_error("Data on GPU, transfer to CPU to access.");
-//     }
-//     std::ostringstream oss;
-//     for (size_t i = 0; i < calculate_size(); ++i) {
-//         if (i > 0) oss << " ";
-//         oss << data_[i];
-//     }
-//     return oss.str();
-// }
+
+template <typename T>
+std::string Tensor<T>::print_shape() const {
+    std::ostringstream oss;
+    oss << "Tensor shape: (";
+    for (size_t i = 0; i < shape_.size(); ++i) {
+        oss << shape_[i] << (i < shape_.size() - 1 ? ", " : "");
+    }
+    oss << ")";
+    return oss.str();
+}
 
 template <typename T>
 std::string Tensor<T>::to_string() const {
@@ -272,5 +274,5 @@ std::string Tensor<T>::to_string() const {
 
     return oss.str();
 }
-
+ 
 #endif // VISION_SYSTEM_TENSOR_HPP

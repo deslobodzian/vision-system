@@ -28,30 +28,25 @@ enum class LogLevel {
 
 constexpr std::string_view extract_class_name(const char* pretty_function) {
     std::string_view pf = pretty_function;
-    size_t colons = pf.find("::");
-    if (colons == std::string_view::npos)
-        return {}; // Not a class member function
 
-    // Reverse-find the beginning of the class name (either space or start of string)
-    size_t begin = pf.rfind(' ', colons);
-    begin = (begin == std::string_view::npos) ? 0 : begin + 1;
+    size_t params_start = pf.find('(');
+    if (params_start == std::string_view::npos)
+        return {}; // Not a valid function
 
-    // Trim everything before the class name
-    pf.remove_prefix(begin);
-
-    // Find the end of the class name (either colons or template parameters)
-    size_t end = pf.find("::");
-    if (end != std::string_view::npos) {
-        // Check if we're dealing with template parameters '<'
-        size_t template_params = pf.find('<', begin);
-        if (template_params != std::string_view::npos && template_params < end) {
-            end = template_params;
-        }
-        pf.remove_suffix(pf.size() - end);
+    size_t colons = pf.rfind("::", params_start);
+    if (colons == std::string_view::npos) {
+        size_t name_start = pf.rfind(' ', params_start);
+        name_start = (name_start == std::string_view::npos) ? 0 : name_start + 1;
+        return pf.substr(name_start, params_start - name_start);
     }
-    return pf;
-}
 
+    // Extract the class name from the substring before ::
+    size_t class_name_end = colons;
+    size_t class_name_start = pf.rfind(' ', colons);
+    class_name_start = (class_name_start == std::string_view::npos) ? 0 : class_name_start + 1;
+
+    return pf.substr(class_name_start, class_name_end - class_name_start);
+}
 
 class Logger {
 public:

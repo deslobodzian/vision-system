@@ -4,6 +4,7 @@
 
 #include "vision_container.hpp"
 #include "inference/onnxruntime_inference_engine.hpp"
+#include "utils/logger.hpp"
 #include <chrono>
 
 VisionContainer::VisionContainer() : 
@@ -12,11 +13,13 @@ VisionContainer::VisionContainer() :
 }
 
 void VisionContainer::init() {
-    printf("Init Vision container called\n");
+    LOG_INFO("Init Vision container called");
     ONNXRuntimeInferenceEngine engine;
-    printf("Loading model\n");
+    LOG_INFO("Loading model");
     engine.load_model("yolov8n.onnx");
-    printf("Model loaded\n");
+    LOG_INFO("Model loaded");
+    cv::Mat mat = cv::imread("bus.jpg");
+    engine.run_inference(mat);
 }
 
 void VisionContainer::run() {
@@ -25,7 +28,7 @@ void VisionContainer::run() {
     vision_runner_ = task_manager_->create_task<VisionRunner>(0.001, "vision-runner");
     vision_runner_->start();
     for (;;) {
-        std::this_thread::sleep_for(10s);
+        std::this_thread::sleep_for(1s);
     }
 }
 
