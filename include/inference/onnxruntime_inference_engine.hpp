@@ -3,15 +3,15 @@
 
 #include <onnxruntime_cxx_api.h>
 #include <string>
-#include "inference_engine.hpp"
+#include "i_inference_engine.hpp"
 #include "tensor.hpp"
 
-class ONNXRuntimeInferenceEngine : public InferenceEngine<ONNXRuntimeInferenceEngine> {
+class ONNXRuntimeInferenceEngine : public IInferenceEngine {
 public:
     ONNXRuntimeInferenceEngine();
     ~ONNXRuntimeInferenceEngine() = default;
-    void load_model_implementation(const std::string& model_path);
-    std::vector<float> run_inference_implementation(const cv::Mat& image);
+    void load_model(const std::string& model_path) override;
+    std::vector<float> run_inference(const Tensor<float>& input_tensor) override;
 
 private:
     Ort::Env env_;

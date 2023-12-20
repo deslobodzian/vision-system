@@ -51,18 +51,18 @@ void print_ort_tensor(const Ort::Value& tensor) {
 }
 
 ONNXRuntimeInferenceEngine::ONNXRuntimeInferenceEngine() : env_(ORT_LOGGING_LEVEL_WARNING, "Inference") {}
-  // Other initializations...
 
-void ONNXRuntimeInferenceEngine::load_model_implementation(const std::string& model_path) {
-
+void ONNXRuntimeInferenceEngine::load_model(const std::string& model_path) {
     cv::Mat mat = cv::imread("bus.jpg");
     Tensor<float> test = TensorFactory<float>::from_cv_mat(mat);
 
     LOG_INFO(test.print_shape());
+    LOG_INFO("Creating MemoryInfo");
     memory_info_ = Ort::MemoryInfo::CreateCpu(
         OrtAllocatorType::OrtArenaAllocator,
         OrtMemType::OrtMemTypeDefault
     );
+    LOG_INFO("Created MemoryInfo");
 
     std::vector<std::string> providers = Ort::GetAvailableProviders();
     for (auto provider : providers) {
@@ -100,25 +100,25 @@ void ONNXRuntimeInferenceEngine::load_model_implementation(const std::string& mo
 
 }
 
-std::vector<float> ONNXRuntimeInferenceEngine::run_inference_implementation(const cv::Mat& image) {
+std::vector<float> ONNXRuntimeInferenceEngine::run_inference(const Tensor<float>& input_tensor) {
     LOG_DEBUG("Running Inferene");
     std::vector<float> tmp;
-    cv::Mat temp, t1;
-    Tensor<float> t0 = TensorFactory<float>::from_cv_mat(image);
-    LOG_INFO(t0.print_shape());
-    cv::resize(image, temp, cv::Size(640, 640));
-    temp.convertTo(t1, CV_32FC3, 1 / 255.0);
-    Tensor<float> t = TensorFactory<float>::from_cv_mat(t1);
-    t.reshape({1, 3, 640, 640});
+    // cv::Mat temp, t1;
+    // Tensor<float> t0 = TensorFactory<float>::from_cv_mat(image);
+    // LOG_INFO(t0.print_shape());
+    // cv::resize(image, temp, cv::Size(640, 640));
+    // temp.convertTo(t1, CV_32FC3, 1 / 255.0);
+    // Tensor<float> t = TensorFactory<float>::from_cv_mat(t1);
+    // t.reshape({1, 3, 640, 640});
 
-    LOG_INFO(t.print_shape());
+    // LOG_INFO(t.print_shape());
 
-    size_t tensor_size = t.size();
-    LOG_INFO("Tensor Size: ", tensor_size);
+    // size_t tensor_size = t.size();
+    // LOG_INFO("Tensor Size: ", tensor_size);
     // For now batchsize is always 1, so this doesn't need to be an array, but in the future this might change.
     std::vector<Ort::Value> input_tensors;
 
-    input_tensors.push_back(TensorFactory<float>::to_ort_value(t, memory_info_));
+    input_tensors.push_back(TensorFactory<float>::to_ort_value(input_tensor, memory_info_));
 
     const char* input_node_name_cstr = input_node_name_.c_str();
     const char* output_node_name_cstr = output_node_name_.c_str();
