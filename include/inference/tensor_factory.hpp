@@ -14,7 +14,12 @@ public:
         if (device != Device::CPU) {
             throw std::runtime_error("Tensor creation from cv::Mat only supports CPU for now.");
         }
-        Shape shape = {mat.channels(), mat.rows, mat.cols};
+
+        if (!mat.isContinuous()) {
+            throw std::runtime_error("cv::Mat must be continuous.");
+        }
+
+        Shape shape = {mat.rows, mat.cols, mat.channels()};
         return Tensor<T>(reinterpret_cast<T*>(mat.data), shape, Device::CPU, false);
     }
 

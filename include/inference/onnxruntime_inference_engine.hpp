@@ -11,7 +11,8 @@ public:
     ONNXRuntimeInferenceEngine();
     ~ONNXRuntimeInferenceEngine() = default;
     void load_model(const std::string& model_path) override;
-    std::vector<float> run_inference(const Tensor<float>& input_tensor) override;
+    Tensor<float> run_inference(const Tensor<float>& input_tensor) override;
+    const Shape get_input_shape() const override;
 
 private:
     Ort::Env env_;
@@ -20,6 +21,8 @@ private:
     Ort::MemoryInfo memory_info_{nullptr};
 
     std::string input_node_name_;
+    Shape input_shape_;
+
     std::vector<int64_t> input_node_dims_;
     std::string output_node_name_;
     std::vector<int64_t> output_node_dims_;

@@ -38,6 +38,8 @@ public:
     Tensor(std::initializer_list<int64_t> shape, Device device);
     Tensor(Shape shape, Device device);
     Tensor(T* array, const Shape& shape, Device device, bool owns_data = false);
+    template <typename U>
+    Tensor(const Tensor<U>& other);
 
     ~Tensor(); 
 
@@ -59,6 +61,9 @@ public:
     void reshape(const Shape& new_shape);
     void scale(T factor);
 
+    void permute(const Shape& order);
+    std::vector<size_t> calculate_strides(const Shape& shape);
+    // TODO: Add the function in python that addes a dimension to the tensor(forgot the name)
     std::string print_shape() const;
     std::string to_string() const;
 
@@ -102,7 +107,24 @@ Tensor<T>::Tensor(T* array, const Shape& shape, Device device, bool owns_data)
     if (device != Device::CPU) {
         throw std::runtime_error("Non-CPU tensor construction from array not supported in this implementation.");
     }
+}
 
+template <typename T>
+template <typename U>
+Tensor<T>::Tensor(const Tensor<U>& other) 
+    : shape_(other.shape()), device_(other.device()), 
+      data_(nullptr, device_ == Device::CPU ? cpu_deleter<T> : gpu_deleter<T>), 
+      owns_data_(true) {
+    
+    allocate_memory();
+    
+    const U* old_data = other.data();
+    T* new_data = data_.get();
+    size_t total_size = calculate_size();
+
+    for (size_t i = 0; i < total_size; ++i) {
+        new_data[i] = static_cast<T>(old_data[i]);
+    }
 }
 
 template <typename T>
@@ -219,6 +241,53 @@ void Tensor<T>::scale(T factor) {
 }
 
 template <typename T>
+std::vector<size_t> Tensor<T>::calculate_strides(const Shape& shape) {
+    std::vector<size_t> strides(shape.size(), 1);
+    for (int i = shape.size() - 2; i >= 0; --i) {
+        strides[i] = strides[i + 1] * shape[i + 1];
+    }
+    return strides;
+}
+
+template <typename T>
+void Tensor<T>::permute(const Shape& order) {
+    if (order.size() != shape_.size()) {
+        throw std::invalid_argument("Permute order does not match tensor dimensions.");
+    }
+
+    for (auto idx : order) {
+        if (idx < 0 || idx >= static_cast<int64_t>(shape_.size())) {
+            throw std::invalid_argument("Invalid permute order.");
+        }
+    }
+
+    Shape new_shape(shape_.size());
+    std::vector<size_t> old_strides = calculate_strides(shape_);
+    for (size_t i = 0; i < order.size(); ++i) {
+        new_shape[i] = shape_[order[i]];
+    }
+
+    size_t total_size = calculate_size();
+    T* new_data = new T[total_size];
+    
+    std::vector<size_t> new_strides = calculate_strides(new_shape);
+
+    for (size_t i = 0; i < total_size; ++i) {
+        size_t old_idx = 0;
+        size_t tmp = i;
+        for (size_t j = 0; j < shape_.size(); ++j) {
+            size_t axis = order[j];
+            old_idx += (tmp / new_strides[j]) * old_strides[axis];
+            tmp = tmp % new_strides[j];
+        }
+        new_data[i] = data_[old_idx];
+    }
+
+    shape_ = new_shape;
+    data_.reset(new_data);
+}
+
+template <typename T>
 std::string Tensor<T>::print_shape() const {
     std::ostringstream oss;
     oss << "Tensor shape: (";
@@ -274,5 +343,5 @@ std::string Tensor<T>::to_string() const {
 
     return oss.str();
 }
- 
+
 #endif // VISION_SYSTEM_TENSOR_HPP
