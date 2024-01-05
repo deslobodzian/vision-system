@@ -1,0 +1,9 @@
+// heart_beat.fbs
+namespace Messages;
+
+table HeartBeat {
+	id:int;
+	timestamp:long;
+}
+
+root_type HeartBeat;

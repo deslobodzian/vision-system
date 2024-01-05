@@ -1,6 +1,7 @@
 #include "inference/onnxruntime_inference_engine.hpp"
 #include "inference/tensor_factory.hpp"
 #include "utils/logger.hpp"
+#include <opencv2/imgcodecs.hpp>
 
 std::string tensor_shape_to_string(const std::vector<int64_t>& input_tensor) {
     std::string tensor_shape = "Tensor shape is [";
@@ -55,6 +56,8 @@ ONNXRuntimeInferenceEngine::ONNXRuntimeInferenceEngine() : env_(ORT_LOGGING_LEVE
 
 void ONNXRuntimeInferenceEngine::load_model(const std::string& model_path) {
     cv::Mat mat = cv::imread("bus.jpg");
+    cv::Mat x = cv::imread("bus.jpg");
+    Tensor<float> test1 = TensorFactory<float>::from_cv_mat(x);
     Tensor<float> test = TensorFactory<float>::from_cv_mat(mat);
     LOG_INFO(test.print_shape());
 
@@ -69,7 +72,6 @@ void ONNXRuntimeInferenceEngine::load_model(const std::string& model_path) {
     }
 
     Ort::Value onnx_tensor = TensorFactory<float>::to_ort_value(test, memory_info_);
-    // print_ort_tensor(onnx_tensor)
 
     Ort::SessionOptions session_options;
     session_options.SetInterOpNumThreads(1); // just for now 1 thread
@@ -95,24 +97,12 @@ void ONNXRuntimeInferenceEngine::load_model(const std::string& model_path) {
 
     Ort::TypeInfo output_type_info = session_.GetOutputTypeInfo(0);
     auto output_tensor_info = output_type_info.GetTensorTypeAndShapeInfo();
-    std::vector<int64_t> output_dims = output_tensor_info.GetShape();
-    LOG_INFO(tensor_shape_to_string(output_dims));
+    output_shape_ = output_tensor_info.GetShape();
+    LOG_INFO(tensor_shape_to_string(output_shape_));
 }
 
 Tensor<float> ONNXRuntimeInferenceEngine::run_inference(const Tensor<float>& input_tensor) {
-    LOG_DEBUG("Running Inferene");
-    // cv::Mat temp, t1;
-    // Tensor<float> t0 = TensorFactory<float>::from_cv_mat(image);
-    // LOG_INFO(t0.print_shape());
-    // cv::resize(image, temp, cv::Size(640, 640));
-    // temp.convertTo(t1, CV_32FC3, 1 / 255.0);
-    // Tensor<float> t = TensorFactory<float>::from_cv_mat(t1);
-    // t.reshape({1, 3, 640, 640});
-
-    // LOG_INFO(t.print_shape());
-
-    // size_t tensor_size = t.size();
-    // LOG_INFO("Tensor Size: ", tensor_size);
+    LOG_DEBUG("Running Inference");
     // For now batchsize is always 1, so this doesn't need to be an array, but in the future this might change.
     std::vector<Ort::Value> input_tensors;
     input_tensors.push_back(TensorFactory<float>::to_ort_value(input_tensor, memory_info_));
@@ -124,16 +114,18 @@ Tensor<float> ONNXRuntimeInferenceEngine::run_inference(const Tensor<float>& inp
         Ort::RunOptions{nullptr},
         &input_node_name_cstr,
         input_tensors.data(),
-        1, // batch size ()of 1
+        1, // batch size of 1
         &output_node_name_cstr,
         1
     );
     Tensor output = TensorFactory<float>::from_ort_value(output_tensor.at(0));
-    LOG_INFO(output.print_shape());
-    LOG_INFO("Output size: ", output.size());
     return output;
 }
 
 const Shape ONNXRuntimeInferenceEngine::get_input_shape() const {
     return input_shape_;
+}
+
+const Shape ONNXRuntimeInferenceEngine::get_output_shape() const {
+    return output_shape_;
 }

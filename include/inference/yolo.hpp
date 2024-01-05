@@ -16,10 +16,19 @@ public:
     ~Yolo() = default;
     Tensor<float> preprocess(const cv::Mat& image);
     std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const cv::Mat& image);
-    std::vector<BBoxInfo> predict(const Tensor<float>& input_tensor, const cv::Mat& image);
+    std::vector<BBoxInfo> predict(const cv::Mat& image);
 private:
     std::unique_ptr<IInferenceEngine> inference_engine_;
+
     std::string model_path_;
+
+    int input_h_;
+    int input_w_;
+
+    int bbox_values_;
+    int num_classes_;
+    int num_anchors_;
+
 };
 
 #endif /* VISION_SYSTEM_YOLO_HPP */

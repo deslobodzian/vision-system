@@ -9,11 +9,6 @@
 #include <unistd.h>
 #endif
 
-#include <cmath>
-#include <stdexcept>
-#include <utility>
-#include <iostream>
-
 #include "utils/timer.h"
 #include "utils/logger.hpp"
 
@@ -47,7 +42,7 @@ void Task::loop() {
         throw std::runtime_error("Failed to create timerfd");
     }
     long seconds = static_cast<long>(period_);
-    long nano_seconds = (static_cast<long>((period_ - sec) * 1e9))
+    long nano_seconds = (static_cast<long>((period_ - sec) * 1e9));
 
     itimerspec timer_spec{};
     timer_spec.it_interval.tv_sec = seconds;
