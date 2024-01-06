@@ -6,6 +6,7 @@
 #define VISION_SYSTEM_VISION_CONTAINER_HPP
 
 #include "vision_runner.hpp"
+#include "networking/zmq_publisher.hpp"
 
 class VisionContainer {
 public:
@@ -22,7 +23,7 @@ protected:
 
     std::shared_ptr<TaskManager> task_manager_;
     std::shared_ptr<VisionRunner> vision_runner_;
-
+    ZmqPublisher publisher_;
 };
 
 #endif //VISION_SYSTEM_VISION_CONTAINER_HPP

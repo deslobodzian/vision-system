@@ -7,10 +7,13 @@
 #include "inference/yolo.hpp"
 #include "networking/zmq_publisher.hpp"
 #include "vision_pose_generated.h"
+#include "heart_beat_generated.h"
 #include <flatbuffers/flatbuffer_builder.h>
+#include "utils/task.hpp"
 
 VisionContainer::VisionContainer() : 
     vision_runner_(nullptr),
+    publisher_("tcp://*:5557", "HeartBeat"),
     task_manager_(std::make_shared<TaskManager>()) {
 }
 
@@ -26,6 +29,9 @@ void drawBoundingBoxes(cv::Mat& image, const std::vector<BBoxInfo>& bboxes) {
 }
 
 void VisionContainer::zmq_heart_beat() {
+    using namespace std::chrono;
+    auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+    publisher_.publish(Messages::CreateHeartBeat, 111, now); 
 }
 
 void VisionContainer::init() {
@@ -43,6 +49,16 @@ void VisionContainer::run() {
     init();
     vision_runner_ = task_manager_->create_task<VisionRunner>(0.001, "vision-runner");
     vision_runner_->start();
+
+    LOG_INFO("Starting Heart Beat task");
+    PeriodicMemberFunction<VisionContainer> heart_beat(
+            task_manager_,
+            1.0,
+            "heart_beat",
+            this,  // object pointer
+            &VisionContainer::zmq_heart_beat  // member function pointer
+            );
+    heart_beat.start();
 
     ZmqPublisher publisher("tcp://*:5556", "VisionPose");
     for (;;) {
