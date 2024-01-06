@@ -7,6 +7,7 @@
 #ifdef __linux__
 #include <sys/timerfd.h>
 #include <unistd.h>
+#include <cmath>
 #endif
 
 #include "utils/timer.h"
@@ -42,12 +43,14 @@ void Task::loop() {
         throw std::runtime_error("Failed to create timerfd");
     }
     long seconds = static_cast<long>(period_);
-    long nano_seconds = (static_cast<long>((period_ - sec) * 1e9));
+    long nano_seconds = static_cast<long>(1e9 * std::fmod(period_, 1.f));
 
     itimerspec timer_spec{};
     timer_spec.it_interval.tv_sec = seconds;
+    timer_spec.it_value.tv_sec = seconds;
+
     timer_spec.it_interval.tv_nsec = nano_seconds;
-    timer_spec.it_value = timer_spec.it_inverval;
+    timer_spec.it_value.tv_nsec = nano_seconds;
 
     if (timerfd_settime(timer_fd, 0, &timer_spec, nullptr) == -1) { 
         close(timer_fd);
