@@ -18,11 +18,11 @@ jobs:
     - name: Install Project Dependencies
       run: |
         chmod +x ./scripts/*.sh
-        ./scripts/install_opencv.sh
-        ./scripts/install_onnxruntime.sh
-        ./scripts/install_zmq.sh
-        ./scripts/install_flatbuffers.sh
-        ./scripts/install_cppzmq.sh
+        sudo ./scripts/install_opencv.sh
+        sudo ./scripts/install_onnxruntime.sh
+        sudo ./scripts/install_zmq.sh
+        sudo ./scripts/install_flatbuffers.sh
+        sudo ./scripts/install_cppzmq.sh
 
     - name: Copy Project Files
       run: |
