@@ -13,8 +13,8 @@
 
 VisionContainer::VisionContainer() : 
     vision_runner_(nullptr),
-    publisher_("tcp://*:5557", "HeartBeat"),
     task_manager_(std::make_shared<TaskManager>()) {
+        zmq_manager_.create_publisher("main", "tcp://*:5556");
 }
 
 void drawBoundingBoxes(cv::Mat& image, const std::vector<BBoxInfo>& bboxes) {
@@ -31,7 +31,7 @@ void drawBoundingBoxes(cv::Mat& image, const std::vector<BBoxInfo>& bboxes) {
 void VisionContainer::zmq_heart_beat() {
     using namespace std::chrono;
     auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
-    publisher_.publish(Messages::CreateHeartBeat, 111, now); 
+    zmq_manager_.get_publisher("main").publish("HeartBeat", Messages::CreateHeartBeat, 111, now); 
 }
 
 void VisionContainer::init() {
@@ -60,12 +60,12 @@ void VisionContainer::run() {
             );
     heart_beat.start();
 
-    ZmqPublisher publisher("tcp://*:5556", "VisionPose");
+    // ZmqPublisher publisher("tcp://*:5556");
     for (;;) {
         //auto vp_offset = Messages::CreateVisionPose(builder, 123, 1.0f, 2.0f, 3.0f, 456789L);
         auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
-        publisher.publish(Messages::CreateVisionPose, 123, 1.0f, 2.0f, 3.0f, now);
-        std::this_thread::sleep_for(1ms);
+        zmq_manager_.get_publisher("main").publish("VisionPose", Messages::CreateVisionPose, 123, 1.0f, 2.0f, 3.0f, now);
+        std::this_thread::sleep_for(10ms);
     }
 }
 

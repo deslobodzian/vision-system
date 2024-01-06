@@ -3,8 +3,9 @@
 
 
 #include <map>
+#include <string>
 #include "zmq_publisher.hpp"
-#include <flatbuffers/flatbuffer_builder.h>
+#include "zmq_subscriber.hpp"
 
 class ZmqManager {
 public:
@@ -13,7 +14,27 @@ public:
     ~ZmqManager() {
     }
 
+    void create_publisher(const std::string& name, const std::string& endpoint) {
+        publishers_[name] = std::make_unique<ZmqPublisher>(endpoint);
+    }
+
+    void create_subscriber(const std::string& topic, const std::string& endpoint) {
+        subscribers_[topic] = std::make_unique<ZmqSubscriber>(topic, endpoint);
+    }
+
+    ZmqPublisher& get_publisher(const std::string& name) {
+        auto it = publishers_.find(name);
+        if (it != publishers_.end()) {
+            return *(it->second);
+        } else {
+            throw::std::runtime_error("Publisher not found: " + name);
+        }
+    }
+
 private:
-    flatbuffers::FlatBufferBuilder builder_;
+    std::string publisher_endpoint_;
+    std::map<std::string, std::unique_ptr<ZmqPublisher>> publishers_;
+    std::map<std::string, std::unique_ptr<ZmqSubscriber>> subscribers_;
+
 };
 #endif /* VISION_SYSTEM_ZMQ_MANAGER_HPP */
