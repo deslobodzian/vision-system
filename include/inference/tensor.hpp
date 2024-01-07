@@ -171,29 +171,29 @@ void Tensor<T>::free_memory() {
 }
 
 template <typename T>
-void Tensor<T>::to_cpu() {
-    if (device_ == Device::GPU) {
+void Tensor<T>::to_gpu() {
+    if (device_ == Device::CPU) {
 #ifdef __CUDACC__
-        T* cpu_data = new T[calculate_size()];
-        cudaMemcpy(cpu_data, data_.get(), calculate_size() * sizeof(T), cudaMemcpyDeviceToHost);
-        data_.reset(cpu_data);
-        device_ = Device::CPU;
+        T* gpu_data;
+        size_t total_size = calculate_size() * sizeof(T);
+        cudaMalloc(&gpu_data, total_size);
+        cudaMemcpy(gpu_data, data_.get(), total_size, cudaMemcpyHostToDevice);
+        data_.reset(gpu_data, gpu_deleter<T>);
+        device_ = Device::GPU;
 #else
         throw std::runtime_error("CUDA support not available.");
 #endif
     }
 }
 
-
 template <typename T>
-void Tensor<T>::to_gpu() {
-    if (device_ == Device::CPU) {
+void Tensor<T>::to_cpu() {
+    if (device_ == Device::GPU) {
 #ifdef __CUDACC__
-        T* gpu_data;
-        cudaMalloc(&gpu_data, calculate_size() * sizeof(T));
-        cudaMemcpy(gpu_data, data_.get(), calculate_size() * sizeof(T), cudaMemcpyHostToDevice);
-        data_.reset(gpu_data);
-        device_ = Device::GPU;
+        T* cpu_data = new T[calculate_size()]; // Consider using cudaHostAlloc for pinned memory
+        cudaMemcpy(cpu_data, data_.get(), calculate_size() * sizeof(T), cudaMemcpyDeviceToHost);
+        data_.reset(cpu_data, cpu_deleter<T>);
+        device_ = Device::CPU;
 #else
         throw std::runtime_error("CUDA support not available.");
 #endif

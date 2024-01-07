@@ -4,7 +4,7 @@
 #include "vision_container.hpp"
 #include <iostream>
 #include <csignal>
-
+#include "inference/tensor_rt_engine.hpp"
 
 enum MODE {
     BUILD_ENGINE,
@@ -25,23 +25,28 @@ MODE args_interpreter(int argc, char **argv) {
     }
     if (std::string(argv[1]) == "-s" && argc >= 4) {
         // Building engine
-        // std::string onnx_path = argv[2];
-        // std::string engine_path = argv[3];
-        // OptimDim dyn_dim_profile;
+#ifdef __CUDACC__
+         std::string onnx_path = argv[2];
+         std::string engine_path = argv[3];
+         OptimDim dyn_dim_profile;
 
         if (argc == 5) {
             std::string optim_profile = argv[4];
-            // if (dyn_dim_profile.setFromString(optim_profile)) {
-                // Yolo::build_engine(onnx_path, engine_path, dyn_dim_profile);
-                // return BUILD_ENGINE;
-            // } else {
-                // std::cerr << "Invalid dynamic dimension argument, expecting something like 'images:1x3x512x512'" << std::endl;
-                // return INVALID;
-            // }
+             if (dyn_dim_profile.setFromString(optim_profile)) {
+                 TensorRTEngine::build_engine(onnx_path, engine_path, dyn_dim_profile);
+                 return BUILD_ENGINE;
+             } else {
+                 LOG_ERROR("Invalid dynamic dimension argument, expecting something like 'images:1x3x512x512'");
+                 return INVALID;
+             }
             return INVALID;
         }
-        // Yolo::build_engine(onnx_path, engine_path, dyn_dim_profile);
+        TensorRTEngine::build_engine(onnx_path, engine_path, dyn_dim_profile);
         return BUILD_ENGINE;
+#else
+        LOG_ERROR("Cuda not available on this device, cannot build engine!");
+        return INVALID;
+#endif
     }
     else if (std::string(argv[1]) == "-p" && argc >= 3) {
         // std::string playback_file = argv[2];
