@@ -1,7 +1,10 @@
 #include "inference/yolo.hpp"
-#include "preprocess_kernels.h"
 #include "inference/cuda_utils.h"
+
+#ifdef WITH_CUDA
+#include "preprocess_kernels.h"
 #include <sl/Camera.hpp>
+#endif
 
 Yolo::Yolo(const std::string& model_path) : model_path_(model_path) {
     inference_engine_ = InferenceEngineFactory::create_inference_engine();

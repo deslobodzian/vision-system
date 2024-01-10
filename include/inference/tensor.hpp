@@ -131,8 +131,6 @@ Tensor<T>::Tensor(Shape shape, Device device)
         cpu_data_.reset(new_cpu_data);  
         gpu_data_.reset(new_gpu_data); 
         is_gpu_data_valid_ = true;
-#else
-        throw std::runtime_error("CUDA support not available.");
 #endif
     }
 }
@@ -165,8 +163,6 @@ Tensor<T>::Tensor(T* array, const Shape& shape, Device device)
         CUDA_CHECK(cudaMemcpyAsync(new_gpu_data, new_cpu_data, total_size * sizeof(T), cudaMemcpyHostToDevice));
         gpu_data_.reset(new_gpu_data); 
         is_gpu_data_valid_ = true;
-#else
-        throw std::runtime_error("CUDA support not available.");
 #endif
     }
 }
@@ -197,8 +193,6 @@ Tensor<T>::Tensor(const Tensor<U>& other)
         cudaMemcpyAsync(gpu_data_.get(), new_data, total_size * sizeof(T), cudaMemcpyHostToDevice);
         is_gpu_data_valid_ = true;
     }
-    #else
-    throw std::runtime_error("CUDA support is not available");
     #endif
 }
 
@@ -236,8 +230,6 @@ void Tensor<T>::allocate_memory() {
         cudaMalloc(&gpu_data, total_size);
         gpu_data_.reset(gpu_data); 
         is_gpu_data_valid_ = true;
-#else
-        throw std::runtime_error("CUDA support not available.");
 #endif
     } else {
         gpu_data_.reset(nullptr);
@@ -269,7 +261,7 @@ void Tensor<T>::to_gpu() {
         device_ = Device::GPU;
     }
 #else
-    throw std::runtime_error("CUDA support not available.");
+    LOG_ERROR("Cuda support not available");
 #endif
 }
 
@@ -285,8 +277,6 @@ void Tensor<T>::to_cpu() {
         device_ = Device::CPU;
         is_gpu_data_valid_ = false;
     }
-#else
-    throw std::runtime_error("CUDA support not available.");
 #endif
 }
 
@@ -331,11 +321,7 @@ void Tensor<T>::scale(T factor) {
             data_ptr[i] *= factor;
         }
     } else {
-#ifdef WITH_CUDA
-        throw std::runtime_error("CUDA not implemented yet, use CPU.");
-#else
-        throw std::runtime_error("CUDA support not available.");
-#endif
+        LOG_ERROR("GPU support for scale not implemented, use CPU");
     }
 }
 
@@ -386,11 +372,7 @@ void Tensor<T>::permute(const Shape& order) {
         }
         cpu_data_.reset(new_data.release());
     } else {
-#ifdef __CUDACC__
-        throw std::runtime_error("CUDA Implementation not created yet, use CPU.");
-#else
-        throw std::runtime_error("CUDA support not available.");
-#endif
+        LOG_ERROR("GPU support for permute not implemented, use CPU");
     }
 
     shape_ = new_shape;
@@ -425,7 +407,7 @@ template <typename T>
 template <typename U>
 void Tensor<T>::copy(const U* data, const Shape& source_shape) {
     if (device_ == Device::GPU) {
-        std::runtime_error("GPU copy not created yet");
+        LOG_ERROR("GPU support for copy not implemented, use CPU");
     }
         if (!data) {
         throw std::runtime_error("Null data pointer provided.");
@@ -467,7 +449,7 @@ std::string Tensor<T>::print_shape() const {
 template <typename T>
 std::string Tensor<T>::to_string() const {
     if (device_ == Device::GPU) {
-        throw std::runtime_error("Data on GPU, transfer to CPU to access.");
+        LOG_ERROR("Data on GPU, transfer to CPU to access.");
     }
 
     std::ostringstream oss;

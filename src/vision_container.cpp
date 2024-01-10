@@ -42,10 +42,12 @@ void VisionContainer::init() {
     Yolo yolo("yolov8n.onnx");
 
     cv::Mat mat = cv::imread("bus.jpg");
+    cv::Mat mod_mat = cv::imread("bus.jpg");
+
     for (int i = 0; i < 100; i++) {
-        drawBoundingBoxes(mat, yolo.predict(mat));
+        drawBoundingBoxes(mod_mat, yolo.predict(mat));
     }
-    cv::imwrite("output_new.png", mat);
+    cv::imwrite("output_new.png", mod_mat);
 }
 
 void VisionContainer::run() {

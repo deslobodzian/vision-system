@@ -3,7 +3,6 @@
 
 #include <opencv2/opencv.hpp>
 #include "tensor.hpp"
-#include "utils/logger.hpp"
 #include <onnxruntime_cxx_api.h>
 
 

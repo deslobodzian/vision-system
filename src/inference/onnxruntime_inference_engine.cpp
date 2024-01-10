@@ -1,6 +1,7 @@
 #include "inference/onnxruntime_inference_engine.hpp"
 #include "inference/tensor_factory.hpp"
 #include "utils/logger.hpp"
+#include "utils/timer.h"
 #include <opencv2/imgcodecs.hpp>
 
 std::string tensor_shape_to_string(const std::vector<int64_t>& input_tensor) {
@@ -98,6 +99,7 @@ void ONNXRuntimeInferenceEngine::load_model(const std::string& model_path) {
 
 void ONNXRuntimeInferenceEngine::run_inference() {
     LOG_DEBUG("Running Inference");
+    Timer t;
     // For now batchsize is always 1, so this doesn't need to be an array, but in the future this might change.
     std::vector<Ort::Value> input_tensors;
     input_tensors.push_back(TensorFactory<float>::to_ort_value(input_, memory_info_));
@@ -105,6 +107,7 @@ void ONNXRuntimeInferenceEngine::run_inference() {
     const char* input_node_name_cstr = input_node_name_.c_str();
     const char* output_node_name_cstr = output_node_name_.c_str();
 
+    t.start();
     std::vector<Ort::Value> output_tensor = session_.Run(
         Ort::RunOptions{nullptr},
         &input_node_name_cstr,
@@ -113,6 +116,8 @@ void ONNXRuntimeInferenceEngine::run_inference() {
         &output_node_name_cstr,
         1
     );
+    LOG_INFO("Inference took {" ,t.get_ms(), "} ms");
+
     output_ = TensorFactory<float>::from_ort_value(output_tensor.at(0));
 }
 
