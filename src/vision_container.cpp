@@ -37,9 +37,9 @@ void VisionContainer::zmq_heart_beat() {
 
 void VisionContainer::init() {
     LOG_INFO("Init Vision container called");
-    //Yolo yolo("yolov8n.engine");
+    Yolo yolo("yolov8n.engine");
     Timer t;
-    Yolo yolo("yolov8n.onnx");
+    //Yolo yolo("yolov8n.onnx");
 
     cv::Mat mat = cv::imread("bus.jpg");
     cv::Mat mod_mat = cv::imread("bus.jpg");

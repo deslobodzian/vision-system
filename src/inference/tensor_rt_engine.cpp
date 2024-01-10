@@ -194,18 +194,18 @@ void TensorRTEngine::load_model(const std::string& model_path) {
 }
 
 void TensorRTEngine::run_inference() {
+    auto start = std::chrono::high_resolution_clock::now();
     if (engine_ == nullptr || context_ == nullptr) {
         LOG_ERROR("Engine or Context not initialized");
     }
     input_.to_gpu();
     LOG_DEBUG("Running enqueueV3");
-    auto start = std::chrono::high_resolution_clock::now();
 
     context_->enqueueV3(stream_);
+    output_.to_cpu();
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli>elapsed = stop - start;
     LOG_INFO("Inference took: " + std::to_string(elapsed.count()));
-    output_.to_cpu();
 }
 
 Tensor<float>& TensorRTEngine::get_output_tensor() {

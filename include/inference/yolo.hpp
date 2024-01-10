@@ -10,6 +10,10 @@
 #include "bbox.hpp"
 #include "postprocess.hpp"
 
+#ifdef WITH_CUDA
+#include "preprocess_kernels.h"
+#endif
+
 class Yolo {
 public:
     Yolo(const std::string& model_path);
@@ -28,6 +32,7 @@ private:
     int bbox_values_;
     int num_classes_;
     int num_anchors_;
+    cudaStream_t stream_;
 
 };
 

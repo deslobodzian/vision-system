@@ -10,7 +10,7 @@ public:
     static std::unique_ptr<IInferenceEngine> create_inference_engine() {
         // prioritize cuda over cpu onnx
 #ifdef WITH_CUDA 
-//        return std::make_unique<TensorRTEngine>();
+        return std::make_unique<TensorRTEngine>();
 #endif
         return std::make_unique<ONNXRuntimeInferenceEngine>();
     }

@@ -130,11 +130,11 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, int input_wi
     dim3 grid_output((input_width + block.x - 1) / block.x, (input_height + block.y - 1) / block.y);
     
     //kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(left_img.getPtr<sl::uchar1>(sl::MEM::GPU), d_bgr, image_width, image_height);
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
-        return;
-    }
+    //err = cudaGetLastError();
+    //if (err != cudaSuccess) {
+    //    printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
+    //    return;
+    //}
 
     kernel_preprocess_letterbox<<<grid_output, block, 0, stream>>>(d_bgr, d_output, input_width, input_height, image_width, image_height);
     err = cudaGetLastError();
@@ -163,29 +163,36 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, int input_wi
     delete[] h_letter;
 }
 
-void preprocess_cv(Tensor<float>& d_input, int input_width, int input_height, size_t frame_s, int batch, cudaStream_t& stream) {
-    int image_width = d_input.shape().at(1);
-    int image_height = d_input.shape().at(2);
+void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& stream) {
+    int image_width = img.cols;
+    int image_height = img.rows;
 
     if (d_input.device() != Device::GPU) {
         d_input.to_gpu();
     }
+    // BCWH
+    int batch = d_input.shape()[0] - 1;
+    int input_width = d_input.shape()[2];
+    int input_height = d_input.shape()[2];
+    size_t frame_s = d_input.size();
 
     if (d_bgr == nullptr || d_output == nullptr) {
         init_preprocess_resources(image_width, image_height, input_width, input_height);
     }
     cudaError_t err;
+    size_t bytes = img.rows * img.cols * img.channels() * sizeof(unsigned char);
+    cudaMemcpy(d_bgr, img.data, bytes, cudaMemcpyHostToDevice);
 
     dim3 block(16, 16);
     dim3 grid_input((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
     dim3 grid_output((input_width + block.x - 1) / block.x, (input_height + block.y - 1) / block.y);
     
-    kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(d_input.data(), d_bgr, image_width, image_height);
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
-        return;
-    }
+    //kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(d_input.data(), d_bgr, image_width, image_height);
+    //err = cudaGetLastError();
+    //if (err != cudaSuccess) {
+    //    printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
+    //    return;
+    //}
 
     kernel_preprocess_letterbox<<<grid_output, block, 0, stream>>>(d_bgr, d_output, input_width, input_height, image_width, image_height);
     err = cudaGetLastError();
@@ -201,17 +208,17 @@ void preprocess_cv(Tensor<float>& d_input, int input_width, int input_height, si
         return;
     }
 
-    unsigned char* h_letter = new unsigned char[input_width * input_height * 3];
-    err = cudaMemcpy(h_letter, d_output, input_width * input_height * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    if (err != cudaSuccess) {
-        LOG_ERROR("CUDA memcpy Device to Host failed: ", cudaGetErrorString(err));
-        return;
-    }
+    //unsigned char* h_letter = new unsigned char[input_width * input_height * 3];
+    //err = cudaMemcpy(h_letter, d_output, input_width * input_height * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    //if (err != cudaSuccess) {
+    //    LOG_ERROR("CUDA memcpy Device to Host failed: ", cudaGetErrorString(err));
+    //    return;
+    //}
 
-    cv::Mat kernel_out(input_height, input_width, CV_8UC3, h_letter);
-    std::string filename = "kernel_letter_output.png";
-    cv::imwrite(filename, kernel_out);
-    delete[] h_letter;
+    //cv::Mat kernel_out(input_height, input_width, CV_8UC3, h_letter);
+    //std::string filename = "kernel_letter_output.png";
+    //cv::imwrite(filename, kernel_out);
+    //delete[] h_letter;
 }
 void free_preprocess_resources() {
     cudaFree(d_bgr);

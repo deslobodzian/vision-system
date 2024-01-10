@@ -10,7 +10,7 @@
 
 void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, int input_width, int input_height, size_t frame_s, int batch, cudaStream_t& stream);
 
-void preprocess_cv(Tensor<float>& d_input, int input_width, int input_height, size_t frame_s, int batch, cudaStream_t& stream);
+void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& stream);
 void init_preprocess_resources(int image_width, int image_height, int input_width, int input_height); 
 void free_preprocess_resources();
 

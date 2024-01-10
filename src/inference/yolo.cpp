@@ -1,10 +1,8 @@
 #include "inference/yolo.hpp"
 #include "inference/cuda_utils.h"
 
-#ifdef WITH_CUDA
-#include "preprocess_kernels.h"
-#include <sl/Camera.hpp>
-#endif
+#include <chrono>
+
 
 Yolo::Yolo(const std::string& model_path) : model_path_(model_path) {
     inference_engine_ = InferenceEngineFactory::create_inference_engine();
@@ -20,20 +18,18 @@ Yolo::Yolo(const std::string& model_path) : model_path_(model_path) {
     bbox_values_ = 4;  
     num_classes_ = out.at(1) - bbox_values_;
     num_anchors_ = out.at(2);
+#ifdef WITH_CUDA
+    LOG_INFO("Creating yolo cuda stream");
+    CUDA_CHECK(cudaStreamCreate(&stream_));
+#endif
 };
 
-Tensor<float> Yolo::preprocess(const cv::Mat& image) {
-    LOG_DEBUG("Input Width: ", input_w_, " Input height: ", input_h_);
-    
-#ifdef WITH_CUDA
-    //cudaStream_t stream_;
-    //CUDA_CHECK(cudaStreamCreate(&stream_));
-    //size_t frame_s = input_w_ * input_h_;
-    //LOG_DEBUG("addr: ", inference_engine_->get_input_tensor().data());
-    //LOG_DEBUG(inference_engine_->get_input_tensor().print_shape());
-//    preprocess_cv(inference_engine_->get_input_tensor(), input_w_, input_h_, frame_s, 0, stream_);
-#endif
 
+Tensor<float> Yolo::preprocess(const cv::Mat& image) {
+    auto start = std::chrono::high_resolution_clock::now();
+#ifdef WITH_CUDA
+    preprocess_cv(image, inference_engine_->get_input_tensor(), stream_);
+#else
     float scale = std::min(
         static_cast<float>(input_w_) / image.cols,
         static_cast<float>(input_h_) / image.rows
@@ -56,11 +52,15 @@ Tensor<float> Yolo::preprocess(const cv::Mat& image) {
     // CWH -> WHC
     inference_engine_->get_input_tensor().scale(1.f / 255.f); // remember to normalize!!! I should add this to Tensor such that its .normalize()
     inference_engine_->get_input_tensor().reshape({1, 3, input_h_, input_w_});
-    LOG_INFO(inference_engine_->get_input_tensor().print_shape());
+#endif 
+    auto stop = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli>elapsed = stop - start;
+    LOG_INFO("Preprocess took: ", elapsed.count());
     return Tensor<float>();
 }
 
 std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, const cv::Mat& image) {
+    auto start = std::chrono::high_resolution_clock::now();
     std::vector<BBoxInfo> binfo;
 
     const float confidence_threshold = 0.5;
@@ -136,6 +136,9 @@ std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, 
     }
 
     binfo = non_maximum_suppression(0.8, binfo);
+    auto stop = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli>elapsed = stop - start;
+    LOG_INFO("Postprocess took: ", elapsed.count());
     return binfo;
 }
 std::vector<BBoxInfo> Yolo::predict(const cv::Mat& image) {
