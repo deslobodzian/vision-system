@@ -26,6 +26,18 @@ enum class LogLevel {
     constexpr LogLevel CURRENT_LOG_LEVEL = LogLevel::INFO;
 #endif
 
+inline std::string log_seperator(const std::string& text) {
+    const std::string line = "---------------------------------------------";
+    const size_t line_width = line.length();
+
+    size_t total_padding = line_width > text.length() ? line_width - text.length() : 0;
+
+    size_t left_padding = total_padding / 2;
+    size_t right_padding = total_padding - left_padding;
+
+    return std::string(left_padding, '-') + text + std::string(right_padding, '-');
+}
+
 constexpr std::string_view extract_class_name(const char* pretty_function) {
     std::string_view pf = pretty_function;
 

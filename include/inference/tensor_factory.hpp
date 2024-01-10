@@ -6,6 +6,7 @@
 #include "utils/logger.hpp"
 #include <onnxruntime_cxx_api.h>
 
+
 template <typename T>
 class TensorFactory {
 public:
@@ -20,7 +21,7 @@ public:
         }
 
         Shape shape = {mat.rows, mat.cols, mat.channels()};
-        return Tensor<T>(reinterpret_cast<T*>(mat.data), shape, Device::CPU, false);
+        return Tensor<T>(reinterpret_cast<T*>(mat.data), shape, Device::CPU);
     }
 
     /* Create a tensor from Ort::Value */
@@ -40,7 +41,7 @@ public:
         Shape tensor_shape(shape.begin(), shape.end());
 
         T* data_ptr = ort_value.GetTensorMutableData<T>();
-        return Tensor<T>(data_ptr, tensor_shape, device, false);
+        return Tensor<T>(data_ptr, tensor_shape, device);
     }
 
     static Ort::Value to_ort_value(const Tensor<T>& tensor, Ort::MemoryInfo& memory_info) {

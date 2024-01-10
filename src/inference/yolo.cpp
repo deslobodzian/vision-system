@@ -1,9 +1,13 @@
 #include "inference/yolo.hpp"
+#include "preprocess_kernels.h"
+#include "inference/cuda_utils.h"
+#include <sl/Camera.hpp>
 
 Yolo::Yolo(const std::string& model_path) : model_path_(model_path) {
     inference_engine_ = InferenceEngineFactory::create_inference_engine();
     LOG_INFO("Loading Model: ", model_path_);
     inference_engine_->load_model(model_path_);
+    LOG_INFO("Model Loaded");
     Shape in = inference_engine_->get_input_shape();
     Shape out = inference_engine_->get_output_shape();
 
@@ -17,6 +21,16 @@ Yolo::Yolo(const std::string& model_path) : model_path_(model_path) {
 
 Tensor<float> Yolo::preprocess(const cv::Mat& image) {
     LOG_DEBUG("Input Width: ", input_w_, " Input height: ", input_h_);
+    
+#ifdef WITH_CUDA
+    //cudaStream_t stream_;
+    //CUDA_CHECK(cudaStreamCreate(&stream_));
+    //size_t frame_s = input_w_ * input_h_;
+    //LOG_DEBUG("addr: ", inference_engine_->get_input_tensor().data());
+    //LOG_DEBUG(inference_engine_->get_input_tensor().print_shape());
+//    preprocess_cv(inference_engine_->get_input_tensor(), input_w_, input_h_, frame_s, 0, stream_);
+#endif
+
     float scale = std::min(
         static_cast<float>(input_w_) / image.cols,
         static_cast<float>(input_h_) / image.rows
@@ -32,16 +46,15 @@ Tensor<float> Yolo::preprocess(const cv::Mat& image) {
     cv::Rect roi((input_w_ - scaled_w) / 2, (input_h_ - scaled_h) / 2, scaled_w, scaled_h);
     resized.copyTo(output(roi));
 
-    Tensor<unsigned char> tensor = TensorFactory<unsigned char>::from_cv_mat(output);
-    LOG_INFO(tensor.print_shape());
+    inference_engine_->get_input_tensor().to_cpu();
+    inference_engine_->get_input_tensor().copy(output.data, Shape{output.cols, output.rows, output.channels()});
+    LOG_INFO(inference_engine_->get_input_tensor().print_shape());
+
     // CWH -> WHC
-    Tensor<float> input_tensor = tensor;
-    input_tensor.scale(1.f / 255.f); // remember to normalize!!! I should add this to Tensor such that its .normalize()
-    input_tensor.permute({2, 0, 1});
-    // I forgot the name in python but there is a function that added a dimension. I should add this
-    input_tensor.reshape({1, 3, input_h_, input_w_});
-    LOG_INFO("Input tensor shape: ", input_tensor.print_shape());
-    return input_tensor;
+    inference_engine_->get_input_tensor().scale(1.f / 255.f); // remember to normalize!!! I should add this to Tensor such that its .normalize()
+    inference_engine_->get_input_tensor().reshape({1, 3, input_h_, input_w_});
+    LOG_INFO(inference_engine_->get_input_tensor().print_shape());
+    return Tensor<float>();
 }
 
 std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, const cv::Mat& image) {
@@ -124,7 +137,6 @@ std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, 
 }
 std::vector<BBoxInfo> Yolo::predict(const cv::Mat& image) {
     Tensor<float> input = preprocess(image);
-    Tensor<float> output = inference_engine_->run_inference(input);
-    float confidence_threshold = 0.5f; // Set your confidence threshold
-    return postprocess(output, image);
+    inference_engine_->run_inference();
+    return postprocess(inference_engine_->get_output_tensor(), image);
 }

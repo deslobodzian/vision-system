@@ -25,7 +25,7 @@ MODE args_interpreter(int argc, char **argv) {
     }
     if (std::string(argv[1]) == "-s" && argc >= 4) {
         // Building engine
-#ifdef __CUDACC__
+#ifdef WITH_CUDA
          std::string onnx_path = argv[2];
          std::string engine_path = argv[3];
          OptimDim dyn_dim_profile;

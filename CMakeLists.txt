@@ -58,15 +58,47 @@ elseif(UNIX AND NOT APPLE)
     
     find_package(CUDAToolkit)
     if(CUDAToolkit_FOUND)
+        cmake_policy(SET CMP0104 NEW)
+        if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+            set(CMAKE_CUDA_ARCHITECTURES 75)
+        endif()
+
+
         enable_language(CUDA) 
-        add_definitions(-DLINUX_WITH_CUDA)
+        add_definitions(-DWITH_CUDA)
         message(STATUS "CUDA found: Compiling for Linux with GPU support")
+
+        file(GLOB_RECURSE CUDA_SRC_FILES cuda/*.cu)
+        file(GLOB_RECURSE CUDA_HDR_FILES cuda/*.h)
+
+        file(GLOB_RECURSE CUDA_SUBDIRS LIST_DIRECTORIES true ${PROJECT_SOURCE_DIR}/cuda/*)
+
+        foreach(SUBDIR ${CUDA_SUBDIRS})
+            if(IS_DIRECTORY ${SUBDIR})
+                include_directories(${SUBDIR})
+            endif()
+        endforeach()
+
+        list(APPEND PLUGINS "nvinfer")
+        list(APPEND PLUGINS "nvonnxparser")
+        list(APPEND PLUGINS "nvparsers")
+
+        foreach(libName ${PLUGINS})
+            find_library(${libName}_lib NAMES ${libName} "/usr" PATH_SUFFIXES lib)
+            list(APPEND PLUGIN_LIBS "${${libName}_lib}")
+        endforeach()
         
         find_package(ZED 4 REQUIRED)
-        include_directories(${CUDAToolkit_INCLUDE_DIRS})
-        link_directories(${CUDAToolkit_LIBRARY_DIR})
+        include_directories(
+            ${CUDAToolkit_INCLUDE_DIRS}
+            ${ZED_INCLUDE_DIRS}
+        )
+        link_directories(
+            ${CUDAToolkit_LIBRARY_DIR}
+            ${ZED_LIBRARY_DIR}
+        )
     else()
-        add_definitions(-DLINUX_WITHOUT_CUDA)
+        add_definitions(-DWITHOUT_CUDA)
         message(STATUS "No CUDA found: Compiling for Linux without GPU support")
     endif()
 endif()
@@ -87,7 +119,13 @@ link_directories(
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB_RECURSE HDR_FILES include/*.h include/*.hpp)
 
-add_executable(${PROJECT_NAME} ${SRC_FILES} ${GENERATED_FBS_SRCS})
+add_executable(
+    ${PROJECT_NAME} 
+    ${SRC_FILES} 
+    ${GENERATED_FBS_SRCS}
+    ${CUDA_SRC_FILES} 
+    ${CUDA_HDR_FILES}
+)
 add_dependencies(${PROJECT_NAME} GenerateFlatBuffers)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -98,8 +136,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 if(UNIX AND NOT APPLE AND CUDA_FOUND)
+    SET(TRT_LIBS nvinfer nvonnxparser)
     target_link_libraries(${PROJECT_NAME} PRIVATE
-        ${CUDA_LIBRARIES} ${CUDA_CUDART_LIBRARY}
+        ${CUDA_LIBRARIES}
+        ${CUDA_CUDART_LIBRARY}
         ${ZED_LIBRARIES}
+        ${TRT_LIBS}
     )
 endif()
