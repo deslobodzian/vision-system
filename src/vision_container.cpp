@@ -38,9 +38,6 @@ void VisionContainer::zmq_heart_beat() {
 
 void VisionContainer::init() {
     LOG_INFO("Init Vision container called");
-    zed_config cfg;
-    ZedCamera zed(cfg);
-    zed.open_camera();
     Yolo yolo("yolov8n.engine");
     Timer t;
     //Yolo yolo("yolov8n.onnx");

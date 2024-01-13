@@ -110,8 +110,10 @@ __global__ void kernel_preprocess_letterbox(const unsigned char* d_bgr, unsigned
 
 void init_preprocess_resources(int image_width, int image_height, int input_width, int input_height) {
     LOG_INFO("Allocating cuda memory");
-    CUDA_CHECK(cudaMallocHost(&h_img, image_width * image_height * 3 * sizeof(unsigned char)));
-    CUDA_CHECK(cudaMalloc(&d_bgr, image_width * image_height * 3 * sizeof(unsigned char)));
+    int max_image_width = image_width * 5;  
+    int max_image_height = image_height * 5;  
+    CUDA_CHECK(cudaMallocHost(&h_img, max_image_width * max_image_height * 3 * sizeof(unsigned char)));
+    CUDA_CHECK(cudaMalloc(&d_bgr, max_image_width * max_image_height * 3 * sizeof(unsigned char)));
     CUDA_CHECK(cudaMalloc(&d_output, input_width * input_height * 3 * sizeof(unsigned char)));
 }
 
@@ -176,6 +178,8 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, cudaStream_t
 void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& stream) {
     int image_width = img.cols;
     int image_height = img.rows;
+    LOG_DEBUG(image_width, ", ", image_height);
+    LOG_DEBUG(d_input.print_shape());
 
     if (d_input.device() != Device::GPU) {
         d_input.to_gpu();
@@ -198,7 +202,7 @@ void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& str
     memcpy(h_img, img.data,  bytes);
     cudaMemcpyAsync(d_bgr, h_img, bytes, cudaMemcpyHostToDevice, stream);
 
-    dim3 block(16, 16);
+    dim3 block(32, 32);
     dim3 grid_input((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
     dim3 grid_output((input_width + block.x - 1) / block.x, (input_height + block.y - 1) / block.y);
 

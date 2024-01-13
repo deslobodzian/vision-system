@@ -157,6 +157,7 @@ std::vector<BBoxInfo> Yolo::predict(const cv::Mat& image) {
     inference_engine_->run_inference();
     return postprocess(inference_engine_->get_output_tensor(), image);
 }
+
 #ifdef WITH_CUDA
 std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, const sl::Mat& image) {
     auto start = std::chrono::high_resolution_clock::now();

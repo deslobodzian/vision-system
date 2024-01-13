@@ -10,6 +10,7 @@
 #include <fstream>
 #include <vector>
 #include "i_inference_engine.hpp"
+#include "int8_entropy_calibrator.hpp"
 #include "tensor.hpp"
 #include "trt_logger.h"
 #include "cuda_utils.h"
@@ -90,6 +91,7 @@ private:
     nvinfer1::IRuntime* runtime_;
     nvinfer1::ICudaEngine* engine_;
     nvinfer1::IExecutionContext* context_;
+    //std::unique_ptr<Int8EntropyCalibrator2> calibrator_ = nullptr;
  
     std::string input_name_;
     std::string output_name_;

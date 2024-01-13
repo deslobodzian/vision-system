@@ -3,6 +3,7 @@
 #include "utils/logger.hpp"
 #include "inference/trt_logger.h"
 #include "utils/timer.h"
+#include "inference/int8_entropy_calibrator.hpp"
 #include <chrono>
 
 static Logger gLogger;
@@ -82,9 +83,30 @@ int TensorRTEngine::build_engine(std::string onnx_path, std::string engine_path,
         return -1;
     }
 
-    if (builder->platformHasFastFp16()) {
-        config->setFlag(BuilderFlag::kFP16);
+//    if (builder->platformHasFastFp16()) {
+//        config->setFlag(BuilderFlag::kFP16);
+//    }
+
+    std::unique_ptr<Int8EntropyCalibrator2> calibrator_ = nullptr;
+    std::string data = "/home/odin/Data/val2017";
+    if (builder->platformHasFastInt8()) {
+        LOG_INFO("INT 8");
+        if (data.empty()) {
+            throw std::runtime_error("Error: If INT8 precision is selected, must provide path to calibration data directory to Engine::build method");
+        }
+
+        config->setFlag((BuilderFlag::kINT8));
+
+        const auto input = network->getInput(0);
+        const auto inputName = input->getName();
+        const auto bind_dim = input->getDimensions();
+        Shape input_shape({bind_dim.d[0], bind_dim.d[1], bind_dim.d[2], bind_dim.d[3]});
+        const auto calibrationFileName = engine_path + ".calibration";
+        calibrator_ = std::make_unique<Int8EntropyCalibrator2>(1, data, calibrationFileName, inputName, input_shape);
+
+        config->setInt8Calibrator(calibrator_.get());
     }
+
     int dla_cores_available = builder->getNbDLACores();
     if (dla_cores_available <= 0) {
         LOG_INFO("DLA cores not available, using GPU");
