@@ -11,6 +11,7 @@
 #include "postprocess.hpp"
 
 #ifdef WITH_CUDA
+#include <sl/Camera.hpp>
 #include "preprocess_kernels.h"
 #endif
 
@@ -19,11 +20,16 @@ public:
     Yolo(const std::string& model_path);
     ~Yolo() = default;
     Tensor<float> preprocess(const cv::Mat& image);
+#ifdef WITH_CUDA
+    Tensor<float> preprocess(const sl::Mat& image);
+    std::vector<BBoxInfo> predict(const sl::Mat& image);
+    std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const sl::Mat& image);
+    cudaStream_t& get_cuda_stream();
+#endif
     std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const cv::Mat& image);
     std::vector<BBoxInfo> predict(const cv::Mat& image);
 private:
     std::unique_ptr<IInferenceEngine> inference_engine_;
-
     std::string model_path_;
 
     int input_h_;

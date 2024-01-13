@@ -21,8 +21,12 @@
 
 template <typename T>
 void cpu_deleter(T* p) { 
-    LOG_DEBUG("CPU free called");
-    delete[] p; 
+    LOG_DEBUG("Pinned CPU memory free called");
+#ifdef WITH_CUDA
+    cudaFreeHost(p);
+#else
+    delete[] p;
+#endif
 }
 
 #ifdef WITH_CUDA
@@ -74,6 +78,9 @@ public:
     T* gpu_data() const;
     T* data() const;
 
+    // Incase gpu data is manipulated elsewhere
+    void update_cpu_from_gpu();
+
     void reshape(const Shape& new_shape);
     void scale(T factor);
 
@@ -114,25 +121,7 @@ Tensor<T>::Tensor(Shape shape, Device device)
     : shape_(std::move(shape)), device_(device), is_gpu_data_valid_(false),
       cpu_data_(nullptr, cpu_deleter<T>), 
       gpu_data_(nullptr, gpu_deleter<T>) {  
-
-    size_t total_size = calculate_size();
-
-    if (device == Device::CPU) {
-        T* new_cpu_data = new T[total_size]();
-        cpu_data_.reset(new_cpu_data); 
-    } else if (device == Device::GPU) {
-#ifdef WITH_CUDA
-        T* new_cpu_data = new T[total_size]();
-        T* new_gpu_data;
-        cudaMalloc(&new_gpu_data, total_size * sizeof(T));
-
-        cudaMemcpyAsync(new_gpu_data, new_cpu_data, total_size * sizeof(T), cudaMemcpyHostToDevice);
-
-        cpu_data_.reset(new_cpu_data);  
-        gpu_data_.reset(new_gpu_data); 
-        is_gpu_data_valid_ = true;
-#endif
-    }
+    allocate_memory();
 }
 
 template <typename T>
@@ -145,26 +134,8 @@ Tensor<T>::Tensor(T* array, const Shape& shape, Device device)
     : shape_(shape), device_(device), is_gpu_data_valid_(false),
       cpu_data_(nullptr, cpu_deleter<T>),  
       gpu_data_(nullptr, gpu_deleter<T>) {  
-
-    LOG_DEBUG("Creating tensor from array");
-    LOG_DEBUG("Calculating size");
-    size_t total_size = calculate_size();
-    LOG_DEBUG("creating new cpu data buffer for copy");
-    T* new_cpu_data = new T[total_size];
-    LOG_DEBUG("std::copy array to new buffer");
-    std::copy(array, array + total_size, new_cpu_data);
-    LOG_DEBUG("reseting cpu_data_ from new_cpu_data");
-    cpu_data_.reset(new_cpu_data); 
-
-    if (device == Device::GPU) {
-#ifdef WITH_CUDA
-        T* new_gpu_data;
-        CUDA_CHECK(cudaMalloc(&new_gpu_data, total_size * sizeof(T)));
-        CUDA_CHECK(cudaMemcpyAsync(new_gpu_data, new_cpu_data, total_size * sizeof(T), cudaMemcpyHostToDevice));
-        gpu_data_.reset(new_gpu_data); 
-        is_gpu_data_valid_ = true;
-#endif
-    }
+    allocate_memory();
+    std::copy(array, array + calculate_size(), cpu_data_.get());
 }
 
 
@@ -175,25 +146,8 @@ Tensor<T>::Tensor(const Tensor<U>& other)
       cpu_data_(nullptr, cpu_deleter<T>),  
       gpu_data_(nullptr, gpu_deleter<T>) { 
 
-    allocate_memory();
-
-    const U* old_data = other.data();
-    T* new_data = cpu_data_.get();
-    size_t total_size = calculate_size();
-
-    for (size_t i = 0; i < total_size; ++i) {
-        new_data[i] = static_cast<T>(old_data[i]);
-    }
-
-    #ifdef WITH_CUDA
-    if (device_ == Device::GPU) {
-        T* gpu_data;
-        cudaMalloc(&gpu_data, total_size * sizeof(T));
-        gpu_data_.reset(gpu_data); 
-        cudaMemcpyAsync(gpu_data_.get(), new_data, total_size * sizeof(T), cudaMemcpyHostToDevice);
-        is_gpu_data_valid_ = true;
-    }
-    #endif
+      allocate_memory();
+      std::copy(other.data(), other.data() + calculate_size(), cpu_data_.get());
 }
 
 template <typename T>
@@ -223,18 +177,20 @@ Tensor<T>& Tensor<T>::operator=(Tensor<T>&& other) noexcept {
 template <typename T>
 void Tensor<T>::allocate_memory() {
     size_t total_size = calculate_size();
-    cpu_data_.reset(new T[total_size]); 
-    if (device_ == Device::GPU) {
 #ifdef WITH_CUDA
+    T* new_cpu_data;
+    // pinned memory for a bit more performance
+    cudaMallocHost(&new_cpu_data, total_size * sizeof(T));
+    cpu_data_.reset(new_cpu_data);
+    if (device_ == Device::GPU) {
         T* gpu_data;
-        cudaMalloc(&gpu_data, total_size);
-        gpu_data_.reset(gpu_data); 
+        cudaMalloc(&gpu_data, total_size * sizeof(T));
+        gpu_data_.reset(gpu_data);
         is_gpu_data_valid_ = true;
-#endif
-    } else {
-        gpu_data_.reset(nullptr);
-        is_gpu_data_valid_ = false;  
     }
+#else
+    cpu_data_.reset(new T[total_size]);
+#endif
 }
 
 template <typename T>
@@ -280,6 +236,17 @@ void Tensor<T>::to_cpu() {
 #endif
 }
 
+// force update cpu data from gpu
+template <typename T>
+void Tensor<T>::update_cpu_from_gpu() {
+#ifdef WITH_CUDA
+    LOG_DEBUG("Force update cpu from gpu data");
+    CUDA_CHECK(cudaMemcpyAsync(cpu_data_.get(), gpu_data_.get(), calculate_size() * sizeof(T), cudaMemcpyDeviceToHost));
+    is_gpu_data_valid_ = false;
+    device_ = Device::CPU;
+#endif
+}
+
 template <typename T>
 const Shape& Tensor<T>::shape() const {
     return shape_;
@@ -289,7 +256,14 @@ template <typename T>
 size_t Tensor<T>::size() const {
     return calculate_size();
 }
-
+template <typename T>
+T* Tensor<T>::gpu_data() const {
+#ifdef WITH_CUDA
+    return gpu_data_.get();
+#endif
+    LOG_ERROR("No gpu, returning nullptr");
+    return nullptr;
+}
 template <typename T>
 T* Tensor<T>::data() const {
 #ifdef WITH_CUDA

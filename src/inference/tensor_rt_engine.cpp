@@ -189,6 +189,7 @@ void TensorRTEngine::load_model(const std::string& model_path) {
         LOG_ERROR("Output setTensorAddress failed");
     }
 
+//    output_.to_cpu(); // since TensorRT has the gpu ptr I can keep this on cpu and just force update cpu
 	CUDA_CHECK(cudaStreamCreate(&stream_));
 	//is_init_ = true;
 }
@@ -198,11 +199,14 @@ void TensorRTEngine::run_inference() {
     if (engine_ == nullptr || context_ == nullptr) {
         LOG_ERROR("Engine or Context not initialized");
     }
+    //output_.to_gpu();
     input_.to_gpu();
     LOG_DEBUG("Running enqueueV3");
-
     context_->enqueueV3(stream_);
-    output_.to_cpu();
+    cudaStreamSynchronize(stream_);
+
+    output_.update_cpu_from_gpu();
+    //output_.to_cpu();
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli>elapsed = stop - start;
     LOG_INFO("Inference took: " + std::to_string(elapsed.count()));

@@ -3,8 +3,9 @@
 // #include <opencv2/opencv.hpp> 
 
 
-unsigned char* d_bgr = nullptr;
-unsigned char* d_output = nullptr;
+static unsigned char* h_img = nullptr;
+static unsigned char* d_bgr = nullptr;
+static unsigned char* d_output = nullptr;
 
 __global__ void kernel_preprocess_to_tensor(const unsigned char* d_bgr, float* d_output, int input_height, int input_width, int frame_s, int batch) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -21,7 +22,7 @@ __global__ void kernel_preprocess_to_tensor(const unsigned char* d_bgr, float* d
     }
 }
 
-__global__ void kernel_convert_to_bgr(float* input, unsigned char* output, int width, int height) {
+__global__ void kernel_convert_to_bgr(unsigned char* input, unsigned char* output, int width, int height) {
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -108,13 +109,23 @@ __global__ void kernel_preprocess_letterbox(const unsigned char* d_bgr, unsigned
 }
 
 void init_preprocess_resources(int image_width, int image_height, int input_width, int input_height) {
+    LOG_INFO("Allocating cuda memory");
+    CUDA_CHECK(cudaMallocHost(&h_img, image_width * image_height * 3 * sizeof(unsigned char)));
     CUDA_CHECK(cudaMalloc(&d_bgr, image_width * image_height * 3 * sizeof(unsigned char)));
     CUDA_CHECK(cudaMalloc(&d_output, input_width * input_height * 3 * sizeof(unsigned char)));
 }
 
-void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, int input_width, int input_height, size_t frame_s, int batch, cudaStream_t& stream) {
+void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, cudaStream_t& stream) {
     int image_width = left_img.getWidth();
     int image_height = left_img.getHeight();
+    LOG_DEBUG(image_width, ", ", image_height);
+
+    // BCWH
+    int batch = d_input.shape()[0] - 1;
+    int input_width = d_input.shape()[2];
+    int input_height = d_input.shape()[3];
+    size_t frame_s = input_width * input_height;
+    LOG_DEBUG(d_input.print_shape());
 
     if (d_input.device() != Device::GPU) {
         d_input.to_gpu();
@@ -125,16 +136,16 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, int input_wi
     }
     cudaError_t err;
 
-    dim3 block(16, 16);
+    dim3 block(32, 32);
     dim3 grid_input((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
     dim3 grid_output((input_width + block.x - 1) / block.x, (input_height + block.y - 1) / block.y);
     
-    //kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(left_img.getPtr<sl::uchar1>(sl::MEM::GPU), d_bgr, image_width, image_height);
-    //err = cudaGetLastError();
-    //if (err != cudaSuccess) {
-    //    printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
-    //    return;
-    //}
+    kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(left_img.getPtr<sl::uchar1>(sl::MEM::GPU), d_bgr, image_width, image_height);
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
+        return;
+    }
 
     kernel_preprocess_letterbox<<<grid_output, block, 0, stream>>>(d_bgr, d_output, input_width, input_height, image_width, image_height);
     err = cudaGetLastError();
@@ -149,18 +160,17 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, int input_wi
         printf("kernel_preprocess_to_tensor launch failed: %s\n", cudaGetErrorString(err));
         return;
     }
+    //unsigned char* h_letter = new unsigned char[input_width * input_height * 3];
+    //err = cudaMemcpy(h_letter, d_output, input_width * input_height * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    //if (err != cudaSuccess) {
+    //    LOG_ERROR("CUDA memcpy Device to Host failed: ", cudaGetErrorString(err));
+    //    return;
+    //}
 
-    unsigned char* h_letter = new unsigned char[input_width * input_height * 3];
-    err = cudaMemcpy(h_letter, d_output, input_width * input_height * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    if (err != cudaSuccess) {
-        printf("CUDA memcpy Device to Host failed: %s\n", cudaGetErrorString(err));
-        return;
-    }
-
-    cv::Mat kernel_out(input_height, input_width, CV_8UC3, h_letter);
-    std::string filename = "kernel_letter_output.png";
-    cv::imwrite(filename, kernel_out);
-    delete[] h_letter;
+    //cv::Mat kernel_out(input_height, input_width, CV_8UC3, h_letter);
+    //std::string filename = "kernel_letter_output.png";
+    //cv::imwrite(filename, kernel_out);
+    //delete[] h_letter;
 }
 
 void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& stream) {
@@ -173,26 +183,24 @@ void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& str
     // BCWH
     int batch = d_input.shape()[0] - 1;
     int input_width = d_input.shape()[2];
-    int input_height = d_input.shape()[2];
-    size_t frame_s = d_input.size();
+    int input_height = d_input.shape()[3];
+    size_t frame_s = input_width * input_height;
 
-    if (d_bgr == nullptr || d_output == nullptr) {
+    if (d_bgr == nullptr || d_output == nullptr || h_img == nullptr) {
         init_preprocess_resources(image_width, image_height, input_width, input_height);
     }
+
     cudaError_t err;
+
     size_t bytes = img.rows * img.cols * img.channels() * sizeof(unsigned char);
-    cudaMemcpy(d_bgr, img.data, bytes, cudaMemcpyHostToDevice);
+
+    // pinned memory so transfer is a bit faster
+    memcpy(h_img, img.data,  bytes);
+    cudaMemcpyAsync(d_bgr, h_img, bytes, cudaMemcpyHostToDevice, stream);
 
     dim3 block(16, 16);
     dim3 grid_input((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
     dim3 grid_output((input_width + block.x - 1) / block.x, (input_height + block.y - 1) / block.y);
-    
-    //kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(d_input.data(), d_bgr, image_width, image_height);
-    //err = cudaGetLastError();
-    //if (err != cudaSuccess) {
-    //    printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
-    //    return;
-    //}
 
     kernel_preprocess_letterbox<<<grid_output, block, 0, stream>>>(d_bgr, d_output, input_width, input_height, image_width, image_height);
     err = cudaGetLastError();
@@ -221,6 +229,7 @@ void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& str
     //delete[] h_letter;
 }
 void free_preprocess_resources() {
-    cudaFree(d_bgr);
-    cudaFree(d_output);
+    CUDA_CHECK(cudaFreeHost(h_img));
+    CUDA_CHECK(cudaFree(d_bgr));
+    CUDA_CHECK(cudaFree(d_output));
 }

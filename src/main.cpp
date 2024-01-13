@@ -5,6 +5,7 @@
 #include <iostream>
 #include <csignal>
 #include "inference/tensor_rt_engine.hpp"
+#include "vision/detections_playback.hpp"
 
 enum MODE {
     BUILD_ENGINE,
@@ -49,9 +50,13 @@ MODE args_interpreter(int argc, char **argv) {
 #endif
     }
     else if (std::string(argv[1]) == "-p" && argc >= 3) {
-        // std::string playback_file = argv[2];
-        // DetectionsPlayback playback(playback_file);
-        // playback.detect();
+#ifdef WITH_CUDA
+        std::string playback_file = argv[2];
+        DetectionsPlayback playback(playback_file);
+        playback.detect();
+#else
+        LOG_ERROR("Only Zed Camera with Cuda currently implemented");
+#endif
         return PLAYBACK;
     }
     return REALTIME;
@@ -62,17 +67,17 @@ int main(int argc, char** argv) {
 
     switch (mode) {
         case BUILD_ENGINE:
-            // info("Engine built, exiting program"); 
+            LOG_INFO("Engine built, exiting program"); 
             return EXIT_SUCCESS;
         case PLAYBACK:
-            // info("Playback mode, exiting program");
+            LOG_INFO("Playback mode, exiting program");
             return EXIT_SUCCESS;
         case REALTIME:
-            // info("Real-time mode, continuing program");
+            LOG_INFO("Real-time mode, continuing program");
             break;
         case INVALID:
         default:
-            // error("Invalid arguments or unsupported mode, exiting program");
+            LOG_ERROR("Invalid arguments or unsupported mode, exiting program");
             return EXIT_FAILURE;
     }
     
