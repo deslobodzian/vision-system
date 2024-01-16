@@ -9,8 +9,8 @@
 #endif
 #include <chrono>
 
-Yolo::Yolo(const std::string& model, const detection_config& cfg) :
-    model_(model), cfg_(cfg) {
+Yolo::Yolo(const std::string& model) :
+    model_(model) {
     inference_engine_ = InferenceEngineFactory::create_inference_engine();
     LOG_INFO("Loading Model: ", model_);
     inference_engine_->load_model(model_);
@@ -29,6 +29,12 @@ Yolo::Yolo(const std::string& model, const detection_config& cfg) :
     CUDA_CHECK(cudaStreamCreate(&stream_));
 #endif
 };
+
+
+void Yolo::configure(const detection_config& cfg) {
+    cfg_ = cfg;
+}
+
 
 #ifdef WITH_CUDA
 Tensor<float> Yolo::preprocess(const sl::Mat& image) {

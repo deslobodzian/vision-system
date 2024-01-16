@@ -6,17 +6,17 @@
 #define VISION_SYSTEM_VISION_RUNNER_HPP
 
 #include "utils/task.hpp"
-#include <chrono>
 
 class VisionRunner : public Task {
 public:
-    VisionRunner(std::shared_ptr<TaskManager>, double, const std::string&);
+    VisionRunner(
+            std::shared_ptr<TaskManager>,
+            double period,
+            const std::string&);
     using Task::Task;
     void init() override;
     void run() override;
-
     virtual ~VisionRunner();
-
 private:
 };
 

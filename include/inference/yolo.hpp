@@ -19,8 +19,10 @@ struct detection_config {
 
 class Yolo {
 public:
-    Yolo(const std::string& model, const detection_config& cfg);
+    Yolo(const std::string& model);
     ~Yolo() = default;
+
+    void configure(const detection_config& cfg);
 
     Tensor<float> preprocess(const cv::Mat& image);
     std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const cv::Mat& image);
@@ -43,7 +45,10 @@ private:
     int bbox_values_;
     int num_classes_;
     int num_anchors_;
+
+#ifdef WITH_CUDA
     cudaStream_t stream_;
+#endif
 
 };
 

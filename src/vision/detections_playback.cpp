@@ -4,8 +4,11 @@
 
 DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
 //    yolo_("yolov8s.engine", det_cfg) {
-    zed_(svo_file), yolo_("yolov8s.engine", det_cfg) {
-
+    zed_(svo_file), yolo_("yolov8s.engine") {
+    
+    yolo_.configure(det_cfg);
+    cfg.id_retention_time = 0;
+    cfg.prediction_timeout_s = 1;
     zed_.configure(cfg);
     zed_.open_camera();
     zed_.enable_tracking();
@@ -47,11 +50,20 @@ void DetectionsPlayback::detect() {
             objects_in.push_back(tmp);
         }
         zed_.ingest_custom_objects(objects_in);
+        zed_.retrieve_objects(objects);
+        LOG_DEBUG("Zed objects detected: ", objects.object_list.size());
 
-        for (size_t j = 0; j < detections.size(); j++) {
-            cv::Rect r = cvt_rect(detections[j].box);
+        for (size_t j = 0; j < objects.object_list.size(); j++) {
+            cv::Rect r = sl_cvt_rect(objects.object_list[j].bounding_box_2d);
             cv::rectangle(left_cv, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
-            cv::putText(left_cv, std::to_string((int) detections[j].label), cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
+            cv::putText(left_cv, std::to_string((int) objects.object_list[j].raw_label), cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
+            sl::float3 position = objects.object_list[j].position; // Access the XYZ coordinates
+            std::string xyz_text = "XYZ: " + std::to_string(position.x) + ", " 
+                + std::to_string(position.y) + ", " 
+                + std::to_string(position.z);
+            cv::putText(left_cv, xyz_text, 
+                    cv::Point(r.x, r.y + r.height + 15), // Positioning the text below the bounding box
+                    cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0x00, 0xFF, 0xFF), 2);
         }
         if (left_cv.type() == CV_8UC3) {
         } else if (left_cv.type() == CV_8UC4) {

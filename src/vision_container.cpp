@@ -41,7 +41,8 @@ void VisionContainer::init() {
     detection_config cfg;
     cfg.nms_thres = 0.8;
     cfg.obj_thres = 0.8;
-    Yolo yolo("best.engine", cfg);
+    Yolo yolo("best.engine");
+    yolo.configure(cfg);
     Timer t;
     //Yolo yolo("yolov8n.onnx");
 

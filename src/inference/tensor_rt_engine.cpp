@@ -10,7 +10,11 @@ using namespace nvonnxparser;
 
 TensorRTEngine::TensorRTEngine() {}
 
-TensorRTEngine::~TensorRTEngine() {}
+TensorRTEngine::~TensorRTEngine() {
+   delete runtime_; 
+   delete engine_;
+   delete context_;
+}
 
 int TensorRTEngine::build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profile) {
 	std::vector<uint8_t> onnx_file_content;
@@ -54,7 +58,6 @@ int TensorRTEngine::build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profi
         config->addOptimizationProfile(profile);
     }
 
-    //config->setMemoryPoolLimit(MemoryPoolType::kWORKSPACE, 4U << 30);
     auto parser = createParser(*network, gLogger);
 
     if (!parser) {
@@ -121,6 +124,7 @@ int TensorRTEngine::build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profi
         config->setDLACore(dla_cores_available);
     }
 
+    // Not in TRT 8.5
     LOG_INFO("Setting optimization level: ", cfg.optimization_level);
     config->setBuilderOptimizationLevel(cfg.optimization_level);
 
