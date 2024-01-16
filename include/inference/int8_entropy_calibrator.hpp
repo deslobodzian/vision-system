@@ -68,16 +68,6 @@ public:
             return false;
         }
 
-        int channels = img.channels();
-
-        if (channels == 4) {
-            LOG_DEBUG("The image has an alpha channel.");
-        } else if (channels == 3) {
-            LOG_DEBUG("The image does not have an alpha channel.");
-        } else {
-            LOG_DEBUG("The image is not a standard color image.");
-        }
-
         data_tensor_.to_gpu();
         preprocess_cv(img, data_tensor_, stream_);
 

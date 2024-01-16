@@ -2,24 +2,19 @@
 #include "inference/tensor_rt_engine.hpp"
 #include "utils/logger.hpp"
 #include "inference/trt_logger.h"
-#include "utils/timer.h"
-#include "inference/int8_entropy_calibrator.hpp"
 #include <chrono>
 
 static Logger gLogger;
 using namespace nvinfer1;
 using namespace nvonnxparser;
 
-TensorRTEngine::TensorRTEngine() {
+TensorRTEngine::TensorRTEngine() {}
 
-}
+TensorRTEngine::~TensorRTEngine() {}
 
-TensorRTEngine::~TensorRTEngine() {
-}
-
-int TensorRTEngine::build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile) {
+int TensorRTEngine::build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profile) {
 	std::vector<uint8_t> onnx_file_content;
-	if (readFile(onnx_path, onnx_file_content)) return -1;
+	if (readFile(cfg.onnx_path, onnx_file_content)) return -1;
     if (onnx_file_content.empty()) return -1;
 
 	LOG_INFO("Creating engine from onnx model");
@@ -70,7 +65,7 @@ int TensorRTEngine::build_engine(std::string onnx_path, std::string engine_path,
         return -1;
     }
 
-    bool parsed = parser->parseFromFile(onnx_path.c_str(), static_cast<int32_t>(ILogger::Severity::kWARNING));
+    bool parsed = parser->parseFromFile(cfg.onnx_path.c_str(), static_cast<int32_t>(ILogger::Severity::kWARNING));
     if (!parsed) {
         LOG_ERROR("parseFromFile failed");
         for (int32_t i = 0; i < parser->getNbErrors(); i++) {
@@ -83,28 +78,37 @@ int TensorRTEngine::build_engine(std::string onnx_path, std::string engine_path,
         return -1;
     }
 
-//    if (builder->platformHasFastFp16()) {
-//        config->setFlag(BuilderFlag::kFP16);
-//    }
-
     std::unique_ptr<Int8EntropyCalibrator2> calibrator_ = nullptr;
-    std::string data = "/home/odin/Data/val2017";
-    if (builder->platformHasFastInt8()) {
-        LOG_INFO("INT 8");
-        if (data.empty()) {
-            throw std::runtime_error("Error: If INT8 precision is selected, must provide path to calibration data directory to Engine::build method");
-        }
+    switch(cfg.presicion) {
+        case ModelPrecision::FP_32:
+            LOG_INFO("Using FP_32");
+            break;
+        case ModelPrecision::FP_16:
+            if (builder->platformHasFastFp16()) {
+                LOG_INFO("Using FP_16");
+                config->setFlag(BuilderFlag::kFP16);
+            }
+            break;
+        case ModelPrecision::INT_8:
+            std::string data = cfg.int8_data_path; //"/home/odin/Data/val2017";
+            if (builder->platformHasFastInt8()) {
+                LOG_INFO("Using INT_8");
+                if (data.empty()) {
+                    throw std::runtime_error("Error: If INT8 precision is selected, must provide path to calibration data directory to Engine::build method");
+                }
+                config->setFlag((BuilderFlag::kINT8));
 
-        config->setFlag((BuilderFlag::kINT8));
+                const auto input = network->getInput(0);
+                const auto input_name = input->getName();
+                const auto bind_dim = input->getDimensions();
+                Shape input_shape({bind_dim.d[0], bind_dim.d[1], bind_dim.d[2], bind_dim.d[3]});
+                const auto calibration_file_name = remove_file_extension(cfg.engine_path) + ".calibration";
+                LOG_DEBUG(calibration_file_name);
+                calibrator_ = std::make_unique<Int8EntropyCalibrator2>(1, data, calibration_file_name, input_name, input_shape);
 
-        const auto input = network->getInput(0);
-        const auto inputName = input->getName();
-        const auto bind_dim = input->getDimensions();
-        Shape input_shape({bind_dim.d[0], bind_dim.d[1], bind_dim.d[2], bind_dim.d[3]});
-        const auto calibrationFileName = engine_path + ".calibration";
-        calibrator_ = std::make_unique<Int8EntropyCalibrator2>(1, data, calibrationFileName, inputName, input_shape);
-
-        config->setInt8Calibrator(calibrator_.get());
+                config->setInt8Calibrator(calibrator_.get());
+            }
+            break;
     }
 
     int dla_cores_available = builder->getNbDLACores();
@@ -117,6 +121,12 @@ int TensorRTEngine::build_engine(std::string onnx_path, std::string engine_path,
         config->setDLACore(dla_cores_available);
     }
 
+    LOG_INFO("Setting optimization level: ", cfg.optimization_level);
+    config->setBuilderOptimizationLevel(cfg.optimization_level);
+
+    LOG_INFO("Setting max threads: ", cfg.max_threads);
+    builder->setMaxThreads(cfg.max_threads);
+
     IHostMemory* serialized_model = builder->buildSerializedNetwork(*network, *config);
     if (!serialized_model) {
         LOG_ERROR("buildSerializedNetwork failed");
@@ -127,7 +137,7 @@ int TensorRTEngine::build_engine(std::string onnx_path, std::string engine_path,
         return -1;
     }
 
-    std::ofstream engine_file(engine_path, std::ios::binary);
+    std::ofstream engine_file(cfg.engine_path, std::ios::binary);
     engine_file.write(reinterpret_cast<const char*>(serialized_model->data()), serialized_model->size());
     engine_file.close();
     delete serialized_model;

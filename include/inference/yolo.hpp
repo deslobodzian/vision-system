@@ -3,34 +3,39 @@
 
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "utils/logger.hpp"
+#include "inference/i_inference_engine.hpp"
 #include "tensor.hpp"
-#include "tensor_factory.hpp"
-#include "inference_engine_factory.hpp"
 #include "bbox.hpp"
-#include "postprocess.hpp"
 
 #ifdef WITH_CUDA
 #include <sl/Camera.hpp>
-#include "preprocess_kernels.h"
 #endif
+
+struct detection_config {
+    float nms_thres = 0.5;
+    float obj_thres = 0.5;
+    detection_config() = default;
+};
 
 class Yolo {
 public:
-    Yolo(const std::string& model_path);
+    Yolo(const std::string& model, const detection_config& cfg);
     ~Yolo() = default;
+
     Tensor<float> preprocess(const cv::Mat& image);
+    std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const cv::Mat& image);
+    std::vector<BBoxInfo> predict(const cv::Mat& image);
+
 #ifdef WITH_CUDA
     Tensor<float> preprocess(const sl::Mat& image);
     std::vector<BBoxInfo> predict(const sl::Mat& image);
     std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const sl::Mat& image);
-    cudaStream_t& get_cuda_stream();
 #endif
-    std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const cv::Mat& image);
-    std::vector<BBoxInfo> predict(const cv::Mat& image);
+
 private:
     std::unique_ptr<IInferenceEngine> inference_engine_;
-    std::string model_path_;
+    std::string model_;
+    detection_config cfg_;
 
     int input_h_;
     int input_w_;

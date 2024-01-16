@@ -38,12 +38,35 @@ inline bool readFile(std::string filename, std::vector<uint8_t> &file_content) {
     return false;
 }
 
+inline std::string remove_file_extension(const std::string& file) {
+    size_t last_period = file.find_last_of('.');
+    if (last_period != std::string::npos) {
+        return file.substr(0, last_period);
+    }
+    return file;
+}
+
+enum class ModelPrecision {
+    INT_8,
+    FP_16,
+    FP_32
+};
+
+struct EngineConfig {
+    std::string onnx_path;
+    std::string engine_path;
+    ModelPrecision presicion;
+    std::string int8_data_path;
+
+    int max_threads;
+    int optimization_level;
+};
+
 struct OptimDim {
     nvinfer1::Dims4 size;
     std::string tensor_name;
 
     bool setFromString(std::string &arg) {
-        // "images:1x3x512x512"
         std::vector<std::string> v_ = split_str(arg, ":");
         if (v_.size() != 2) return true;
 
@@ -78,7 +101,7 @@ class TensorRTEngine: public IInferenceEngine {
 public:
     TensorRTEngine();
     ~TensorRTEngine();
-    static int build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile);
+    static int build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profile);
     void load_model(const std::string& model_path) override;
     void run_inference() override;
 

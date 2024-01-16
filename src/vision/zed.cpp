@@ -1,7 +1,24 @@
 #ifdef WITH_CUDA
 #include "vision/zed.hpp"
+#include "utils/logger.hpp"
 
-ZedCamera::ZedCamera(const zed_config& config) : init_params_{}, runtime_params_{}, obj_detection_params_{}, obj_rt_params_{}, batch_params_{}, calibration_params_{}, measurements_{} {
+ZedCamera::ZedCamera() : 
+    init_params_{}, 
+    runtime_params_{},
+    obj_detection_params_{},
+    obj_rt_params_{},
+    batch_params_{},
+    calibration_params_{},
+    measurements_{} {
+}
+
+ZedCamera::ZedCamera(const std::string& svo_path) : ZedCamera() {
+    svo_ = svo_path;
+    LOG_INFO("Setting from svo file");
+    init_params_.input.setFromSVOFile(svo_.c_str());
+}
+
+void ZedCamera::configure(const zed_config& config) {
     init_params_.camera_resolution = config.res;
     init_params_.camera_fps = config.fps;
     init_params_.camera_image_flip = config.flip_camera;
@@ -28,12 +45,6 @@ ZedCamera::ZedCamera(const zed_config& config) : init_params_{}, runtime_params_
     memory_type_ = config.default_memory;
 }
 
-ZedCamera::ZedCamera(const zed_config& config, const std::string& svo_path) : ZedCamera(config) {
-    svo_ = svo_path;
-    LOG_INFO("Setting from svo file");
-    init_params_.input.setFromSVOFile(svo_.c_str());
-}
-
 bool ZedCamera::successful_grab() {
     grab_state_ = zed_.grab();
     return (grab_state_ == ERROR_CODE::SUCCESS);
@@ -46,6 +57,7 @@ int ZedCamera::open_camera() {
     } else {
         LOG_ERROR("Failed to open zed camera: ", return_state);
     }
+    return -1;
 }
 
 int ZedCamera::enable_tracking() {

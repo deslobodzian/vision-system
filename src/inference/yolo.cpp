@@ -1,13 +1,19 @@
 #include "inference/yolo.hpp"
-#include "inference/cuda_utils.h"
+#include "inference/inference_engine_factory.hpp"
+#include "inference/postprocess.hpp"
+#include "utils/logger.hpp"
 
+#ifdef WITH_CUDA 
+#include "preprocess_kernels.h"
+#include "inference/cuda_utils.h"
+#endif
 #include <chrono>
 
-
-Yolo::Yolo(const std::string& model_path) : model_path_(model_path) {
+Yolo::Yolo(const std::string& model, const detection_config& cfg) :
+    model_(model), cfg_(cfg) {
     inference_engine_ = InferenceEngineFactory::create_inference_engine();
-    LOG_INFO("Loading Model: ", model_path_);
-    inference_engine_->load_model(model_path_);
+    LOG_INFO("Loading Model: ", model_);
+    inference_engine_->load_model(model_);
     LOG_INFO("Model Loaded");
     Shape in = inference_engine_->get_input_shape();
     Shape out = inference_engine_->get_output_shape();
@@ -73,9 +79,6 @@ std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, 
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<BBoxInfo> binfo;
 
-    const float confidence_threshold = 0.5;
-    const float thres = 0.8f;
-
     int image_w = image.cols;
     int image_h = image.rows;
     float scalingFactor = std::min(static_cast<float> (input_w_) / image_w, static_cast<float> (input_h_) / image_h);
@@ -103,14 +106,13 @@ std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, 
             );
 
     output = output.t();
-    cv::imwrite("tensor.png", output);
     for (int i = 0; i < num_anchors_; i++) {
         auto row_ptr = output.row(i).ptr<float>();
         auto bboxes_ptr = row_ptr;
         auto scores_ptr = row_ptr + bbox_values_;
         auto max_s_ptr = std::max_element(scores_ptr, scores_ptr + num_labels);
         float score = *max_s_ptr;
-        if (score > thres) {
+        if (score > cfg_.obj_thres) {
             int label = max_s_ptr - scores_ptr;
 
             BBoxInfo bbi;
@@ -145,7 +147,7 @@ std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, 
         }
     }
 
-    binfo = non_maximum_suppression(0.8, binfo);
+    binfo = non_maximum_suppression(cfg_.nms_thres, binfo);
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli>elapsed = stop - start;
     LOG_INFO("Postprocess took: ", elapsed.count());
@@ -162,9 +164,6 @@ std::vector<BBoxInfo> Yolo::predict(const cv::Mat& image) {
 std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, const sl::Mat& image) {
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<BBoxInfo> binfo;
-
-    const float confidence_threshold = 0.5;
-    const float thres = 0.5f;
 
     int image_w = image.getWidth();
     int image_h = image.getHeight();
@@ -199,7 +198,7 @@ std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, 
         auto scores_ptr = row_ptr + bbox_values_;
         auto max_s_ptr = std::max_element(scores_ptr, scores_ptr + num_labels);
         float score = *max_s_ptr;
-        if (score > thres) {
+        if (score > cfg_.obj_thres) {
             int label = max_s_ptr - scores_ptr;
 
             BBoxInfo bbi;
@@ -234,11 +233,11 @@ std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float>& prediction_tensor, 
         }
     }
 
-    binfo = non_maximum_suppression(0.5, binfo);
+    binfo = non_maximum_suppression(cfg_.nms_thres, binfo);
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli>elapsed = stop - start;
     LOG_DEBUG("Detection objects: ", binfo.size());
-    LOG_INFO("Postprocess took: ", elapsed.count());
+    LOG_DEBUG("Postprocess took: ", elapsed.count());
     return binfo;
 }
 
@@ -246,10 +245,6 @@ std::vector<BBoxInfo> Yolo::predict(const sl::Mat& image) {
     Tensor<float> input = preprocess(image);
     inference_engine_->run_inference();
     return postprocess(inference_engine_->get_output_tensor(), image);
-}
-
-cudaStream_t& Yolo::get_cuda_stream() {
-    return stream_;
 }
 
 #endif

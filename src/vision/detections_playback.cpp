@@ -3,35 +3,14 @@
 #include <chrono>
 
 DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
-    yolo_("yolov8s.engine") {
-    //zed_(cfg, svo_file), yolo_("yolov8s.engine") {
-//    zed_.open_camera();
- //   zed_.enable_tracking();
-  //  zed_.enable_object_detection();
-   // display_resolution = zed_.get_resolution();
-    sl::InitParameters init_params;
-    init_params.sdk_verbose = true;
-    init_params.depth_mode = sl::DEPTH_MODE::ULTRA;
-    init_params.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
-    init_params.input.setFromSVOFile(svo_file.c_str());
-    auto ret = zed_.open(init_params);
-    if (ret != sl::ERROR_CODE::SUCCESS) {
-        LOG_ERROR("Camera failed to open in playback");
-    }
+//    yolo_("yolov8s.engine", det_cfg) {
+    zed_(svo_file), yolo_("yolov8s.engine", det_cfg) {
 
-    zed_.enablePositionalTracking();
-    sl::ObjectDetectionParameters detection_parameters;
-    detection_parameters.enable_tracking = true;
-    detection_parameters.enable_segmentation = false; // designed to give person pixel mask
-    detection_parameters.detection_model = sl::OBJECT_DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
-    ret = zed_.enableObjectDetection(detection_parameters);
-    if (ret != sl::ERROR_CODE::SUCCESS) {
-        zed_.close();
-    }
-    auto camera_config = zed_.getCameraInformation().camera_configuration;
-    sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 720), std::min((int) camera_config.resolution.height, 404));
-    auto camera_info = zed_.getCameraInformation(pc_resolution).camera_configuration;
-    display_resolution = zed_.getCameraInformation().camera_configuration.resolution;
+    zed_.configure(cfg);
+    zed_.open_camera();
+    zed_.enable_tracking();
+    display_resolution = zed_.get_resolution();
+    zed_.enable_object_detection();
     video_writer.open("output_video.avi", cv::CAP_FFMPEG, cv::VideoWriter::fourcc('X', 'V', 'I', 'D'), 30, cv::Size(1280, 720), true);
 }
 
@@ -41,27 +20,19 @@ DetectionsPlayback::~DetectionsPlayback() {
     
 void DetectionsPlayback::detect() {
     bool running_ = true;
-//    zed_.set_memory_type(sl::MEM::GPU);
+    zed_.set_memory_type(sl::MEM::GPU);
     auto start = std::chrono::high_resolution_clock::now();
     while (running_) {
-        LOG_DEBUG("Getting measurements");
-        //zed_.fetch_measurements(MeasurementType::IMAGE);
+        zed_.fetch_measurements(MeasurementType::IMAGE);
         //zed_.fetch_measurements();
-        auto ret = zed_.grab();
-        zed_.retrieveImage(left_sl, sl::VIEW::LEFT, sl::MEM::GPU);
+        auto ret = zed_.get_grab_state();
+        auto detections = yolo_.predict(zed_.get_left_image());
+        auto err = left_sl.setFrom(zed_.get_left_image(), COPY_TYPE::GPU_CPU);
         
-        //auto ret = zed_.get_grab_state();
-        LOG_DEBUG(ret);
-        //LOG_DEBUG("Get left image");
-        //left_sl = zed_.get_left_image();
-        LOG_DEBUG(left_sl.getInfos().c_str());
-        auto detections = yolo_.predict(left_sl);
-
-        auto err = left_sl.updateCPUfromGPU();
         if (err == sl::ERROR_CODE::SUCCESS) {
             left_cv = slMat_to_cvMat(left_sl);
         } else {
-            LOG_ERROR("Failed to updateCPU from GPU: ", err);
+            LOG_ERROR("Failed to update CPU from GPU: ", err);
         }
         cv::imwrite("left_cv.png", left_cv);
 
@@ -75,9 +46,7 @@ void DetectionsPlayback::detect() {
             tmp.is_grounded = ((int) it.label == 0); // Only the first class (person) is grounded, that is moving on the floor plane
             objects_in.push_back(tmp);
         }
-        //zed_.ingest_custom_objects(objects_in);
-        zed_.ingestCustomBoxObjects(objects_in);
-
+        zed_.ingest_custom_objects(objects_in);
 
         for (size_t j = 0; j < detections.size(); j++) {
             cv::Rect r = cvt_rect(detections[j].box);

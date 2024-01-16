@@ -6,9 +6,43 @@
 #include <sl/Camera.hpp>
 #include <vector>
 #include "i_camera.hpp"
-#include "utils/logger.hpp"
+#include <opencv2/opencv.hpp>
 
 using namespace sl;
+
+static int get_ocv_type(sl::MAT_TYPE type) {
+    int cv_type = -1;
+    switch (type) {
+        case sl::MAT_TYPE::F32_C1: cv_type = CV_32FC1;
+            break;
+        case sl::MAT_TYPE::F32_C2: cv_type = CV_32FC2;
+            break;
+        case sl::MAT_TYPE::F32_C3: cv_type = CV_32FC3;
+            break;
+        case sl::MAT_TYPE::F32_C4: cv_type = CV_32FC4;
+            break;
+        case sl::MAT_TYPE::U8_C1: cv_type = CV_8UC1;
+            break;
+        case sl::MAT_TYPE::U8_C2: cv_type = CV_8UC2;
+            break;
+        case sl::MAT_TYPE::U8_C3: cv_type = CV_8UC3;
+            break;
+        case sl::MAT_TYPE::U8_C4: cv_type = CV_8UC4;
+            break;
+        default: break;
+    }
+    return cv_type;
+}
+
+inline cv::Mat slMat_to_cvMat(const sl::Mat &input) {
+    // Mapping between MAT_TYPE and CV_TYPE
+    return {
+        (int)input.getHeight(),
+        (int)input.getWidth(),
+        get_ocv_type(input.getDataType()),
+        input.getPtr<sl::uchar1>(sl::MEM::CPU)
+    };
+}
 
 enum class MeasurementType {
     ALL,
@@ -58,14 +92,15 @@ struct zed_config {
 
 class ZedCamera : public ICamera {
 public:
-    explicit ZedCamera(const zed_config& config);
-    ZedCamera(const zed_config& config, const std::string& svo_path);
+    explicit ZedCamera();
+    ZedCamera(const std::string& svo_path);
     ~ZedCamera();
+
+    void configure(const zed_config& config);
 
     const CAMERA_TYPE get_camera_type() const override {
         return ZED;
     };
-
     int open_camera() override;
     void fetch_measurements() override;
     void fetch_measurements(const MeasurementType& type);

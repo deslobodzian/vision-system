@@ -27,22 +27,29 @@ MODE args_interpreter(int argc, char **argv) {
     if (std::string(argv[1]) == "-s" && argc >= 4) {
         // Building engine
 #ifdef WITH_CUDA
-         std::string onnx_path = argv[2];
-         std::string engine_path = argv[3];
-         OptimDim dyn_dim_profile;
+        std::string onnx_path = argv[2];
+        std::string engine_path = argv[3];
+        OptimDim dyn_dim_profile;
 
+        EngineConfig cfg;
+        cfg.presicion = ModelPrecision::INT_8;
+        cfg.int8_data_path = "/home/odin/Data/val2017";
+        cfg.onnx_path = onnx_path;
+        cfg.engine_path = engine_path;
+        cfg.max_threads = 4;
+        cfg.optimization_level = 5; // max
         if (argc == 5) {
             std::string optim_profile = argv[4];
-             if (dyn_dim_profile.setFromString(optim_profile)) {
-                 TensorRTEngine::build_engine(onnx_path, engine_path, dyn_dim_profile);
-                 return BUILD_ENGINE;
-             } else {
-                 LOG_ERROR("Invalid dynamic dimension argument, expecting something like 'images:1x3x512x512'");
-                 return INVALID;
-             }
+            if (dyn_dim_profile.setFromString(optim_profile)) {
+                TensorRTEngine::build_engine(cfg, dyn_dim_profile);
+                return BUILD_ENGINE;
+            } else {
+                LOG_ERROR("Invalid dynamic dimension argument, expecting something like 'images:1x3x512x512'");
+                return INVALID;
+            }
             return INVALID;
         }
-        TensorRTEngine::build_engine(onnx_path, engine_path, dyn_dim_profile);
+        TensorRTEngine::build_engine(cfg, dyn_dim_profile);
         return BUILD_ENGINE;
 #else
         LOG_ERROR("Cuda not available on this device, cannot build engine!");
