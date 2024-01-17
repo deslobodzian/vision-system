@@ -41,13 +41,13 @@ void VisionContainer::init() {
     detection_config cfg;
     cfg.nms_thres = 0.8;
     cfg.obj_thres = 0.8;
-    Yolo yolo("best.engine");
+    Yolo yolo("yolov8s.onnx");
     yolo.configure(cfg);
     Timer t;
     //Yolo yolo("yolov8n.onnx");
 
-    cv::Mat mat = cv::imread("test_img.jpg");
-    cv::Mat mod_mat = cv::imread("test_img.jpg");
+    cv::Mat mat = cv::imread("bus.jpg");
+    cv::Mat mod_mat = cv::imread("bus.jpg");
 
     for (int i = 0; i < 100; i++) {
         drawBoundingBoxes(mod_mat, yolo.predict(mat));

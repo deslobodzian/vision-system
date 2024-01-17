@@ -1,3 +1,4 @@
+#ifdef WITH_CUDA
 #include "vision/detections_playback.hpp"
 #include "utils/logger.hpp"
 #include <chrono>
@@ -97,3 +98,4 @@ void DetectionsPlayback::export_video() {
         video_writer.release();
     }
 }
+#endif /* WITH_CUDA */

@@ -1,8 +1,10 @@
+#ifdef WITH_CUDA
 #ifndef VISION_SYSTEM_DETECTIONS_PLAYBACK_HPP
 #define VISION_SYSTEM_DETECTIONS_PLAYBACK_HPP
 
 #include <cmath>
 #include <string>
+
 #include <sl/Camera.hpp>
 
 #include "inference/yolo.hpp"
@@ -58,3 +60,4 @@ private:
 };
 
 #endif /* VISION_SYSTEM_DETECTIONS_PLAYBACK_HPP */
+#endif /* WITH_CUDA */

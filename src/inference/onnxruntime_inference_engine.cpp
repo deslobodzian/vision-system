@@ -4,55 +4,6 @@
 #include "utils/timer.h"
 #include <opencv2/imgcodecs.hpp>
 
-std::string tensor_shape_to_string(const std::vector<int64_t>& input_tensor) {
-    std::string tensor_shape = "Tensor shape is [";
-    for (size_t i = 0; i < input_tensor.size(); ++i) {
-        tensor_shape += std::to_string(input_tensor[i]);
-        if (i < input_tensor.size() - 1) {
-            tensor_shape += ", ";
-        }
-    }
-    tensor_shape += "]";
-    return tensor_shape;
-}
-
-void print_ort_tensor(const Ort::Value& tensor) {
-    // Check if the tensor contains data
-    if (!tensor.IsTensor()) {
-        std::cerr << "The provided Ort::Value is not a tensor." << std::endl;
-        return;
-    }
-
-    auto tensor_info = tensor.GetTensorTypeAndShapeInfo();
-    auto element_type = tensor_info.GetElementType();
-    auto shape = tensor_info.GetShape();
-    size_t total_num_elements = tensor_info.GetElementCount();
-
-    std::cout << "Tensor Shape: [";
-    for (size_t i = 0; i < shape.size(); ++i) {
-        std::cout << shape[i] << (i < shape.size() - 1 ? ", " : "");
-    }
-    std::cout << "]" << std::endl;
-
-    if (element_type == ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
-        const float* float_data = tensor.GetTensorData<float>();
-        for (size_t i = 0; i < total_num_elements; ++i) {
-            std::cout << float_data[i] << " ";
-            if ((i + 1) % shape.back() == 0) std::cout << std::endl; // New line for each row in a 2D tensor
-        }
-    } else if (element_type == ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64) {
-        const int64_t* int_data = tensor.GetTensorData<int64_t>();
-        for (size_t i = 0; i < total_num_elements; ++i) {
-            std::cout << int_data[i] << " ";
-            if ((i + 1) % shape.back() == 0) std::cout << std::endl;
-        }
-    } else {
-        std::cerr << "Unsupported tensor data type." << std::endl;
-    }
-
-    std::cout << std::endl;
-}
-
 ONNXRuntimeInferenceEngine::ONNXRuntimeInferenceEngine() : env_(ORT_LOGGING_LEVEL_WARNING, "Inference") {}
 
 void ONNXRuntimeInferenceEngine::load_model(const std::string& model_path) {
