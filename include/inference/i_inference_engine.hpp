@@ -13,6 +13,7 @@ public:
     virtual Tensor<float>& get_output_tensor() = 0; 
     virtual const Shape get_input_shape() const = 0; 
     virtual const Shape get_output_shape() const = 0; 
+    virtual void set_execution_data(void* execution_data){};
 
     virtual ~IInferenceEngine() = default;
 };

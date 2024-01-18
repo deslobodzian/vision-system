@@ -11,9 +11,18 @@ using namespace nvonnxparser;
 TensorRTEngine::TensorRTEngine() {}
 
 TensorRTEngine::~TensorRTEngine() {
-   delete runtime_; 
-   delete engine_;
    delete context_;
+   delete engine_;
+   delete runtime_; 
+   if (graph_initialized_) {
+        CUDA_CHECK(cudaGraphExecDestroy(instance_));
+        CUDA_CHECK(cudaGraphDestroy(graph_));
+   }
+}
+
+void TensorRTEngine::set_execution_data(void* execution_data) {
+    LOG_INFO("Setting cuda stream externally");
+    stream_ = static_cast<cudaStream_t>(execution_data);
 }
 
 int TensorRTEngine::build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profile) {
@@ -225,24 +234,53 @@ void TensorRTEngine::load_model(const std::string& model_path) {
         LOG_ERROR("Output setTensorAddress failed");
     }
 
-//    output_.to_cpu(); // since TensorRT has the gpu ptr I can keep this on cpu and just force update cpu
-	CUDA_CHECK(cudaStreamCreate(&stream_));
+    output_.to_cpu(); // since TensorRT has the gpu ptr I can keep this on cpu and just force update cpu
+//   
 	//is_init_ = true;
+}
+
+void TensorRTEngine::init_cuda_graph() {
+    LOG_DEBUG("Begin capture");
+    CUDA_CHECK(cudaStreamBeginCapture(stream_, cudaStreamCaptureModeThreadLocal));
+
+    LOG_DEBUG("enqueue");
+    input_.to_gpu();
+    context_->enqueueV3(stream_);
+    output_.update_cpu_from_gpu();
+
+    LOG_DEBUG("End dapture");
+    CUDA_CHECK(cudaStreamEndCapture(stream_, &graph_));
+
+    CUDA_CHECK(cudaGraphInstantiate(&instance_, graph_, NULL, NULL, 0));
+    graph_initialized_ = true;
+
+}
+void TensorRTEngine::execute_cuda_graph() {
+    if (!graph_initialized_) {
+        LOG_INFO("Initializing cuda graph");
+        // run once;
+        input_.to_gpu();
+        context_->enqueueV3(stream_);
+        cudaStreamSynchronize(stream_);
+        output_.update_cpu_from_gpu();
+        init_cuda_graph();
+    }
+    LOG_DEBUG("Running cuda graph");
+    CUDA_CHECK(cudaGraphLaunch(instance_, stream_));
+    CUDA_CHECK(cudaStreamSynchronize(stream_));
 }
 
 void TensorRTEngine::run_inference() {
     auto start = std::chrono::high_resolution_clock::now();
+    if (stream_ == nullptr) {
+        LOG_INFO("Cuda stream was not set externally, setting personal stream");
+	    CUDA_CHECK(cudaStreamCreateWithFlags(&stream_, cudaStreamCaptureModeThreadLocal));
+    }
+
     if (engine_ == nullptr || context_ == nullptr) {
         LOG_ERROR("Engine or Context not initialized");
     }
-    //output_.to_gpu();
-    input_.to_gpu();
-    LOG_DEBUG("Running enqueueV3");
-    context_->enqueueV3(stream_);
-    cudaStreamSynchronize(stream_);
-
-    output_.update_cpu_from_gpu();
-    //output_.to_cpu();
+    execute_cuda_graph();
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli>elapsed = stop - start;
     LOG_INFO("Inference took: " + std::to_string(elapsed.count()));

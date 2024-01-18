@@ -39,15 +39,15 @@ void VisionContainer::zmq_heart_beat() {
 void VisionContainer::init() {
     LOG_INFO("Init Vision container called");
     detection_config cfg;
-    cfg.nms_thres = 0.8;
-    cfg.obj_thres = 0.8;
-    Yolo yolo("yolov8s.onnx");
+    cfg.nms_thres = 0.5;
+    cfg.obj_thres = 0.5;
+    Yolo yolo("best.engine");
     yolo.configure(cfg);
     Timer t;
-    //Yolo yolo("yolov8n.onnx");
 
-    cv::Mat mat = cv::imread("bus.jpg");
-    cv::Mat mod_mat = cv::imread("bus.jpg");
+    std::string img_path = "maxresdefault.jpg";
+    cv::Mat mat = cv::imread(img_path);
+    cv::Mat mod_mat = cv::imread(img_path);
 
     for (int i = 0; i < 100; i++) {
         drawBoundingBoxes(mod_mat, yolo.predict(mat));

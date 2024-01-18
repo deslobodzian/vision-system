@@ -101,9 +101,15 @@ class TensorRTEngine: public IInferenceEngine {
 public:
     TensorRTEngine();
     ~TensorRTEngine();
+
+    void set_execution_data(void* execution_data) override;
     static int build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profile);
     void load_model(const std::string& model_path) override;
     void run_inference() override;
+
+    // cuda graph testing
+    void init_cuda_graph();
+    void execute_cuda_graph();
 
     const Shape get_input_shape() const override;
     const Shape get_output_shape() const override;
@@ -122,6 +128,10 @@ private:
     Shape output_shape_;
 
     cudaStream_t stream_;
+    cudaGraph_t graph_;
+    cudaGraphExec_t instance_;
+    bool graph_initialized_= false;
+
     Tensor<float> input_;
     Tensor<float> output_;
 };

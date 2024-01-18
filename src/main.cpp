@@ -32,7 +32,7 @@ MODE args_interpreter(int argc, char **argv) {
         OptimDim dyn_dim_profile;
 
         EngineConfig cfg;
-        cfg.presicion = ModelPrecision::INT_8;
+        cfg.presicion = ModelPrecision::FP_16;
         cfg.int8_data_path = "/home/odin/Data/val2017";
         cfg.onnx_path = onnx_path;
         cfg.engine_path = engine_path;

@@ -69,6 +69,7 @@ Tensor<float> Yolo::preprocess(const MatType &image) {
 #endif
   } else {
 #ifdef WITH_CUDA
+    LOG_DEBUG("Using sl::Mat");
     preprocess_sl(image, inference_engine_->get_input_tensor(), stream_);
 #else
     LOG_ERROR("No Cuda, use cpu cv::Mat");

@@ -14,7 +14,6 @@ public:
 #endif
         return std::make_unique<ONNXRuntimeInferenceEngine>();
     }
-
 private:
 };
 

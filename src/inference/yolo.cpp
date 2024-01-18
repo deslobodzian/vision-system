@@ -18,6 +18,7 @@ Yolo::Yolo(const std::string &model) : model_(model) {
 #ifdef WITH_CUDA
   LOG_INFO("Creating yolo cuda stream");
   CUDA_CHECK(cudaStreamCreate(&stream_));
+  //inference_engine_.set_execution_data(static_cast<void *>(stream_));
 #endif
 };
 
