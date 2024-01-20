@@ -47,19 +47,6 @@ void VisionContainer::zmq_heart_beat() {
 }
 
 void VisionContainer::init() {
-<<<<<<< HEAD
-    LOG_INFO("Init Vision container called");
-    detection_config cfg;
-    cfg.nms_thres = 0.5;
-    cfg.obj_thres = 0.5;
-    Yolo yolo("best.engine");
-    yolo.configure(cfg);
-    Timer t;
-
-    std::string img_path = "maxresdefault.jpg";
-    cv::Mat mat = cv::imread(img_path);
-    cv::Mat mod_mat = cv::imread(img_path);
-=======
   LOG_INFO("Init Vision container called");
   detection_config cfg;
   cfg.nms_thres = 0.8;
@@ -71,7 +58,6 @@ void VisionContainer::init() {
 
   cv::Mat mat = cv::imread("bus.jpg");
   cv::Mat mod_mat = cv::imread("bus.jpg");
->>>>>>> ae539dd (Start creating new way for object detection)
 
   for (int i = 0; i < 100; i++) {
     drawBoundingBoxes(mod_mat, yolo.predict(mat));
