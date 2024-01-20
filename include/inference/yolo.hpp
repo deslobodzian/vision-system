@@ -3,13 +3,15 @@
 
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "inference/i_inference_engine.hpp"
+#include "i_inference_engine.hpp"
 #include "tensor.hpp"
 #include "bbox.hpp"
 #include "inference/postprocess.hpp"
 #include "inference/yolo_processing.hpp"
 #include "utils/logger.hpp"
 #include <chrono>
+#include "i_model.hpp"
+#include "inference_engine_factory.hpp"
 
 #ifdef WITH_CUDA
 #include <sl/Camera.hpp>
@@ -17,27 +19,16 @@
 #include "preprocess_kernels.h"
 #endif
 
-struct detection_config {
-    float nms_thres = 0.5;
-    float obj_thres = 0.5;
-    detection_config() = default;
-};
-
-class Yolo {
+template <typename MatType>
+class Yolo : public IModel<MatType> {
 public:
-    Yolo(const std::string& model);
+    Yolo<MatType>(const std::string& model);
     ~Yolo() = default;
 
-    void configure(const detection_config& cfg);
-
-    template <typename MatType>
-    Tensor<float> preprocess(const MatType& image);
-
-    template <typename MatType>
-    std::vector<BBoxInfo> predict(const MatType& image);
-
-    template <typename MatType>
-    std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const MatType& image);
+    void configure(const detection_config& cfg) override;
+    void preprocess(const MatType& image) override;
+    std::vector<BBoxInfo> predict(const MatType& image) override;
+    std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor, const MatType& image) override;
 
 private:
     std::unique_ptr<IInferenceEngine> inference_engine_;
@@ -58,7 +49,32 @@ private:
 };
 
 template <typename MatType>
-Tensor<float> Yolo::preprocess(const MatType &image) {
+Yolo<MatType>::Yolo(const std::string &model) : model_(model) {
+  inference_engine_ = InferenceEngineFactory::create_inference_engine();
+  LOG_INFO("Loading Model: ", model_);
+  inference_engine_->load_model(model_);
+  LOG_INFO("Model Loaded");
+  Shape in = inference_engine_->get_input_shape();
+  Shape out = inference_engine_->get_output_shape();
+
+  input_w_ = in.at(2);
+  input_h_ = in.at(3);
+
+  bbox_values_ = 4;
+  num_classes_ = out.at(1) - bbox_values_;
+  num_anchors_ = out.at(2);
+#ifdef WITH_CUDA
+  LOG_INFO("Creating yolo cuda stream");
+  CUDA_CHECK(cudaStreamCreate(&stream_));
+#endif
+}
+
+template <typename MatType>
+void Yolo<MatType>::configure(const detection_config &cfg) {
+  cfg_ = cfg;
+}
+template <typename MatType>
+void Yolo<MatType>::preprocess(const MatType &image) {
   auto start = std::chrono::high_resolution_clock::now();
 
   if constexpr (std::is_same_v<MatType, cv::Mat>) {
@@ -78,11 +94,10 @@ Tensor<float> Yolo::preprocess(const MatType &image) {
   auto stop = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double, std::milli> elapsed = stop - start;
   LOG_INFO("Preprocess took: ", elapsed.count());
-  return Tensor<float>();
 }
 
 template <typename MatType>
-std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float> &prediction_tensor,
+std::vector<BBoxInfo> Yolo<MatType>::postprocess(const Tensor<float> &prediction_tensor,
                                         const MatType &image) {
   int image_w;
   int image_h;
@@ -170,8 +185,8 @@ std::vector<BBoxInfo> Yolo::postprocess(const Tensor<float> &prediction_tensor,
 }
 
 template <typename MatType>
-std::vector<BBoxInfo> Yolo::predict(const MatType &image) {
-  Tensor<float> input = preprocess(image);
+std::vector<BBoxInfo> Yolo<MatType>::predict(const MatType &image) {
+  preprocess(image);
   inference_engine_->run_inference();
   return postprocess(inference_engine_->get_output_tensor(), image);
 }

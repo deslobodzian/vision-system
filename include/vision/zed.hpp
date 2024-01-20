@@ -90,7 +90,7 @@ struct zed_config {
     zed_config() = default;
 };
 
-class ZedCamera : public ICamera {
+class ZedCamera {
 public:
     explicit ZedCamera();
     ZedCamera(const std::string& svo_path);
@@ -98,11 +98,11 @@ public:
 
     void configure(const zed_config& config);
 
-    const CAMERA_TYPE get_camera_type() const override {
+    const CAMERA_TYPE get_camera_type() const {
         return ZED;
     };
-    int open_camera() override;
-    void fetch_measurements() override;
+
+    int open();
     void fetch_measurements(const MeasurementType& type);
 
     ZedCamera(const ZedCamera&) = delete;

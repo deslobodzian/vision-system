@@ -50,7 +50,7 @@ bool ZedCamera::successful_grab() {
     return (grab_state_ == ERROR_CODE::SUCCESS);
 }
 
-int ZedCamera::open_camera() {
+int ZedCamera::open() {
     auto return_state = zed_.open(init_params_);
     if (return_state == ERROR_CODE::SUCCESS) {
         return 0;
@@ -79,16 +79,6 @@ int ZedCamera::enable_object_detection() {
     }
     return 0;
 }
-void ZedCamera::fetch_measurements() {
-    zed_.retrieveImage(measurements_.left_image, VIEW::LEFT, memory_type_);
-    zed_.getSensorsData(measurements_.sensor_data, TIME_REFERENCE::IMAGE);
-    measurements_.imu_data = measurements_.sensor_data.imu;
-    measurements_.timestamp = measurements_.left_image.timestamp;
-    zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
-    zed_.getPosition(measurements_.camera_pose);
-    zed_.retrieveMeasure(measurements_.point_cloud, MEASURE::XYZ);
-}
-
 
 void ZedCamera::fetch_measurements(const MeasurementType& type) {
     LOG_DEBUG("Using memory type: ", memory_type_);

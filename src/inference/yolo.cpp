@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include "inference/yolo.hpp"
 #include "inference/inference_engine_factory.hpp"
 
@@ -23,4 +24,6 @@ Yolo::Yolo(const std::string &model) : model_(model) {
 };
 
 void Yolo::configure(const detection_config &cfg) { cfg_ = cfg; }
+=======
+>>>>>>> ae539dd (Start creating new way for object detection)
 

@@ -6,7 +6,7 @@
 DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
 //    yolo_("yolov8s.engine", det_cfg) {
     zed_(svo_file), yolo_("yolov8s.engine") {
-    
+
     yolo_.configure(det_cfg);
     cfg.id_retention_time = 0;
     cfg.prediction_timeout_s = 1;
