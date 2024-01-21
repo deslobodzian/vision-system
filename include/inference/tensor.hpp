@@ -21,10 +21,11 @@
 
 template <typename T>
 void cpu_deleter(T* p) { 
-    LOG_DEBUG("Pinned CPU memory free called");
 #ifdef WITH_CUDA
+    LOG_DEBUG("Pinned CPU memory free called");
     cudaFreeHost(p);
 #else
+    LOG_DEBUG("memory free called");
     delete[] p;
 #endif
 }

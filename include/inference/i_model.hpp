@@ -13,6 +13,7 @@ struct detection_config {
 template <typename MatType>
 class IModel {
 public:
+    virtual ~IModel() {}
     virtual void configure(const detection_config& cfg) = 0;
     virtual void preprocess(const MatType& image) = 0;
     virtual std::vector<BBoxInfo> postprocess(

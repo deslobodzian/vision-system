@@ -9,6 +9,8 @@
 #include "utils/logger.hpp"
 #include "utils/task.hpp"
 #include "utils/timer.h"
+#include "vision/monocular_camera.hpp"
+#include "vision/object_detector.hpp"
 #include "vision/zed.hpp"
 #include "vision_pose_generated.h"
 #include <flatbuffers/flatbuffer_builder.h>
@@ -51,8 +53,16 @@ void VisionContainer::init() {
   detection_config cfg;
   cfg.nms_thres = 0.8;
   cfg.obj_thres = 0.8;
-  Yolo<cv::Mat> yolo("yolov8s.onnx");
-  yolo.configure(cfg);
+  ObjectDetector<MonocularCamera> detector_(cfg);
+  MonocularCamera cam;
+  cam.open_camera();
+  for (int i = 0; i < 100; i++) {
+      cam.fetch_measurements();
+  }
+      
+  detector_.detect_objects(cam);
+  //Yolo<cv::Mat> yolo("yolov8s.onnx");
+  //yolo.configure(cfg);
   Timer t;
   // Yolo yolo("yolov8n.onnx");
 
@@ -60,7 +70,7 @@ void VisionContainer::init() {
   cv::Mat mod_mat = cv::imread("bus.jpg");
 
   for (int i = 0; i < 100; i++) {
-    drawBoundingBoxes(mod_mat, yolo.predict(mat));
+    //drawBoundingBoxes(mod_mat, yolo.predict(mat));
   }
   cv::imwrite("output_newt.png", mod_mat);
 }
