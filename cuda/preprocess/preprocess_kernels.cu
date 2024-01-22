@@ -162,17 +162,17 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, cudaStream_t
         printf("kernel_preprocess_to_tensor launch failed: %s\n", cudaGetErrorString(err));
         return;
     }
-    //unsigned char* h_letter = new unsigned char[input_width * input_height * 3];
-    //err = cudaMemcpy(h_letter, d_output, input_width * input_height * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-    //if (err != cudaSuccess) {
-    //    LOG_ERROR("CUDA memcpy Device to Host failed: ", cudaGetErrorString(err));
-    //    return;
-    //}
+//    unsigned char* h_letter = new unsigned char[input_width * input_height * 3];
+//    err = cudaMemcpy(h_letter, d_output, input_width * input_height * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+//    if (err != cudaSuccess) {
+//        LOG_ERROR("CUDA memcpy Device to Host failed: ", cudaGetErrorString(err));
+//        return;
+//    }
 
-    //cv::Mat kernel_out(input_height, input_width, CV_8UC3, h_letter);
-    //std::string filename = "kernel_letter_output.png";
-    //cv::imwrite(filename, kernel_out);
-    //delete[] h_letter;
+//    cv::Mat kernel_out(input_height, input_width, CV_8UC3, h_letter);
+//    std::string filename = "kernel_letter_output.png";
+//    cv::imwrite(filename, kernel_out);
+//    delete[] h_letter;
 }
 
 void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& stream) {

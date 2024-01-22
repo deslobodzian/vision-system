@@ -2,16 +2,22 @@
 #include "vision/detections_playback.hpp"
 #include "utils/logger.hpp"
 #include <chrono>
+#include "vision/detection_utils.hpp"
 
 DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
 //    yolo_("yolov8s.engine", det_cfg) {
-    zed_(svo_file), yolo_("yolov8s.engine") {
+    zed_(svo_file)  {
 
-    yolo_.configure(det_cfg);
-    cfg.id_retention_time = 0;
-    cfg.prediction_timeout_s = 1;
+    detector_.configure(det_cfg);
+
+    cfg.id_retention_time = 0.0f;
+    cfg.prediction_timeout_s = 0.0f;
+    cfg.enable_segmentation = false;
+    cfg.detection_confidence_threshold = 0.2f;
+
     zed_.configure(cfg);
-    zed_.open_camera();
+
+    zed_.open();
     zed_.enable_tracking();
     display_resolution = zed_.get_resolution();
     zed_.enable_object_detection();
@@ -27,10 +33,10 @@ void DetectionsPlayback::detect() {
     zed_.set_memory_type(sl::MEM::GPU);
     auto start = std::chrono::high_resolution_clock::now();
     while (running_) {
-        zed_.fetch_measurements(MeasurementType::IMAGE);
-        //zed_.fetch_measurements();
+        zed_.fetch_measurements(MeasurementType::ALL);
         auto ret = zed_.get_grab_state();
-        auto detections = yolo_.predict(zed_.get_left_image());
+        detector_.detect_objects(zed_);
+        //auto detections = yolo_.predict(zed_.get_left_image());
         auto err = left_sl.setFrom(zed_.get_left_image(), COPY_TYPE::GPU_CPU);
         
         if (err == sl::ERROR_CODE::SUCCESS) {
@@ -40,18 +46,7 @@ void DetectionsPlayback::detect() {
         }
         cv::imwrite("left_cv.png", left_cv);
 
-        std::vector<sl::CustomBoxObjectData> objects_in;
-        for (auto &it : detections) {
-            sl::CustomBoxObjectData tmp;
-            tmp.unique_object_id = sl::generate_unique_id();
-            tmp.probability = it.probability;
-            tmp.label = (int) it.label;
-            tmp.bounding_box_2d = cvt(it.box);
-            tmp.is_grounded = ((int) it.label == 0); // Only the first class (person) is grounded, that is moving on the floor plane
-            objects_in.push_back(tmp);
-        }
-        zed_.ingest_custom_objects(objects_in);
-        zed_.retrieve_objects(objects);
+        const sl::Objects& objects = zed_.retrieve_objects();
         LOG_DEBUG("Zed objects detected: ", objects.object_list.size());
 
         for (size_t j = 0; j < objects.object_list.size(); j++) {

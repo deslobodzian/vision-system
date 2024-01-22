@@ -53,7 +53,8 @@ void VisionContainer::init() {
   detection_config cfg;
   cfg.nms_thres = 0.8;
   cfg.obj_thres = 0.8;
-  ObjectDetector<MonocularCamera> detector_(cfg);
+  ObjectDetector<MonocularCamera> detector_;
+  detector_.configure(cfg);
   MonocularCamera cam;
   cam.open_camera();
   for (int i = 0; i < 100; i++) {

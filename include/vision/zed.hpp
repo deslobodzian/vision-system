@@ -111,13 +111,13 @@ public:
 
   Mat get_depth_map() const;
   Mat get_point_cloud() const;
-  Mat get_left_image() const;
+  const Mat& get_left_image() const;
   void get_left_image(Mat &img) const;
   Pose get_camera_pose() const;
   Timestamp get_measurement_timestamp() const;
   SensorsData::IMUData get_imu_data() const;
   void ingest_custom_objects(std::vector<CustomBoxObjectData> &objs);
-  void retrieve_objects(Objects &objs);
+  const Objects& retrieve_objects() const;
   void set_memory_type(const MEM &memory);
   const ERROR_CODE get_grab_state();
 
@@ -134,6 +134,8 @@ private:
   BatchParameters batch_params_;
   CalibrationParameters calibration_params_;
   ZedMeasurements measurements_;
+
+  Objects detected_objects_;
 
   MEM memory_type_;
   bool successful_grab();

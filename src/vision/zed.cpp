@@ -9,7 +9,8 @@ ZedCamera::ZedCamera() :
     obj_rt_params_{},
     batch_params_{},
     calibration_params_{},
-    measurements_{} {
+    measurements_{},
+    detected_objects_{} {
 }
 
 ZedCamera::ZedCamera(const std::string& svo_path) : ZedCamera() {
@@ -120,7 +121,7 @@ sl::Mat ZedCamera::get_point_cloud() const {
     return measurements_.point_cloud;
 }
 
-sl::Mat ZedCamera::get_left_image() const {
+const sl::Mat& ZedCamera::get_left_image() const {
     return measurements_.left_image;
 }
 
@@ -142,10 +143,11 @@ SensorsData::IMUData ZedCamera::get_imu_data() const {
 
 void ZedCamera::ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs) {
     zed_.ingestCustomBoxObjects(objs);
+    zed_.retrieveObjects(detected_objects_, obj_rt_params_);
 }
 
-void ZedCamera::retrieve_objects(sl::Objects &objs) {
-    zed_.retrieveObjects(objs, obj_rt_params_);
+const Objects& ZedCamera::retrieve_objects() const {
+    return detected_objects_;
 }
 
 void ZedCamera::set_memory_type(const MEM& memory) {
