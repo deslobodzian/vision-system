@@ -1,8 +1,8 @@
 #ifdef WITH_CUDA
 #include "inference/tensor_rt_engine.hpp"
 #include "utils/logger.hpp"
+#include "inference/int8_entropy_calibrator.hpp"
 #include "inference/trt_logger.h"
-#include "utils/utils.hpp"
 #include <chrono>
 
 static Logger gLogger;

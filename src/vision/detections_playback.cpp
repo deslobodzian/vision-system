@@ -8,6 +8,8 @@ DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
 //    yolo_("yolov8s.engine", det_cfg) {
     zed_(svo_file)  {
 
+    det_cfg.nms_thres = 0.3;
+    det_cfg.obj_thres = 0.3;
     detector_.configure(det_cfg);
 
     cfg.id_retention_time = 0.0f;
