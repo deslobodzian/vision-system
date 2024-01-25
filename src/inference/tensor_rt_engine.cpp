@@ -2,6 +2,7 @@
 #include "inference/tensor_rt_engine.hpp"
 #include "utils/logger.hpp"
 #include "inference/trt_logger.h"
+#include "utils/utils.hpp"
 #include <chrono>
 
 static Logger gLogger;
@@ -162,7 +163,10 @@ int TensorRTEngine::build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profi
 }
 
 void TensorRTEngine::load_model(const std::string& model_path) {
-	std::ifstream file(model_path, std::ios::binary);
+    // I should do a check to make sure the engine exists later.
+    std::string engine_model = remove_file_extension(model_path) + ".engine";
+    
+	std::ifstream file(engine_model, std::ios::binary);
 
 	if (!file.good()) {
 		LOG_ERROR("read ", model_path, " failed!");

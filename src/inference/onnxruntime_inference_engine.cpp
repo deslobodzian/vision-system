@@ -2,11 +2,13 @@
 #include "inference/tensor_factory.hpp"
 #include "utils/logger.hpp"
 #include "utils/timer.h"
+#include "utils/utils.hpp"
 #include <opencv2/imgcodecs.hpp>
 
 ONNXRuntimeInferenceEngine::ONNXRuntimeInferenceEngine() : env_(ORT_LOGGING_LEVEL_WARNING, "Inference") {}
 
 void ONNXRuntimeInferenceEngine::load_model(const std::string& model_path) {
+    std::string onnx_model = remove_file_extension(model_path) + ".onnx";
     memory_info_ = Ort::MemoryInfo::CreateCpu(
         OrtAllocatorType::OrtArenaAllocator,
         OrtMemType::OrtMemTypeDefault
@@ -21,7 +23,7 @@ void ONNXRuntimeInferenceEngine::load_model(const std::string& model_path) {
     session_options.SetInterOpNumThreads(1); // just for now 1 thread
     session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED); // might as well optimize :)
 
-    session_ = Ort::Session(env_, model_path.c_str(), session_options);
+    session_ = Ort::Session(env_, onnx_model.c_str(), session_options);
 
     size_t input_node_size = session_.GetInputCount();
     size_t output_node_size = session_.GetOutputCount();
