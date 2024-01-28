@@ -37,6 +37,7 @@ void VisionRunner::init() {
 }
 
 void VisionRunner::run() {
+    camera_.fetch_measurements(MeasurementType::IMAGE);
     detector_.detect_objects(camera_);
 
     const sl::Objects& objects = camera_.retrieve_objects();

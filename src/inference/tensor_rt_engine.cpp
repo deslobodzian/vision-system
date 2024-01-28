@@ -135,8 +135,8 @@ int TensorRTEngine::build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profi
     }
 
     // Not in TRT 8.5
-    LOG_INFO("Setting optimization level: ", cfg.optimization_level);
-    config->setBuilderOptimizationLevel(cfg.optimization_level);
+    //LOG_INFO("Setting optimization level: ", cfg.optimization_level);
+    //config->setBuilderOptimizationLevel(cfg.optimization_level);
 
     LOG_INFO("Setting max threads: ", cfg.max_threads);
     builder->setMaxThreads(cfg.max_threads);
