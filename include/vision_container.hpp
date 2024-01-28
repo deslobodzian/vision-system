@@ -23,7 +23,7 @@ protected:
 
     std::shared_ptr<TaskManager> task_manager_;
     std::shared_ptr<VisionRunner> vision_runner_;
-    ZmqManager zmq_manager_;
+    std::shared_ptr<ZmqManager> zmq_manager_;
 };
 
 #endif //VISION_SYSTEM_VISION_CONTAINER_HPP

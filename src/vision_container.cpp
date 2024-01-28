@@ -4,20 +4,16 @@
 
 #include "vision_container.hpp"
 #include "heart_beat_generated.h"
-#include "inference/yolo.hpp"
 #include "networking/zmq_publisher.hpp"
 #include "utils/logger.hpp"
 #include "utils/task.hpp"
-#include "utils/timer.h"
-#include "vision/monocular_camera.hpp"
-#include "vision/object_detector.hpp"
 #include "vision/zed.hpp"
-#include "vision_pose_generated.h"
 #include <flatbuffers/flatbuffer_builder.h>
 
 VisionContainer::VisionContainer()
-    : vision_runner_(nullptr), task_manager_(std::make_shared<TaskManager>()) {
-  zmq_manager_.create_publisher("main", "tcp://*:5556");
+    : vision_runner_(nullptr), 
+    task_manager_(std::make_shared<TaskManager>()), zmq_manager_(std::make_shared<ZmqManager>()) {
+  zmq_manager_->create_publisher("main", "tcp://*:5556");
 }
 
 void drawBoundingBoxes(cv::Mat &image, const std::vector<BBoxInfo> &bboxes) {
@@ -44,36 +40,12 @@ void VisionContainer::zmq_heart_beat() {
   using namespace std::chrono;
   auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch())
                  .count();
-  zmq_manager_.get_publisher("main").publish(
+  zmq_manager_->get_publisher("main").publish(
       "HeartBeat", Messages::CreateHeartBeat, 111, now);
 }
 
 void VisionContainer::init() {
   LOG_INFO("Init Vision container called");
-  detection_config cfg;
-  cfg.nms_thres = 0.8;
-  cfg.obj_thres = 0.8;
-  ObjectDetector<MonocularCamera> detector_;
-  detector_.configure(cfg);
-  MonocularCamera cam;
-  cam.open_camera();
-  for (int i = 0; i < 100; i++) {
-      cam.fetch_measurements();
-  }
-      
-  detector_.detect_objects(cam);
-  //Yolo<cv::Mat> yolo("yolov8s.onnx");
-  //yolo.configure(cfg);
-  Timer t;
-  // Yolo yolo("yolov8n.onnx");
-
-  cv::Mat mat = cv::imread("bus.jpg");
-  cv::Mat mod_mat = cv::imread("bus.jpg");
-
-  for (int i = 0; i < 100; i++) {
-    //drawBoundingBoxes(mod_mat, yolo.predict(mat));
-  }
-  cv::imwrite("output_newt.png", mod_mat);
 }
 
 void VisionContainer::run() {
@@ -99,8 +71,6 @@ void VisionContainer::run() {
     auto now =
         duration_cast<microseconds>(system_clock::now().time_since_epoch())
             .count();
-    zmq_manager_.get_publisher("main").publish(
-        "VisionPose", Messages::CreateVisionPose, 123, 1.0f, 2.0f, 3.0f, now);
     std::this_thread::sleep_for(10ms);
   }
 }
