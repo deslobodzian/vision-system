@@ -109,6 +109,14 @@ void ZedCamera::fetch_measurements(const MeasurementType& type) {
                 zed_.getSensorsData(measurements_.sensor_data, TIME_REFERENCE::IMAGE);
                 measurements_.timestamp = measurements_.left_image.timestamp;
                 break;
+            case MeasurementType::IMAGE_AND_DEPTH:
+                zed_.retrieveImage(measurements_.left_image, VIEW::LEFT, memory_type_);
+                zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
+                break;
+            case MeasurementType::IMAGE_AND_OBJECTS:
+                zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
+                zed_.retrieveObjects(detected_objects_, obj_rt_params_);
+                break;
         }
     }
 }
@@ -143,7 +151,6 @@ SensorsData::IMUData ZedCamera::get_imu_data() const {
 
 void ZedCamera::ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs) {
     zed_.ingestCustomBoxObjects(objs);
-    zed_.retrieveObjects(detected_objects_, obj_rt_params_);
 }
 
 const Objects& ZedCamera::retrieve_objects() const {

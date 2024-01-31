@@ -129,9 +129,10 @@ int TensorRTEngine::build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profi
         LOG_INFO("DLA cores not available, using GPU");
         config->setFlag(BuilderFlag::kGPU_FALLBACK);
     } else {
-        LOG_INFO("DLA Cores Available, using ", dla_cores_available, "cores.");
+        LOG_INFO("DLA Cores Available, using ", dla_cores_available, " cores.");
         config->setDefaultDeviceType(DeviceType::kDLA);
         config->setDLACore(dla_cores_available);
+        config->setFlag(BuilderFlag::kGPU_FALLBACK);
     }
 
     // Not in TRT 8.5

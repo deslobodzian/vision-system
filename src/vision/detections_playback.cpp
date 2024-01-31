@@ -8,8 +8,8 @@ DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
 //    yolo_("yolov8s.engine", det_cfg) {
     zed_(svo_file)  {
 
-    det_cfg.nms_thres = 0.3;
-    det_cfg.obj_thres = 0.3;
+    det_cfg.nms_thres = 0.5;
+    det_cfg.obj_thres = 0.5;
     detector_.configure(det_cfg);
 
     cfg.id_retention_time = 0.0f;
@@ -35,9 +35,10 @@ void DetectionsPlayback::detect() {
     zed_.set_memory_type(sl::MEM::GPU);
     auto start = std::chrono::high_resolution_clock::now();
     while (running_) {
-        zed_.fetch_measurements(MeasurementType::ALL);
+        zed_.fetch_measurements(MeasurementType::IMAGE);
         auto ret = zed_.get_grab_state();
         detector_.detect_objects(zed_);
+        zed_.fetch_measurements(MeasurementType::IMAGE_AND_OBJECTS);
         //auto detections = yolo_.predict(zed_.get_left_image());
         auto err = left_sl.setFrom(zed_.get_left_image(), COPY_TYPE::GPU_CPU);
         

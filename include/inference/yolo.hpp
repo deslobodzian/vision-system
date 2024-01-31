@@ -7,7 +7,6 @@
 #include "tensor.hpp"
 #include "bbox.hpp"
 #include "inference/postprocess.hpp"
-#include "inference/yolo_processing.hpp"
 #include "utils/logger.hpp"
 #include <chrono>
 #include "i_model.hpp"

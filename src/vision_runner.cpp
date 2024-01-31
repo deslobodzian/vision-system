@@ -3,6 +3,7 @@
 //
 #include "vision_runner.hpp"
 #include "utils/logger.hpp"
+#include "utils/timer.h"
 #include "vision_pose_generated.h"
 
 VisionRunner::VisionRunner(
@@ -13,12 +14,8 @@ VisionRunner::VisionRunner(
         Task(manager, period, name),
         zmq_manager_(zmq_manager)
         {
-}
-
-void VisionRunner::init() {
-    LOG_INFO("Initializing [VisionRunner]");
-#ifdef WITH_CUDA
     cfg_.res = sl::RESOLUTION::SVGA;
+    //cfg_.res = sl::RESOLUTION::VGA;
     cfg_.sdk_verbose = true;
     cfg_.enable_tracking = true;
     cfg_.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
@@ -28,20 +25,32 @@ void VisionRunner::init() {
     cfg_.batch_latency = 0.2f;
     cfg_.id_retention_time = 0.f;
     cfg_.detection_confidence_threshold = 50;
+    cfg_.default_memory = sl::MEM::GPU;
     camera_.configure(cfg_);
 
     camera_.open();
+}
+
+void VisionRunner::init() {
+    LOG_INFO("Initializing [VisionRunner]");
+#ifdef WITH_CUDA
     camera_.enable_tracking();
     camera_.enable_object_detection();
+    detection_config det_cfg;
+    det_cfg.nms_thres = 0.5;
+    det_cfg.obj_thres = 0.5;
+    detector_.configure(det_cfg);
 #endif
 }
 
 void VisionRunner::run() {
-    camera_.fetch_measurements(MeasurementType::IMAGE);
+    Timer t;
+#ifdef WITH_CUDA 
+    camera_.fetch_measurements(MeasurementType::IMAGE_AND_OBJECTS);
     detector_.detect_objects(camera_);
-
     const sl::Objects& objects = camera_.retrieve_objects();
     LOG_DEBUG("Detected Objects: ", objects.object_list.size());
+#endif
     zmq_manager_->get_publisher("main").publish(
             "VisionPose",
             Messages::CreateVisionPose,

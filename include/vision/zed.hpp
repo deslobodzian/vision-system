@@ -50,7 +50,15 @@ inline cv::Mat slMat_to_cvMat(const sl::Mat &input) {
           input.getPtr<sl::uchar1>(sl::MEM::CPU)};
 }
 
-enum class MeasurementType { ALL, IMAGE, DEPTH, SENSORS, IMAGE_AND_SENSORS };
+enum class MeasurementType {
+    ALL,
+    IMAGE,
+    DEPTH,
+    SENSORS,
+    IMAGE_AND_SENSORS,
+    IMAGE_AND_DEPTH,
+    IMAGE_AND_OBJECTS, 
+};
 
 typedef struct {
   Timestamp timestamp;
@@ -63,11 +71,11 @@ typedef struct {
 } ZedMeasurements;
 
 struct zed_config {
-  RESOLUTION res = RESOLUTION::HD1080; // Defualt at 1080p
+  RESOLUTION res = RESOLUTION::AUTO; // Defualt between cameras
   int fps = 0;                         // use max unless specified.
   int flip_camera = FLIP_MODE::AUTO;
   DEPTH_MODE depth_mode = DEPTH_MODE::ULTRA;
-  bool sdk_verbose = true;
+  bool sdk_verbose = false;
   COORDINATE_SYSTEM coordinate_system = COORDINATE_SYSTEM::IMAGE;
   UNIT units = UNIT::METER;
   float max_depth = 10.0f;
