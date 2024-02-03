@@ -261,9 +261,10 @@ template <typename T>
 T* Tensor<T>::gpu_data() const {
 #ifdef WITH_CUDA
     return gpu_data_.get();
-#endif
+#else
     LOG_ERROR("No gpu, returning nullptr");
     return nullptr;
+#endif
 }
 template <typename T>
 T* Tensor<T>::data() const {

@@ -55,6 +55,7 @@ enum class MeasurementType {
     IMAGE,
     DEPTH,
     SENSORS,
+    OBJECTS,
     IMAGE_AND_SENSORS,
     IMAGE_AND_DEPTH,
     IMAGE_AND_OBJECTS, 

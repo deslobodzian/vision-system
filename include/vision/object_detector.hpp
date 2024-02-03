@@ -29,7 +29,8 @@ class ObjectDetector {
 public:
   using MatType = typename CameraTraits<Camera>::MatType;
   ObjectDetector() {
-    model_ = std::make_unique<Yolo<MatType>>("yolov8n");
+    //model_ = std::make_unique<Yolo<MatType>>("coco");
+    model_ = std::make_unique<Yolo<MatType>>("note");
     detections_.reserve(
         100); // There should never be more that 100 object detected at once
   }
