@@ -30,6 +30,11 @@ public:
         publisher_.send(zmq::buffer(topic), zmq::send_flags::sndmore);
         publisher_.send(message, zmq::send_flags::none);
     }
+
+    flatbuffers::FlatBufferBuilder& get_builder() {
+        return builder_;
+    }
+
 private:
     zmq::context_t context_;
     zmq::socket_t publisher_;

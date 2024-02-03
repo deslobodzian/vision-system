@@ -5,6 +5,7 @@
 #include "utils/logger.hpp"
 #include "utils/timer.h"
 #include "vision_pose_generated.h"
+#include "vision_pose_array_generated.h"
 
 VisionRunner::VisionRunner(
         std::shared_ptr<TaskManager> manager,
@@ -14,6 +15,7 @@ VisionRunner::VisionRunner(
         Task(manager, period, name),
         zmq_manager_(zmq_manager)
         {
+#ifdef WITH_CUDA
     cfg_.res = sl::RESOLUTION::SVGA;
     //cfg_.res = sl::RESOLUTION::VGA;
     cfg_.sdk_verbose = true;
@@ -27,8 +29,8 @@ VisionRunner::VisionRunner(
     cfg_.detection_confidence_threshold = 50;
     cfg_.default_memory = sl::MEM::GPU;
     camera_.configure(cfg_);
-
     camera_.open();
+#endif
 }
 
 void VisionRunner::init() {
@@ -50,11 +52,38 @@ void VisionRunner::run() {
     detector_.detect_objects(camera_);
     const sl::Objects& objects = camera_.retrieve_objects();
     LOG_DEBUG("Detected Objects: ", objects.object_list.size());
+        std::vector<flatbuffers::Offset<Messages::VisionPose>> visionPoseOffsets;
+
+    // Use the builder from ZmqPublisher, assuming it's accessible or passed somehow
+    auto& builder = zmq_manager_->get_publisher("main").get_builder(); 
+
+    // Iterate over detected objects and create VisionPose for each
+    for (const auto& obj : objects.object_list) {
+        auto visionPose = Messages::CreateVisionPose(
+            builder, 
+            obj.id, 
+            obj.position.x, 
+            obj.position.y, 
+            obj.position.z, 
+            t.read() // Assuming this method returns the current timestamp
+        );
+        visionPoseOffsets.push_back(visionPose);
+    }
+
+    // Create a vector of VisionPose in the FlatBuffer
+    auto posesVector = builder.CreateVector(visionPoseOffsets);
+
+    // Since the publish function takes care of building and sending, just call it
+    zmq_manager_->get_publisher("main").publish(
+        "VisionPoseArray", // Topic name
+        Messages::CreateVisionPoseArray, // Function to create the FlatBuffer object
+        posesVector // Arguments to the function
+    );
 #endif
     zmq_manager_->get_publisher("main").publish(
             "VisionPose",
             Messages::CreateVisionPose,
-            123, 1.0f, 2.0f, 3.0f, 0.0
+            123,     1.0f, 2.0f, 3.0f, 0.0
     );
 }
 

@@ -11,6 +11,7 @@
 #include <chrono>
 #include "i_model.hpp"
 #include "inference_engine_factory.hpp"
+#include "yolo_processing.hpp"
 
 #ifdef WITH_CUDA
 #include <sl/Camera.hpp>

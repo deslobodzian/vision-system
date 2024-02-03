@@ -1,0 +1,11 @@
+// vision_pose_array.fbs
+include "vision_pose.fbs"; // Include the VisionPose definition
+
+namespace Messages;
+
+table VisionPoseArray {
+  poses:[VisionPose]; // Array (vector) of VisionPose objects
+}
+
+root_type VisionPoseArray;
+

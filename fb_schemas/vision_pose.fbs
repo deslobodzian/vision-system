@@ -2,11 +2,9 @@
 namespace Messages;
 
 table VisionPose {
-	id:int;
-	x:float;
-	y:float;
-	z:float;
-	timestamp:long;
+  id:int;
+  x:float;
+  y:float;
+  z:float;
+  timestamp:long;
 }
-
-root_type VisionPose;
