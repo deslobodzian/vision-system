@@ -54,10 +54,8 @@ void VisionRunner::run() {
     LOG_DEBUG("Detected Objects: ", objects.object_list.size());
         std::vector<flatbuffers::Offset<Messages::VisionPose>> visionPoseOffsets;
 
-    // Use the builder from ZmqPublisher, assuming it's accessible or passed somehow
     auto& builder = zmq_manager_->get_publisher("main").get_builder(); 
 
-    // Iterate over detected objects and create VisionPose for each
     for (const auto& obj : objects.object_list) {
         auto visionPose = Messages::CreateVisionPose(
             builder, 
@@ -65,19 +63,17 @@ void VisionRunner::run() {
             obj.position.x, 
             obj.position.y, 
             obj.position.z, 
-            t.read() // Assuming this method returns the current timestamp
+            t.get_ms() 
         );
         visionPoseOffsets.push_back(visionPose);
     }
 
-    // Create a vector of VisionPose in the FlatBuffer
     auto posesVector = builder.CreateVector(visionPoseOffsets);
 
-    // Since the publish function takes care of building and sending, just call it
     zmq_manager_->get_publisher("main").publish(
-        "VisionPoseArray", // Topic name
-        Messages::CreateVisionPoseArray, // Function to create the FlatBuffer object
-        posesVector // Arguments to the function
+        "VisionPoseArray", 
+        Messages::CreateVisionPoseArray,
+        posesVector 
     );
 #endif
     zmq_manager_->get_publisher("main").publish(
