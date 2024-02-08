@@ -131,6 +131,7 @@ public:
   const ERROR_CODE get_grab_state();
 
   const Resolution get_resolution() const;
+  void synchronize_cuda_stream();
   void close();
 
 private:

@@ -2,24 +2,18 @@
 #include "vision/zed.hpp"
 #include "utils/logger.hpp"
 
-ZedCamera::ZedCamera() : 
-    init_params_{}, 
-    runtime_params_{},
-    obj_detection_params_{},
-    obj_rt_params_{},
-    batch_params_{},
-    calibration_params_{},
-    measurements_{},
-    detected_objects_{} {
-}
+ZedCamera::ZedCamera()
+    : init_params_{}, runtime_params_{}, obj_detection_params_{},
+    obj_rt_params_{}, batch_params_{}, calibration_params_{}, measurements_{},
+    detected_objects_{} {}
 
-ZedCamera::ZedCamera(const std::string& svo_path) : ZedCamera() {
-    svo_ = svo_path;
-    LOG_INFO("Setting from svo file");
-    init_params_.input.setFromSVOFile(svo_.c_str());
-}
+    ZedCamera::ZedCamera(const std::string &svo_path) : ZedCamera() {
+        svo_ = svo_path;
+        LOG_INFO("Setting from svo file");
+        init_params_.input.setFromSVOFile(svo_.c_str());
+    }
 
-void ZedCamera::configure(const zed_config& config) {
+void ZedCamera::configure(const zed_config &config) {
     init_params_.camera_resolution = config.res;
     init_params_.camera_fps = config.fps;
     init_params_.camera_image_flip = config.flip_camera;
@@ -36,7 +30,8 @@ void ZedCamera::configure(const zed_config& config) {
     obj_detection_params_.detection_model = config.model;
     obj_detection_params_.prediction_timeout_s = config.prediction_timeout_s;
 
-    obj_rt_params_.detection_confidence_threshold = config.detection_confidence_threshold;
+    obj_rt_params_.detection_confidence_threshold =
+        config.detection_confidence_threshold;
     batch_params_.enable = config.enable_batch;
     batch_params_.id_retention_time = config.id_retention_time;
     batch_params_.latency = config.batch_latency;
@@ -74,14 +69,15 @@ int ZedCamera::enable_tracking() {
 }
 
 int ZedCamera::enable_object_detection() {
-    if (zed_.enableObjectDetection(obj_detection_params_) != sl::ERROR_CODE::SUCCESS) {
+    if (zed_.enableObjectDetection(obj_detection_params_) !=
+            sl::ERROR_CODE::SUCCESS) {
         LOG_ERROR("Failed to enable object detection!");
         return -1;
     }
     return 0;
 }
 
-void ZedCamera::fetch_measurements(const MeasurementType& type) {
+void ZedCamera::fetch_measurements(const MeasurementType &type) {
     LOG_DEBUG("Using memory type: ", memory_type_);
     if (successful_grab()) {
         switch (type) {
@@ -124,19 +120,15 @@ void ZedCamera::fetch_measurements(const MeasurementType& type) {
     }
 }
 
-sl::Mat ZedCamera::get_depth_map() const {
-    return measurements_.depth_map;
-}
+sl::Mat ZedCamera::get_depth_map() const { return measurements_.depth_map; }
 
-sl::Mat ZedCamera::get_point_cloud() const {
-    return measurements_.point_cloud;
-}
+sl::Mat ZedCamera::get_point_cloud() const { return measurements_.point_cloud; }
 
-const sl::Mat& ZedCamera::get_left_image() const {
+const sl::Mat &ZedCamera::get_left_image() const {
     return measurements_.left_image;
 }
 
-void ZedCamera::get_left_image(sl::Mat& img) const {
+void ZedCamera::get_left_image(sl::Mat &img) const {
     img = measurements_.left_image;
 }
 
@@ -152,32 +144,27 @@ SensorsData::IMUData ZedCamera::get_imu_data() const {
     return measurements_.imu_data;
 }
 
-void ZedCamera::ingest_custom_objects(std::vector<sl::CustomBoxObjectData>& objs) {
+void ZedCamera::ingest_custom_objects(
+        std::vector<sl::CustomBoxObjectData> &objs) {
     zed_.ingestCustomBoxObjects(objs);
 }
 
-const Objects& ZedCamera::retrieve_objects() const {
-    return detected_objects_;
-}
+const Objects &ZedCamera::retrieve_objects() const { return detected_objects_; }
 
-void ZedCamera::set_memory_type(const MEM& memory) {
-    memory_type_ = memory;
-}
+void ZedCamera::set_memory_type(const MEM &memory) { memory_type_ = memory; }
 
 const Resolution ZedCamera::get_resolution() const {
     return getResolution(init_params_.camera_resolution);
 }
 
-const ERROR_CODE ZedCamera::get_grab_state() {
-    return grab_state_;
+const ERROR_CODE ZedCamera::get_grab_state() { return grab_state_; }
+
+void ZedCamera::close() { zed_.close(); }
+
+void ZedCamera::synchronize_cuda_stream() {
+    cudaStreamSynchronize(zed_.getCUDAStream());
 }
 
-void ZedCamera::close() {
-    zed_.close();
-}
-
-ZedCamera::~ZedCamera() {
-    close();
-};
+ZedCamera::~ZedCamera() { close(); };
 
 #endif /* WITH_CUDA */

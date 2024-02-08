@@ -7,6 +7,27 @@ static unsigned char* h_img = nullptr;
 static unsigned char* d_bgr = nullptr;
 static unsigned char* d_output = nullptr;
 
+__global__ void kernel_convert_to_bgr(unsigned char* input, unsigned char* output, int width, int height, size_t stride) {
+    const int x = blockIdx.x * blockDim.x + threadIdx.x;
+    const int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if(x >= width || y >= height)
+        return;
+
+    const int inIdx = y * stride + x * 4;  
+    const int outIdx = y * width * 3 + x * 3;  
+
+    if(inIdx + 3 >= stride * height || outIdx + 2 >= width * height * 3) {
+        printf("Thread (%d, %d) out of bounds: inIdx = %d, outIdx = %d\n", x, y, inIdx, outIdx);
+        return;
+    }
+
+    output[outIdx]     = input[inIdx];
+    output[outIdx + 1] = input[inIdx + 1];
+    output[outIdx + 2] = input[inIdx + 2];
+}
+
+
 __global__ void kernel_preprocess_to_tensor(const unsigned char* d_bgr, float* d_output, int input_height, int input_width, int frame_s, int batch) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -22,34 +43,14 @@ __global__ void kernel_preprocess_to_tensor(const unsigned char* d_bgr, float* d
     }
 }
 
-__global__ void kernel_convert_to_bgr(unsigned char* input, unsigned char* output, int width, int height) {
+__global__ void kernel_convert_to_rgb(unsigned char* input, unsigned char* output, int width, int height, int step) {
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(x >= width || y >= height)
         return;
 
-    const int inIdx = 4 * (y * width + x);  // BGRA input
-    const int outIdx = 3 * (y * width + x); // BGR output
-    
-    if(inIdx + 3 >= width * height * 4 || outIdx + 2 >= width * height * 3) {
-        printf("Thread (%d, %d) out of bounds: inIdx = %d, outIdx = %d\n", x, y, inIdx, outIdx);
-        return;
-    }
-
-    output[outIdx]     = input[inIdx];
-    output[outIdx + 1] = input[inIdx + 1];
-    output[outIdx + 2] = input[inIdx + 2];
-}
-
-__global__ void kernel_convert_to_rgb(unsigned char* input, unsigned char* output, int width, int height) {
-    const int x = blockIdx.x * blockDim.x + threadIdx.x;
-    const int y = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if(x >= width || y >= height)
-        return;
-
-    const int inIdx = 4 * (y * width + x);  // BGRA input
+    const int inIdx = 4 * (y * step + x);  // BGRA input
     const int outIdx = 3 * (y * width + x); // RGB output
     
     if(inIdx + 3 >= width * height * 4 || outIdx + 2 >= width * height * 3) {
@@ -110,8 +111,8 @@ __global__ void kernel_preprocess_letterbox(const unsigned char* d_bgr, unsigned
 
 void init_preprocess_resources(int image_width, int image_height, int input_width, int input_height) {
     LOG_INFO("Allocating cuda memory");
-    int max_image_width = image_width * 5;  
-    int max_image_height = image_height * 5;  
+    int max_image_width = image_width * 3;  
+    int max_image_height = image_height * 3;  
     CUDA_CHECK(cudaMallocHost(&h_img, max_image_width * max_image_height * 3 * sizeof(unsigned char)));
     CUDA_CHECK(cudaMalloc(&d_bgr, max_image_width * max_image_height * 3 * sizeof(unsigned char)));
     CUDA_CHECK(cudaMalloc(&d_output, input_width * input_height * 3 * sizeof(unsigned char)));
@@ -142,7 +143,7 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, cudaStream_t
     dim3 grid_input((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
     dim3 grid_output((input_width + block.x - 1) / block.x, (input_height + block.y - 1) / block.y);
     
-    kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(left_img.getPtr<sl::uchar1>(sl::MEM::GPU), d_bgr, image_width, image_height);
+    kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(left_img.getPtr<sl::uchar1>(sl::MEM::GPU), d_bgr, image_width, image_height, left_img.getStepBytes(sl::MEM::GPU));
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
@@ -162,17 +163,18 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, cudaStream_t
         printf("kernel_preprocess_to_tensor launch failed: %s\n", cudaGetErrorString(err));
         return;
     }
-//    unsigned char* h_letter = new unsigned char[input_width * input_height * 3];
-//    err = cudaMemcpy(h_letter, d_output, input_width * input_height * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-//    if (err != cudaSuccess) {
-//        LOG_ERROR("CUDA memcpy Device to Host failed: ", cudaGetErrorString(err));
-//        return;
-//    }
 
-//    cv::Mat kernel_out(input_height, input_width, CV_8UC3, h_letter);
-//    std::string filename = "kernel_letter_output.png";
-//    cv::imwrite(filename, kernel_out);
-//    delete[] h_letter;
+    //unsigned char* h_letter = new unsigned char[input_width * input_height * 3];
+    //err = cudaMemcpy(h_letter, d_output, input_width * input_height * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    //if (err != cudaSuccess) {
+    //    LOG_ERROR("CUDA memcpy Device to Host failed: ", cudaGetErrorString(err));
+    //    return;
+    //}
+
+    //cv::Mat kernel_out(input_height, input_width, CV_8UC3, h_letter);
+    //std::string filename = "kernel_letter_output.png";
+    //cv::imwrite(filename, kernel_out);
+    //delete[] h_letter;
 }
 
 void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& stream) {

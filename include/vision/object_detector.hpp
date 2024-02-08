@@ -29,8 +29,8 @@ class ObjectDetector {
 public:
   using MatType = typename CameraTraits<Camera>::MatType;
   ObjectDetector() {
-    //model_ = std::make_unique<Yolo<MatType>>("coco");
-    model_ = std::make_unique<Yolo<MatType>>("note");
+    model_ = std::make_unique<Yolo<MatType>>("coco");
+    //model_ = std::make_unique<Yolo<MatType>>("note");
     detections_.reserve(
         100); // There should never be more that 100 object detected at once
   }
@@ -47,6 +47,7 @@ private:
 
 #ifdef WITH_CUDA
   void detect_objects_impl(ZedCamera &camera) {
+      camera.synchronize_cuda_stream();
     auto new_detections = model_->predict(camera.get_left_image());
     detections_.swap(new_detections);
     LOG_DEBUG("Model detections: ", detections_.size());

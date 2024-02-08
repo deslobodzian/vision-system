@@ -24,7 +24,7 @@ DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
     zed_.enable_tracking();
     display_resolution = zed_.get_resolution();
     zed_.enable_object_detection();
-    video_writer.open("output_video.avi", cv::CAP_FFMPEG, cv::VideoWriter::fourcc('X', 'V', 'I', 'D'), 30, cv::Size(1280, 720), true);
+    video_writer.open("output_video.avi", cv::CAP_FFMPEG, cv::VideoWriter::fourcc('X', 'V', 'I', 'D'), 30, cv::Size(960, 600), true);
 }
 
 DetectionsPlayback::~DetectionsPlayback() {
@@ -38,6 +38,7 @@ void DetectionsPlayback::detect() {
     while (running_) {
         zed_.fetch_measurements(MeasurementType::IMAGE);
         auto ret = zed_.get_grab_state();
+        LOG_DEBUG("Zed image data type: ", zed_.get_left_image().getDataType());
         detector_.detect_objects(zed_);
         zed_.fetch_measurements(MeasurementType::OBJECTS);
         //auto detections = yolo_.predict(zed_.get_left_image());
