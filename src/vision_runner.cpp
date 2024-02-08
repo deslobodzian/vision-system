@@ -47,6 +47,7 @@ void VisionRunner::init() {
 
 void VisionRunner::run() {
     Timer t;
+    t.start();
 #ifdef WITH_CUDA 
     camera_.fetch_measurements(MeasurementType::IMAGE_AND_OBJECTS);
     detector_.detect_objects(camera_);
@@ -75,6 +76,7 @@ void VisionRunner::run() {
         Messages::CreateVisionPoseArray,
         posesVector 
     );
+    LOG_DEBUG("Zed end to end took: ", t.get_ms(), " ms");
 #endif
     zmq_manager_->get_publisher("main").publish(
             "VisionPose",
