@@ -53,7 +53,7 @@ void VisionContainer::run() {
     using namespace std::chrono;
     init();
     vision_runner_ = task_manager_->create_task<VisionRunner>(
-            0.001,
+            0.01,
             "vision-runner",
             zmq_manager_
             );

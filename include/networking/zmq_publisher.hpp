@@ -18,18 +18,20 @@ public:
     void publish(const std::string& topic, Func&& create_func, Args&&... args) {
         std::lock_guard<std::mutex> lock(mtx_);
         builder_.Clear();
-        // kind of ugly but its the closest thing to what I want. 
-        // I really wish I could call publish(args...), TODO: Think harder
         auto offset = std::invoke(
-                std::forward<Func>(create_func),
-                builder_,
-                std::forward<Args>(args)...
-                );
+            std::forward<Func>(create_func),
+            builder_,
+            std::forward<Args>(args)...
+        );
         builder_.Finish(offset);
-        zmq::message_t message(builder_.GetBufferPointer(), builder_.GetSize());
-        publisher_.send(zmq::buffer(topic), zmq::send_flags::sndmore);
-        publisher_.send(message, zmq::send_flags::none);
+        send_message(topic, builder_.GetBufferPointer(), builder_.GetSize());
+     }
+
+    void publish_prebuilt(const std::string& topic, const uint8_t* data, size_t size) {
+        std::lock_guard<std::mutex> lock(mtx_);
+        send_message(topic, data, size);
     }
+
 
     flatbuffers::FlatBufferBuilder& get_builder() {
         return builder_;
@@ -40,6 +42,13 @@ private:
     zmq::socket_t publisher_;
     flatbuffers::FlatBufferBuilder builder_;
     std::mutex mtx_;
+
+    void send_message(const std::string& topic, const uint8_t* data, size_t size) {
+        zmq::message_t topic_msg(topic.data(), topic.size());
+        zmq::message_t data_msg(data, size);
+        publisher_.send(topic_msg, zmq::send_flags::sndmore);
+        publisher_.send(data_msg, zmq::send_flags::none);
+    }
 };
 
 #endif /* VISION_SYSTEM_ZMQ_PUBLISHER_HPP */
