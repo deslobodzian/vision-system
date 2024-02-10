@@ -4,9 +4,6 @@
 #include "vision_runner.hpp"
 #include "utils/logger.hpp"
 #include "utils/timer.h"
-#include "vision_pose_generated.h"
-#include "vision_pose_array_generated.h"
-#include <random>
 
 //namespace {
 //float randomFloat(float min, float max) {
@@ -85,11 +82,7 @@ void VisionRunner::run() {
             obj.position.x, 
             obj.position.y, 
             obj.position.z, 
-<<<<<<< HEAD
-            t.get_ms() 
-=======
             now_ms
->>>>>>> 124603d (new zmq changes)
         );
         vision_pose_offsets.push_back(vision_pose);
     }
