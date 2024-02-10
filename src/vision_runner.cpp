@@ -4,6 +4,9 @@
 #include "vision_runner.hpp"
 #include "utils/logger.hpp"
 #include "utils/timer.h"
+#include "vision_pose_generated.h"
+#include "vision_pose_array_generated.h"
+#include <random>
 
 //namespace {
 //float randomFloat(float min, float max) {
