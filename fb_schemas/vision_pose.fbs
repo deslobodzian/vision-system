@@ -1,0 +1,10 @@
+// vision_pose.fbs
+namespace Messages;
+
+table VisionPose {
+  id:int;
+  x:float;
+  y:float;
+  z:float;
+  timestamp:long;
+}

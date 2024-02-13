@@ -1,67 +1,147 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
-PROJECT(Vision_System)
+cmake_minimum_required(VERSION 3.5)
+project(Vision_System)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")
+set(CMAKE_BUILD_TYPE Release)
 
-option(LINK_SHARED_ZED "Link with the ZED SDK shared executable" ON)
+add_compile_options(-pthread -O3)
 
-if (NOT LINK_SHARED_ZED AND MSVC)
-    message(FATAL_ERROR "LINK_SHARED_ZED OFF : ZED SDK static libraries not available on Windows")
+set(LOG_LEVEL "INFO" CACHE STRING "Set the logger level")
+
+if(LOG_LEVEL STREQUAL "DEBUG")
+    add_definitions(-DLOG_LEVEL=2)
+elseif(LOG_LEVEL STREQUAL "INFO")
+    add_definitions(-DLOG_LEVEL=1)
+elseif(LOG_LEVEL STREQUAL "ERROR")
+    add_definitions(-DLOG_LEVEL=0)
+else()
+    message(FATAL_ERROR "Unknown log level: ${LOG_LEVEL}")
 endif()
+message(STATUS "Using Log level ${LOG_LEVEL}")
 
-find_package(ZED 3 REQUIRED)
-find_package(CUDA ${ZED_CUDA_VERSION} REQUIRED)
+set(FLATBUFFERS_FLATC_EXECUTABLE flatc)
+set(FBS_SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/fb_schemas) 
+set(FBS_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated_fbs) 
+
+file(GLOB_RECURSE FBS_FILES ${FBS_SCHEMA_DIR}/*.fbs) 
+file(MAKE_DIRECTORY ${FBS_GENERATED_DIR})
+
+foreach(FBS_FILE ${FBS_FILES})
+    get_filename_component(FBS_NAME ${FBS_FILE} NAME_WE)
+    set(GENERATED_FBS_SRC ${FBS_GENERATED_DIR}/${FBS_NAME}_generated.h)
+
+    add_custom_command(
+        OUTPUT ${GENERATED_FBS_SRC}
+        COMMAND ${CMAKE_COMMAND} -E echo "Running flatc on ${FBS_FILE}"
+        COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE} -c -o ${FBS_GENERATED_DIR} ${FBS_FILE}
+        COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE} --java -o ${FBS_GENERATED_DIR} ${FBS_FILE}
+        DEPENDS ${FBS_FILE}
+        COMMENT "Compiling ${FBS_FILE} to ${GENERATED_FBS_SRC}"
+    )
+    list(APPEND GENERATED_FBS_SRCS ${GENERATED_FBS_SRC})
+endforeach()
+
+add_custom_target(GenerateFlatBuffers DEPENDS ${GENERATED_FBS_SRCS})
+
 find_package(OpenCV REQUIRED)
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-find_package(fmt REQUIRED)
+message(STATUS "OpenCV include dir: ${OpenCV_INCLUDE_DIRS}")
+# Defualt to ONNXRuntime CPU and use CUDA later if available
+find_package(onnxruntime CONFIG REQUIRED)
+find_package(flatbuffers REQUIRED)
 find_package(ZeroMQ REQUIRED)
 
-find_package(PkgConfig)
-pkg_search_module(apriltag REQUIRED apriltag)
-set(apriltag_INCLUDE_DIRS "${apriltag_INCLUDE_DIRS}/apriltag")
+if(APPLE)
+    message(STATUS "Configuring for MacBook")
+    add_definitions(-DAPPLE)
+elseif(UNIX AND NOT APPLE)
+    message(STATUS "Configuring for Linux")
+    
+    find_package(CUDAToolkit)
+    if(CUDAToolkit_FOUND)
+        cmake_policy(SET CMP0104 NEW)
+        if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+            set(CMAKE_CUDA_ARCHITECTURES 75)
+        endif()
 
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${CUDA_INCLUDE_DIRS})
-include_directories(${ZED_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${apriltag_INCLUDE_DIRS})
-include_directories(${ZeroMQ_INCLUDE_DIRS})
 
-link_directories(${OpenCV_LIBRARY_DIRS})
-link_directories(${ZED_LIBRARY_DIR})
-link_directories(${CUDA_LIBRARY_DIRS})
-link_directories(${apriltag_LIBDIR})
+        enable_language(CUDA) 
+        add_definitions(-DWITH_CUDA)
+        message(STATUS "CUDA found: Compiling for Linux with GPU support")
 
-# cuda
-include_directories(/usr/lib/cuda/include)
-link_directories(/usr/lib/cuda/lib64)
-# tensorrt
-include_directories(/usr/include/x86_64-linux-gnu/)
-link_directories(/usr/lib/x86_64-linux-gnu/)
+        file(GLOB_RECURSE CUDA_SRC_FILES cuda/*.cu)
+        file(GLOB_RECURSE CUDA_HDR_FILES cuda/*.h)
 
-FILE(GLOB_RECURSE SRC_FILES src/*.c*)
-FILE(GLOB_RECURSE HDR_FILES include/*.h*)
+        file(GLOB_RECURSE CUDA_SUBDIRS LIST_DIRECTORIES true ${PROJECT_SOURCE_DIR}/cuda/*)
 
-cuda_add_executable(${PROJECT_NAME} ${HDR_FILES} ${SRC_FILES})
-add_definitions(-O3 -D_MWAITXINTRIN_H_INCLUDED -Wno-deprecated-declarations)
+        foreach(SUBDIR ${CUDA_SUBDIRS})
+            if(IS_DIRECTORY ${SUBDIR})
+                include_directories(${SUBDIR})
+            endif()
+        endforeach()
 
-if (LINK_SHARED_ZED)
-	SET(ZED_LIBS ${ZED_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
-else()
-	SET(ZED_LIBS ${ZED_STATIC_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_LIBRARY})
+        list(APPEND PLUGINS "nvinfer")
+        list(APPEND PLUGINS "nvonnxparser")
+        list(APPEND PLUGINS "nvparsers")
+
+        foreach(libName ${PLUGINS})
+            find_library(${libName}_lib NAMES ${libName} "/usr" PATH_SUFFIXES lib)
+            list(APPEND PLUGIN_LIBS "${${libName}_lib}")
+        endforeach()
+        
+        find_package(ZED 4 REQUIRED)
+        include_directories(
+            ${CUDAToolkit_INCLUDE_DIRS}
+            ${ZED_INCLUDE_DIRS}
+        )
+        link_directories(
+            ${CUDAToolkit_LIBRARY_DIR}
+            ${ZED_LIBRARY_DIR}
+        )
+    else()
+        add_definitions(-DWITHOUT_CUDA)
+        message(STATUS "No CUDA found: Compiling for Linux without GPU support")
+    endif()
 endif()
 
-SET(TRT_LIBS nvinfer)
-
-TARGET_LINK_LIBRARIES(
-	${PROJECT_NAME}
-	${ZED_LIBS}
-	${OpenCV_LIBRARIES}
-	${apriltag_LIBRARIES}
-	Eigen3::Eigen
-	fmt::fmt
-	${TRT_LIBS}
-	${ZeroMQ_LIBRARY}
+include_directories(
+    ${FBS_GENERATED_DIR}
+    ${OpenCV_INCLUDE_DIRS}
+    ${ONNXRuntime_INCLUDE_DIRS}
+    ${flatbuffers_INCLUDE_DIR}
+    ${ZeroMQ_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/include
 )
+
+link_directories(
+    ${OpenCV_LIBRARY_DIRS}
+)
+
+file(GLOB_RECURSE SRC_FILES src/*.cpp)
+file(GLOB_RECURSE HDR_FILES include/*.h include/*.hpp)
+
+add_executable(
+    ${PROJECT_NAME} 
+    ${SRC_FILES} 
+    ${GENERATED_FBS_SRCS}
+    ${CUDA_SRC_FILES} 
+    ${CUDA_HDR_FILES}
+)
+add_dependencies(${PROJECT_NAME} GenerateFlatBuffers)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${OpenCV_LIBRARIES}
+    ${ZeroMQ_LIBRARY}
+    flatbuffers::flatbuffers
+    onnxruntime::onnxruntime
+)
+
+if(UNIX AND NOT APPLE AND CUDA_FOUND)
+    SET(TRT_LIBS nvinfer nvonnxparser)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${CUDA_LIBRARIES}
+        ${CUDA_CUDART_LIBRARY}
+        ${ZED_LIBRARIES}
+        ${TRT_LIBS}
+    )
+endif()

@@ -1,0 +1,12 @@
+// imu_info.fbs
+namespace Messages;
+
+table IMUInfo {
+	id:int;
+	x:float;
+	y:float;
+	z:float;
+	timestamp:long;
+}
+
+root_type IMUInfo;

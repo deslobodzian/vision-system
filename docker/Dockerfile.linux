@@ -1,0 +1,28 @@
+FROM ubuntu:latest
+
+WORKDIR /project
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    curl
+
+COPY scripts/ /project/scripts/
+RUN chmod +x /project/scripts/*.sh
+RUN /project/scripts/install_opencv.sh
+RUN /project/scripts/install_onnxruntime.sh
+RUN /project/scripts/install_zmq.sh
+RUN /project/scripts/install_flatbuffers.sh
+RUN /project/scripts/install_cppzmq.sh
+
+COPY CMakeLists.txt /project
+COPY include/ /project/include/
+COPY src/ /project/src/
+COPY tests/ /project/tests/
+COPY fb_schemas/ /project/fb_schemas/
+
+RUN mkdir /project/build && \
+    cd /project/build && \
+    cmake .. && \
+    make

@@ -1,35 +1,40 @@
-//
-// Created by robot on 1/17/23.
-//
-
 #ifndef VISION_SYSTEM_ZMQ_MANAGER_HPP
 #define VISION_SYSTEM_ZMQ_MANAGER_HPP
 
-#include <string>
+
 #include <map>
+#include <string>
 #include "zmq_publisher.hpp"
+#include "zmq_subscriber.hpp"
 
 class ZmqManager {
 public:
     ZmqManager() = default;
 
     ~ZmqManager() {
-        for (auto& [topic, publisher] : publishers_) {
-            delete publisher;
-        }
     }
-    void create_publisher(publishable* p, const std::string& endpoint) {
-        publishers_[p->get_topic()] = new ZmqPublisher(endpoint, p);
-    }
-    // this sends all the publishers in the map
-    void send_publishers() {
-        for (auto& [topic, publisher] : publishers_) {
-//            debug("Sending topic data: " + topic);
-            publisher->send();
-        }
-    }
-private:
-    std::map<std::string, ZmqPublisher*> publishers_;
-};
 
-#endif //VISION_SYSTEM_ZMQ_MANAGER_HPP
+    void create_publisher(const std::string& name, const std::string& endpoint) {
+        publishers_[name] = std::make_unique<ZmqPublisher>(endpoint);
+    }
+
+    void create_subscriber(const std::string& topic, const std::string& endpoint) {
+        subscribers_[topic] = std::make_unique<ZmqSubscriber>(topic, endpoint);
+    }
+
+    ZmqPublisher& get_publisher(const std::string& name) {
+        auto it = publishers_.find(name);
+        if (it != publishers_.end()) {
+            return *(it->second);
+        } else {
+            throw::std::runtime_error("Publisher not found: " + name);
+        }
+    }
+
+private:
+    std::string publisher_endpoint_;
+    std::map<std::string, std::unique_ptr<ZmqPublisher>> publishers_;
+    std::map<std::string, std::unique_ptr<ZmqSubscriber>> subscribers_;
+
+};
+#endif /* VISION_SYSTEM_ZMQ_MANAGER_HPP */
