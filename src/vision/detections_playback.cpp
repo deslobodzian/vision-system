@@ -42,7 +42,7 @@ void DetectionsPlayback::detect() {
         detector_.detect_objects(zed_);
         zed_.fetch_measurements(MeasurementType::OBJECTS);
         //auto detections = yolo_.predict(zed_.get_left_image());
-        auto err = left_sl.setFrom(zed_.get_left_image(), COPY_TYPE::GPU_CPU);
+        auto err = left_sl.setFrom(zed_.get_left_image(), sl::COPY_TYPE::GPU_CPU);
         
         if (err == sl::ERROR_CODE::SUCCESS) {
             left_cv = slMat_to_cvMat(left_sl);

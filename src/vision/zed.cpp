@@ -43,12 +43,12 @@ void ZedCamera::configure(const zed_config &config) {
 
 bool ZedCamera::successful_grab() {
     grab_state_ = zed_.grab();
-    return (grab_state_ == ERROR_CODE::SUCCESS);
+    return (grab_state_ == sl::ERROR_CODE::SUCCESS);
 }
 
 int ZedCamera::open() {
     auto return_state = zed_.open(init_params_);
-    if (return_state == ERROR_CODE::SUCCESS) {
+    if (return_state == sl::ERROR_CODE::SUCCESS) {
         return 0;
     } else {
         LOG_ERROR("Failed to open zed camera: ", return_state);
@@ -57,7 +57,7 @@ int ZedCamera::open() {
 }
 
 int ZedCamera::enable_tracking() {
-    PositionalTrackingParameters tracking_params;
+    sl::PositionalTrackingParameters tracking_params;
     if (!zed_.isOpened()) {
         LOG_ERROR("Camera is not open!");
         return -1;
@@ -82,38 +82,38 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
     if (successful_grab()) {
         switch (type) {
             case MeasurementType::ALL:
-                zed_.retrieveImage(measurements_.left_image, VIEW::LEFT, memory_type_);
-                zed_.getSensorsData(measurements_.sensor_data, TIME_REFERENCE::IMAGE);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.getSensorsData(measurements_.sensor_data, sl::TIME_REFERENCE::IMAGE);
                 measurements_.imu_data = measurements_.sensor_data.imu;
                 measurements_.timestamp = measurements_.left_image.timestamp;
-                zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
+                zed_.retrieveMeasure(measurements_.depth_map, sl::MEASURE::DEPTH);
                 zed_.getPosition(measurements_.camera_pose);
-                zed_.retrieveMeasure(measurements_.point_cloud, MEASURE::XYZ);
+                zed_.retrieveMeasure(measurements_.point_cloud, sl::MEASURE::XYZ);
                 break;
             case MeasurementType::IMAGE:
-                zed_.retrieveImage(measurements_.left_image, VIEW::LEFT, memory_type_);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
                 break;
             case MeasurementType::DEPTH:
-                zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
+                zed_.retrieveMeasure(measurements_.depth_map, sl::MEASURE::DEPTH);
                 break;
             case MeasurementType::OBJECTS:
                 zed_.retrieveObjects(detected_objects_, obj_rt_params_);
                 break;
             case MeasurementType::SENSORS:
-                zed_.getSensorsData(measurements_.sensor_data, TIME_REFERENCE::IMAGE);
+                zed_.getSensorsData(measurements_.sensor_data, sl::TIME_REFERENCE::IMAGE);
                 measurements_.imu_data = measurements_.sensor_data.imu;
                 break;
             case MeasurementType::IMAGE_AND_SENSORS:
-                zed_.retrieveImage(measurements_.left_image, VIEW::LEFT, memory_type_);
-                zed_.getSensorsData(measurements_.sensor_data, TIME_REFERENCE::IMAGE);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.getSensorsData(measurements_.sensor_data, sl::TIME_REFERENCE::IMAGE);
                 measurements_.timestamp = measurements_.left_image.timestamp;
                 break;
             case MeasurementType::IMAGE_AND_DEPTH:
-                zed_.retrieveImage(measurements_.left_image, VIEW::LEFT, memory_type_);
-                zed_.retrieveMeasure(measurements_.depth_map, MEASURE::DEPTH);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.retrieveMeasure(measurements_.depth_map, sl::MEASURE::DEPTH);
                 break;
             case MeasurementType::IMAGE_AND_OBJECTS:
-                zed_.retrieveImage(measurements_.left_image, VIEW::LEFT, memory_type_);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
                 zed_.retrieveObjects(detected_objects_, obj_rt_params_);
                 break;
         }
@@ -136,11 +136,11 @@ sl::Pose ZedCamera::get_camera_pose() const {
     return measurements_.camera_pose;
 }
 
-Timestamp ZedCamera::get_measurement_timestamp() const {
+sl::Timestamp ZedCamera::get_measurement_timestamp() const {
     return measurements_.timestamp;
 }
 
-SensorsData::IMUData ZedCamera::get_imu_data() const {
+sl::SensorsData::IMUData ZedCamera::get_imu_data() const {
     return measurements_.imu_data;
 }
 
@@ -149,15 +149,15 @@ void ZedCamera::ingest_custom_objects(
     zed_.ingestCustomBoxObjects(objs);
 }
 
-const Objects &ZedCamera::retrieve_objects() const { return detected_objects_; }
+const sl::Objects &ZedCamera::retrieve_objects() const { return detected_objects_; }
 
-void ZedCamera::set_memory_type(const MEM &memory) { memory_type_ = memory; }
+void ZedCamera::set_memory_type(const sl::MEM &memory) { memory_type_ = memory; }
 
-const Resolution ZedCamera::get_resolution() const {
+const sl::Resolution ZedCamera::get_resolution() const {
     return getResolution(init_params_.camera_resolution);
 }
 
-const ERROR_CODE ZedCamera::get_grab_state() { return grab_state_; }
+const sl::ERROR_CODE ZedCamera::get_grab_state() { return grab_state_; }
 
 void ZedCamera::close() { zed_.close(); }
 

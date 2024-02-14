@@ -1,0 +1,9 @@
+#ifndef VISION_SYSTEM_CUDA_BBOX_H
+#define VISION_SYSTEM_CUDA_BBOX_H
+
+struct CudaBBox {
+
+}
+
+
+#endif /* VISION_SYSTEM_CUDA_BBOX_H */

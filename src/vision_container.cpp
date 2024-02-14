@@ -9,6 +9,7 @@
 #include "utils/task.hpp"
 #include "vision/zed.hpp"
 #include <flatbuffers/flatbuffer_builder.h>
+#include "vision/apriltag_detector.hpp"
 
 VisionContainer::VisionContainer()
     : vision_runner_(nullptr), 

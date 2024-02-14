@@ -59,6 +59,8 @@ elseif(UNIX AND NOT APPLE)
     
     find_package(CUDAToolkit)
     if(CUDAToolkit_FOUND)
+        list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
         cmake_policy(SET CMP0104 NEW)
         if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
             set(CMAKE_CUDA_ARCHITECTURES 75)
@@ -88,16 +90,21 @@ elseif(UNIX AND NOT APPLE)
             find_library(${libName}_lib NAMES ${libName} "/usr" PATH_SUFFIXES lib)
             list(APPEND PLUGIN_LIBS "${${libName}_lib}")
         endforeach()
+
+        include(FindCUDA_Apriltags)
         
         find_package(ZED 4 REQUIRED)
         include_directories(
             ${CUDAToolkit_INCLUDE_DIRS}
             ${ZED_INCLUDE_DIRS}
+            ${CUAPRILTAGS_INCLUDE_DIR}
         )
         link_directories(
             ${CUDAToolkit_LIBRARY_DIR}
             ${ZED_LIBRARY_DIR}
         )
+        message(STATUS "CUAPRILTAGS_INCLUDE_DIR: ${CUAPRILTAGS_INCLUDE_DIR}")
+        message(STATUS "CUAPRILTAGS_LIBRARY: ${CUAPRILTAGS_LIBRARY}")
     else()
         add_definitions(-DWITHOUT_CUDA)
         message(STATUS "No CUDA found: Compiling for Linux without GPU support")
@@ -137,11 +144,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 if(UNIX AND NOT APPLE AND CUDA_FOUND)
+    add_dependencies(${PROJECT_NAME} cuapriltags)
     SET(TRT_LIBS nvinfer nvonnxparser)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${CUDA_LIBRARIES}
         ${CUDA_CUDART_LIBRARY}
         ${ZED_LIBRARIES}
         ${TRT_LIBS}
+        ${CUAPRILTAGS_LIBRARY}
     )
 endif()

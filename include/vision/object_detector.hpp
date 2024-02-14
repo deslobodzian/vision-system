@@ -64,7 +64,7 @@ private:
       objects_in.push_back(tmp);
     }
     camera.ingest_custom_objects(objects_in);
-    const Objects &obj = camera.retrieve_objects();
+    const sl::Objects &obj = camera.retrieve_objects();
     LOG_DEBUG("Zed objects detected: ", obj.object_list.size());
   }
 #endif

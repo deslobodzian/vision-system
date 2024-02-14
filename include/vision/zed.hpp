@@ -8,8 +8,6 @@
 #include <sl/Camera.hpp>
 #include <vector>
 
-using namespace sl;
-
 static int get_ocv_type(sl::MAT_TYPE type) {
   int cv_type = -1;
   switch (type) {
@@ -62,31 +60,31 @@ enum class MeasurementType {
 };
 
 typedef struct {
-  Timestamp timestamp;
-  Mat left_image;
-  Pose camera_pose;
-  Mat depth_map;
-  Mat point_cloud;
-  SensorsData sensor_data;
-  SensorsData::IMUData imu_data;
+    sl::Timestamp timestamp;
+    sl::Mat left_image;
+    sl::Pose camera_pose;
+    sl::Mat depth_map;
+    sl::Mat point_cloud;
+    sl::SensorsData sensor_data;
+    sl::SensorsData::IMUData imu_data;
 } ZedMeasurements;
 
 struct zed_config {
-  RESOLUTION res = RESOLUTION::AUTO; // Defualt between cameras
+    sl::RESOLUTION res = sl::RESOLUTION::AUTO; // Defualt between cameras
   int fps = 0;                         // use max unless specified.
-  int flip_camera = FLIP_MODE::AUTO;
-  DEPTH_MODE depth_mode = DEPTH_MODE::ULTRA;
+  int flip_camera = sl::FLIP_MODE::AUTO;
+  sl::DEPTH_MODE depth_mode = sl::DEPTH_MODE::ULTRA;
   bool sdk_verbose = false;
-  COORDINATE_SYSTEM coordinate_system = COORDINATE_SYSTEM::IMAGE;
-  UNIT units = UNIT::METER;
+  sl::COORDINATE_SYSTEM coordinate_system = sl::COORDINATE_SYSTEM::IMAGE;
+  sl::UNIT units = sl::UNIT::METER;
   float max_depth = 10.0f;
 
-  REFERENCE_FRAME reference_frame = REFERENCE_FRAME::CAMERA;
+  sl::REFERENCE_FRAME reference_frame = sl::REFERENCE_FRAME::CAMERA;
 
   bool enable_tracking = true;
   float prediction_timeout_s = 0.0f;
   bool enable_segmentation = false;
-  OBJECT_DETECTION_MODEL model = sl::OBJECT_DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
+  sl::OBJECT_DETECTION_MODEL model = sl::OBJECT_DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
 
   float detection_confidence_threshold = 0.5f;
 
@@ -94,7 +92,7 @@ struct zed_config {
   float id_retention_time = 0.0f;
   float batch_latency = 0.0f;
 
-  MEM default_memory = MEM::CPU;
+  sl::MEM default_memory = sl::MEM::CPU;
 
   zed_config() = default;
 };
@@ -118,36 +116,36 @@ public:
   int enable_tracking();
   int enable_object_detection();
 
-  Mat get_depth_map() const;
-  Mat get_point_cloud() const;
-  const Mat& get_left_image() const;
-  void get_left_image(Mat &img) const;
-  Pose get_camera_pose() const;
-  Timestamp get_measurement_timestamp() const;
-  SensorsData::IMUData get_imu_data() const;
-  void ingest_custom_objects(std::vector<CustomBoxObjectData> &objs);
-  const Objects& retrieve_objects() const;
-  void set_memory_type(const MEM &memory);
-  const ERROR_CODE get_grab_state();
+  sl::Mat get_depth_map() const;
+  sl::Mat get_point_cloud() const;
+  const sl::Mat& get_left_image() const;
+  void get_left_image(sl::Mat &img) const;
+  sl::Pose get_camera_pose() const;
+  sl::Timestamp get_measurement_timestamp() const;
+  sl::SensorsData::IMUData get_imu_data() const;
+  void ingest_custom_objects(std::vector<sl::CustomBoxObjectData> &objs);
+  const sl::Objects& retrieve_objects() const;
+  void set_memory_type(const sl::MEM &memory);
+  const sl::ERROR_CODE get_grab_state();
 
-  const Resolution get_resolution() const;
+  const sl::Resolution get_resolution() const;
   void synchronize_cuda_stream();
   void close();
 
 private:
-  ERROR_CODE grab_state_;
-  Camera zed_;
-  InitParameters init_params_;
-  RuntimeParameters runtime_params_;
-  ObjectDetectionParameters obj_detection_params_;
-  ObjectDetectionRuntimeParameters obj_rt_params_;
-  BatchParameters batch_params_;
-  CalibrationParameters calibration_params_;
+  sl::ERROR_CODE grab_state_;
+  sl::Camera zed_;
+  sl::InitParameters init_params_;
+  sl::RuntimeParameters runtime_params_;
+  sl::ObjectDetectionParameters obj_detection_params_;
+  sl::ObjectDetectionRuntimeParameters obj_rt_params_;
+  sl::BatchParameters batch_params_;
+  sl::CalibrationParameters calibration_params_;
   ZedMeasurements measurements_;
 
-  Objects detected_objects_;
+  sl::Objects detected_objects_;
 
-  MEM memory_type_;
+  sl::MEM memory_type_;
   bool successful_grab();
   std::string svo_;
 };
