@@ -32,6 +32,11 @@ ExecStart=/usr/bin/env $VISION_SYSTEM_DIR/$VISION_SYSTEM_EXECUTABLE
 Type=simple
 Restart=on-failure
 RestartSec=5
+Nice=-20
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=99
+LimitRTPRIO=infinity
+LimitRTTIME=infinity
 
 [Install]
 WantedBy=multi-user.target
