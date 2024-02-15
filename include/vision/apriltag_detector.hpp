@@ -10,7 +10,9 @@
 
 
 typedef struct {
+    /* xyz corners */
     sl::float4 corners[4];
+    sl::float4 center;
     int tag_id;
 } ZedAprilTag;
 

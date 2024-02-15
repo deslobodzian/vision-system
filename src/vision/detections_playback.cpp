@@ -54,6 +54,7 @@ void DetectionsPlayback::detect() {
         detector_.detect_objects(zed_);
         LOG_DEBUG("Detecting Tags");
         auto detectedTags = tag_detector_.detect_april_tags_in_sl_image(zed_.get_left_image(), zed_.get_cuda_stream());
+        auto zed_detected_tags = tag_detector_.calculate_zed_apriltag(zed_.get_point_cloud(), detectedTags);
         zed_.fetch_measurements(MeasurementType::OBJECTS);
         //auto detections = yolo_.predict(zed_.get_left_image());
         auto err = left_sl.setFrom(zed_.get_left_image(), sl::COPY_TYPE::GPU_CPU);
@@ -93,6 +94,9 @@ void DetectionsPlayback::detect() {
             cv::putText(left_cv, std::to_string(tag.id),
                     cv::Point(tag.corners[0].x, tag.corners[0].y),
                     cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 2);
+            //cv::putText(left_cv, xyz_text, 
+            //        cv::Point(tag.pixel_corners[3].x, tag.pixel_corners[3].y + 15),
+            //        cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0x00, 0xFF, 0xFF), 2);
         };
         if (left_cv.type() == CV_8UC3) {
         } else if (left_cv.type() == CV_8UC4) {

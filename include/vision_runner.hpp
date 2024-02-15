@@ -8,6 +8,7 @@
 #include "utils/task.hpp"
 #include "vision/object_detector.hpp"
 #include "networking/zmq_manager.hpp"
+#include "vision/apriltag_detector.hpp"
 
 class VisionRunner : public Task {
 public:
@@ -26,6 +27,7 @@ private:
     zed_config cfg_;
     ZedCamera camera_;
     ObjectDetector<ZedCamera> detector_;
+    ApriltagDetector tag_detector_;
 #else 
     MonocularCamera camera_;
     ObjectDetector<MonocularCamera> detector_;

@@ -95,14 +95,22 @@ std::vector<ZedAprilTag> ApriltagDetector::calculate_zed_apriltag(const sl::Mat&
 
     for (const auto& tag : detections) {
         ZedAprilTag z_tag;
+        sl::float4 center_position = {0, 0, 0, 0};
         for (int i = 0; i < 4; ++i) {
             sl::float4 point3D;
-            LOG_INFO("Corner ", i, ",: {", tag.corners[i].x, ", ", tag.corners[i].y, "}");
             point_cloud.getValue(tag.corners[i].x, tag.corners[i].y, &point3D);
             z_tag.corners[i] = point3D;
+            center_position.x = point3D.x;
+            center_position.y = point3D.y;
+            center_position.z = point3D.z;
         }
+        center_position.x /= 4.0f;
+        center_position.z /= 4.0f;
+        center_position.y /= 4.0f;
         z_tag.tag_id = tag.id;
+        z_tag.center = center_position;
     }
 
     return zed_tags;
 }
+

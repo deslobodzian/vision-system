@@ -47,6 +47,15 @@ VisionRunner::VisionRunner(
     cfg_.default_memory = sl::MEM::GPU;
     camera_.configure(cfg_);
     camera_.open();
+
+    sl::Resolution display_resolution = camera_.get_resolution();
+
+    uint32_t img_height = display_resolution.height;
+    uint32_t img_width = display_resolution.width;
+    uint32_t tile_size = 4; 
+    cuAprilTagsFamily tag_family = NVAT_TAG36H11; 
+    float tag_dim = 0.16f;
+    tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim);
 #endif
 }
 
@@ -67,8 +76,11 @@ void VisionRunner::run() {
     t.start();
 #ifdef WITH_CUDA 
     t.start();
-    camera_.fetch_measurements(MeasurementType::IMAGE_AND_OBJECTS);
+    camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
     detector_.detect_objects(camera_);
+    auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image(), camera_.get_cuda_stream());
+    auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), tags);
+    camera_.fetch_measurements(MeasurementType::OBJECTS);
     const sl::Objects& objects = camera_.retrieve_objects();
     LOG_DEBUG("Detected Objects: ", objects.object_list.size());
     std::vector<flatbuffers::Offset<Messages::VisionPose>> vision_pose_offsets;
@@ -80,13 +92,24 @@ void VisionRunner::run() {
 
     for (const auto& obj : objects.object_list) {
         auto vision_pose = Messages::CreateVisionPose(
-            builder, 
-            obj.id, 
-            obj.position.x, 
-            obj.position.y, 
-            obj.position.z, 
-            now_ms
-        );
+                builder, 
+                obj.id + 100, // I'm being lazy, object detection will be offset by 100 for april tags 
+                obj.position.x, 
+                obj.position.y, 
+                obj.position.z, 
+                now_ms
+                );
+        vision_pose_offsets.push_back(vision_pose);
+    }
+    for (const auto& tag : zed_tags) {
+        auto vision_pose = Messages::CreateVisionPose(
+                builder,
+                tag.tag_id,
+                tag.center.x,
+                tag.center.y,
+                tag.center.z,
+                now_ms // convert this to frame capture time as some point
+                );
         vision_pose_offsets.push_back(vision_pose);
     }
 
