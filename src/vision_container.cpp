@@ -10,6 +10,7 @@
 #include "vision/zed.hpp"
 #include <flatbuffers/flatbuffer_builder.h>
 #include "vision/apriltag_detector.hpp"
+#include <algorithm>
 
 VisionContainer::VisionContainer()
     : vision_runner_(nullptr), april_tag_runner_(nullptr),
@@ -49,31 +50,50 @@ void VisionContainer::zmq_heart_beat() {
 void VisionContainer::init() {
     LOG_INFO("Init Vision container called");
 
-    std::vector<sl::DeviceProperties> devList = sl::Camera::getDeviceList();
-    int nb_detected_zed = devList.size();
+    dev_list_ = sl::Camera::getDeviceList();
+    int nb_detected_zed = dev_list_.size();
 
 	for (int z = 0; z < nb_detected_zed; z++) {
-		std::cout << "ID : " << devList[z].id << " ,model : " << devList[z].camera_model << " , S/N : " << devList[z].serial_number << " , state : "<<devList[z].camera_state<<std::endl;
+		std::cout << "ID : " << dev_list_[z].id << " ,model : " << dev_list_[z].camera_model << " , S/N : " << dev_list_[z].serial_number << " , state : "<<dev_list_[z].camera_state<<std::endl;
+        serial_numbers_.push_back(dev_list_[z].serial_number);
 	}
 }
 
 void VisionContainer::run() {
     using namespace std::chrono_literals;
     using namespace std::chrono;
-    init();
-    vision_runner_ = task_manager_->create_task<VisionRunner>(
-            0.02,
-            "vision-runner",
-            zmq_manager_
-            );
-    vision_runner_->start();
 
-    april_tag_runner_ = task_manager_->create_task<AprilTagRunner>(
-            0.02,
-            "april-tag-runner",
-            zmq_manager_
-            );
-    april_tag_runner_->start();
+    const static unsigned int VISION_RUNNER_SN = 41535987;
+    const static unsigned int APRIL_TAG_RUNNER_SN = 47502321;
+    init();
+    auto has_vision_runner  = std::find(serial_numbers_.begin(), serial_numbers_.end(), VISION_RUNNER_SN);
+
+    if (has_vision_runner != serial_numbers_.end()) {
+        LOG_INFO("Vision Runner camera detected, starting task");
+        vision_runner_ = task_manager_->create_task<VisionRunner>(
+                0.02,
+                "vision-runner",
+                zmq_manager_
+                );
+        vision_runner_->start();
+    } else {
+        LOG_ERROR("No Vision Runner camera found, task not starting!");
+    }
+
+    auto has_april_tag_runner = std::find(serial_numbers_.begin(), serial_numbers_.end(), APRIL_TAG_RUNNER_SN);
+
+    if (has_april_tag_runner != serial_numbers_.end()) {
+        LOG_INFO("April Tag Runner camera detected, starting task");
+        april_tag_runner_ = task_manager_->create_task<AprilTagRunner>(
+                0.02,
+                "april-tag-runner",
+                zmq_manager_
+                );
+        april_tag_runner_->start();
+    } else {
+        LOG_ERROR("No April Tag Runner camera found, task not starting!");
+    }
+
 
     LOG_INFO("Starting Heart Beat task");
     PeriodicMemberFunction<VisionContainer> heart_beat(

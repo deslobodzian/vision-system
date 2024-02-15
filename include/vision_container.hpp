@@ -26,6 +26,10 @@ protected:
     std::shared_ptr<VisionRunner> vision_runner_;
     std::shared_ptr<AprilTagRunner> april_tag_runner_;
     std::shared_ptr<ZmqManager> zmq_manager_;
+
+    std::vector<sl::DeviceProperties> dev_list_;
+    std::vector<unsigned int> serial_numbers_;
+
 };
 
 #endif //VISION_SYSTEM_VISION_CONTAINER_HPP
