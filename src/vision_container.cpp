@@ -37,6 +37,7 @@ void drawBoundingBoxes(cv::Mat &image, const std::vector<BBoxInfo> &bboxes) {
     }
 }
 
+
 void VisionContainer::zmq_heart_beat() {
     using namespace std::chrono;
     auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch())
@@ -45,8 +46,24 @@ void VisionContainer::zmq_heart_beat() {
             "HeartBeat", Messages::CreateHeartBeat, 111, now);
 }
 
+void VisionContainer::april_tag_detection() {
+    using namespace std::chrono;
+    auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch())
+        .count();
+
+    zmq_manager_->get_publisher("main").publish(
+            "HeartBeat", Messages::CreateHeartBeat, 111, now);
+}
+
 void VisionContainer::init() {
     LOG_INFO("Init Vision container called");
+    std::vector<sl::DeviceProperties> devList = sl::Camera::getDeviceList();
+
+    int nb_detected_zed = devList.size();
+
+	for (int z = 0; z < nb_detected_zed; z++) {
+		std::cout << "ID : " << devList[z].id << " ,model : " << devList[z].camera_model << " , S/N : " << devList[z].serial_number << " , state : "<<devList[z].camera_state<<std::endl;
+	}
 }
 
 void VisionContainer::run() {
@@ -54,7 +71,7 @@ void VisionContainer::run() {
     using namespace std::chrono;
     init();
     vision_runner_ = task_manager_->create_task<VisionRunner>(
-            0.01,
+            0.02,
             "vision-runner",
             zmq_manager_
             );

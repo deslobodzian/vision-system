@@ -20,6 +20,7 @@ public:
 protected:
 
     void zmq_heart_beat();
+    void april_tag_detection();
 
     std::shared_ptr<TaskManager> task_manager_;
     std::shared_ptr<VisionRunner> vision_runner_;
