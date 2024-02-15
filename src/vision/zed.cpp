@@ -14,6 +14,9 @@ ZedCamera::ZedCamera()
     }
 
 void ZedCamera::configure(const zed_config &config) {
+    if (config.serial_number != 0) {
+        init_params_.input.setFromSerialNumber(config.serial_number);
+    }
     init_params_.camera_resolution = config.res;
     init_params_.camera_fps = config.fps;
     init_params_.camera_image_flip = config.flip_camera;

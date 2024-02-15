@@ -33,6 +33,9 @@ VisionRunner::VisionRunner(
         zmq_manager_(zmq_manager)
         {
 #ifdef WITH_CUDA
+    // Dennis's camera: 47502321
+    // Outliers's camera: 41535987
+    cfg_.serial_number = 41535987;
     cfg_.res = sl::RESOLUTION::SVGA;
     //cfg_.res = sl::RESOLUTION::VGA;
     cfg_.sdk_verbose = true;
@@ -76,10 +79,10 @@ void VisionRunner::run() {
     t.start();
 #ifdef WITH_CUDA 
     t.start();
-    camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
+    camera_.fetch_measurements(MeasurementType::IMAGE);
     detector_.detect_objects(camera_);
-    auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image(), camera_.get_cuda_stream());
-    auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), tags);
+    //auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image(), camera_.get_cuda_stream());
+    //auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), tags);
     camera_.fetch_measurements(MeasurementType::OBJECTS);
     const sl::Objects& objects = camera_.retrieve_objects();
     LOG_DEBUG("Detected Objects: ", objects.object_list.size());
@@ -101,17 +104,17 @@ void VisionRunner::run() {
                 );
         vision_pose_offsets.push_back(vision_pose);
     }
-    for (const auto& tag : zed_tags) {
-        auto vision_pose = Messages::CreateVisionPose(
-                builder,
-                tag.tag_id,
-                tag.center.x,
-                tag.center.y,
-                tag.center.z,
-                now_ms // convert this to frame capture time as some point
-                );
-        vision_pose_offsets.push_back(vision_pose);
-    }
+    //for (const auto& tag : zed_tags) {
+    //    auto vision_pose = Messages::CreateVisionPose(
+    //          builder,
+    //           tag.tag_id,
+    //            tag.center.x,
+    //           tag.center.y,
+    //            tag.center.z,
+    //            now_ms // convert this to frame capture time as some point
+    //            );
+    //    vision_pose_offsets.push_back(vision_pose);
+    //}
 
     auto poses_vector = builder.CreateVector(vision_pose_offsets);
     auto vision_pose_array = Messages::CreateVisionPoseArray(builder, poses_vector);

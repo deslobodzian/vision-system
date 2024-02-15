@@ -12,7 +12,7 @@
 #include "vision/apriltag_detector.hpp"
 
 VisionContainer::VisionContainer()
-    : vision_runner_(nullptr), 
+    : vision_runner_(nullptr), april_tag_runner_(nullptr),
     task_manager_(std::make_shared<TaskManager>()), zmq_manager_(std::make_shared<ZmqManager>()) {
         zmq_manager_->create_publisher("main", "tcp://*:5556");
     }
@@ -46,19 +46,10 @@ void VisionContainer::zmq_heart_beat() {
             "HeartBeat", Messages::CreateHeartBeat, 111, now);
 }
 
-void VisionContainer::april_tag_detection() {
-    using namespace std::chrono;
-    auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch())
-        .count();
-
-    zmq_manager_->get_publisher("main").publish(
-            "HeartBeat", Messages::CreateHeartBeat, 111, now);
-}
-
 void VisionContainer::init() {
     LOG_INFO("Init Vision container called");
-    std::vector<sl::DeviceProperties> devList = sl::Camera::getDeviceList();
 
+    std::vector<sl::DeviceProperties> devList = sl::Camera::getDeviceList();
     int nb_detected_zed = devList.size();
 
 	for (int z = 0; z < nb_detected_zed; z++) {
@@ -76,6 +67,13 @@ void VisionContainer::run() {
             zmq_manager_
             );
     vision_runner_->start();
+
+    april_tag_runner_ = task_manager_->create_task<AprilTagRunner>(
+            0.02,
+            "april-tag-runner",
+            zmq_manager_
+            );
+    april_tag_runner_->start();
 
     LOG_INFO("Starting Heart Beat task");
     PeriodicMemberFunction<VisionContainer> heart_beat(
