@@ -5,6 +5,7 @@
 
 static unsigned char* h_img = nullptr;
 static unsigned char* d_bgr = nullptr;
+static uchar3* d_april_tag_bgr = nullptr;
 static unsigned char* d_output = nullptr;
 
 __global__ void kernel_convert_to_bgr(unsigned char* input, unsigned char* output, int width, int height, size_t stride) {
@@ -119,15 +120,15 @@ void init_preprocess_resources(int image_width, int image_height, int input_widt
 }
 
 void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, cudaStream_t& stream) {
-    int image_width = left_img.getWidth();
-    int image_height = left_img.getHeight();
+    const int image_width = left_img.getWidth();
+    const int image_height = left_img.getHeight();
     LOG_DEBUG(image_width, ", ", image_height);
 
     // BCWH
-    int batch = d_input.shape()[0] - 1;
-    int input_width = d_input.shape()[2];
-    int input_height = d_input.shape()[3];
-    size_t frame_s = input_width * input_height;
+    const int batch = d_input.shape()[0] - 1;
+    const int input_width = d_input.shape()[2];
+    const int input_height = d_input.shape()[3];
+    const size_t frame_s = input_width * input_height;
     LOG_DEBUG(d_input.print_shape());
 
     if (d_input.device() != Device::GPU) {
@@ -234,8 +235,70 @@ void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& str
     //cv::imwrite(filename, kernel_out);
     //delete[] h_letter;
 }
+
+// stupid I should just change to uchar3 for both but I'm lazy :(
+__global__ void kernel_convert_to_bgr(unsigned char* input, uchar3* output, int width, int height, size_t stride) {
+    const int x = blockIdx.x * blockDim.x + threadIdx.x;
+    const int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if(x >= width || y >= height)
+        return;
+
+    const int inIdx = y * stride + x * 4;  
+    const int outIdx = y * width + x; 
+
+    uchar3 bgrPixel;
+    bgrPixel.x = input[inIdx];     // B
+    bgrPixel.y = input[inIdx + 1]; // G
+    bgrPixel.z = input[inIdx + 2]; // R
+
+    output[outIdx] = bgrPixel;
+}
+
+void init_april_tag_resources(int image_width, int image_height) {
+    LOG_INFO("Allocating cuda apriltag memory");
+    int max_image_width = image_width * 3;  
+    int max_image_height = image_height * 3;  
+    CUDA_CHECK(cudaMalloc(&d_april_tag_bgr, max_image_width * max_image_height * sizeof(uchar3)));
+}
+
+void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, cudaStream_t stream) {
+    cudaError_t err;
+    if (zed_mat.getChannels() != 4 || zed_mat.getDataType() != sl::MAT_TYPE::U8_C4) {
+        LOG_ERROR("Unsupported sl::Mat format: Expected RGBA U8");
+        return;
+    }
+
+    const int image_width = zed_mat.getWidth();
+    const int image_height = zed_mat.getHeight();
+    const size_t stride = zed_mat.getStepBytes(sl::MEM::GPU);
+
+    if (d_april_tag_bgr == nullptr) {
+        init_april_tag_resources(image_width, image_height);
+    }
+
+    dim3 block(16, 16);
+    dim3 grid((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
+
+    kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr, image_width, image_height, stride);
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        LOG_ERROR("kernel_convert_to_bgr launch failed: ", cudaGetErrorString(err));
+        return;
+    }
+
+    tag_input.dev_ptr = d_april_tag_bgr;
+    tag_input.pitch = 3 * image_width;
+    tag_input.width = static_cast<uint16_t>(image_width);
+    tag_input.height = static_cast<uint16_t>(image_height);
+}
+
 void free_preprocess_resources() {
     CUDA_CHECK(cudaFreeHost(h_img));
     CUDA_CHECK(cudaFree(d_bgr));
     CUDA_CHECK(cudaFree(d_output));
+}
+
+void free_april_tag_resources() {
+    CUDA_CHECK(cudaFree(d_april_tag_bgr));
 }

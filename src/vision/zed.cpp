@@ -112,6 +112,10 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
                 zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
                 zed_.retrieveMeasure(measurements_.depth_map, sl::MEASURE::DEPTH);
                 break;
+            case MeasurementType::IMAGE_AND_POINT_CLOUD:
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.retrieveMeasure(measurements_.point_cloud, sl::MEASURE::XYZ);
+                break;
             case MeasurementType::IMAGE_AND_OBJECTS:
                 zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
                 zed_.retrieveObjects(detected_objects_, obj_rt_params_);
@@ -122,7 +126,7 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
 
 sl::Mat ZedCamera::get_depth_map() const { return measurements_.depth_map; }
 
-sl::Mat ZedCamera::get_point_cloud() const { return measurements_.point_cloud; }
+const sl::Mat &ZedCamera::get_point_cloud() const { return measurements_.point_cloud; }
 
 const sl::Mat &ZedCamera::get_left_image() const {
     return measurements_.left_image;
@@ -154,12 +158,28 @@ const sl::Objects &ZedCamera::retrieve_objects() const { return detected_objects
 void ZedCamera::set_memory_type(const sl::MEM &memory) { memory_type_ = memory; }
 
 const sl::Resolution ZedCamera::get_resolution() const {
-    return getResolution(init_params_.camera_resolution);
+    LOG_DEBUG("Init_params res: ", init_params_.camera_resolution);
+    return sl::getResolution(init_params_.camera_resolution);
+}
+
+// requires camera to already be open
+const sl::Resolution ZedCamera::get_svo_resolution() {
+    if (successful_grab()) {
+        zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+    }
+    sl::Resolution res = measurements_.left_image.getResolution();
+    // reset frame position
+    zed_.setSVOPosition(0);
+    return res;
 }
 
 const sl::ERROR_CODE ZedCamera::get_grab_state() { return grab_state_; }
 
 void ZedCamera::close() { zed_.close(); }
+
+CUstream_st* ZedCamera::get_cuda_stream() {
+    return zed_.getCUDAStream();
+}
 
 void ZedCamera::synchronize_cuda_stream() {
     cudaStreamSynchronize(zed_.getCUDAStream());

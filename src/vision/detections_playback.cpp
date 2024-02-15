@@ -18,13 +18,25 @@ DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
     cfg.detection_confidence_threshold = 0.2f;
     cfg.enable_tracking = false;
 
+
     zed_.configure(cfg);
 
     zed_.open();
     zed_.enable_tracking();
-    display_resolution = zed_.get_resolution();
     zed_.enable_object_detection();
-    video_writer.open("output_video.avi", cv::CAP_FFMPEG, cv::VideoWriter::fourcc('X', 'V', 'I', 'D'), 30, cv::Size(960, 600), true);
+
+    display_resolution = zed_.get_svo_resolution();
+
+    uint32_t img_height = display_resolution.height;
+    uint32_t img_width = display_resolution.width;
+    LOG_INFO("Playback detection res: {", img_width, ", ", img_height, "}");
+    uint32_t tile_size = 4; 
+    cuAprilTagsFamily tag_family = NVAT_TAG36H11; 
+    float tag_dim = 0.16f;
+
+    tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim);
+
+    video_writer.open("output_video.avi", cv::CAP_FFMPEG, cv::VideoWriter::fourcc('X', 'V', 'I', 'D'), 30, cv::Size(display_resolution.width, display_resolution.height), true);
 }
 
 DetectionsPlayback::~DetectionsPlayback() {
@@ -36,10 +48,12 @@ void DetectionsPlayback::detect() {
     zed_.set_memory_type(sl::MEM::GPU);
     auto start = std::chrono::high_resolution_clock::now();
     while (running_) {
-        zed_.fetch_measurements(MeasurementType::IMAGE);
+        zed_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
         auto ret = zed_.get_grab_state();
         LOG_DEBUG("Zed image data type: ", zed_.get_left_image().getDataType());
         detector_.detect_objects(zed_);
+        LOG_DEBUG("Detecting Tags");
+        auto detectedTags = tag_detector_.detect_april_tags_in_sl_image(zed_.get_left_image(), zed_.get_cuda_stream());
         zed_.fetch_measurements(MeasurementType::OBJECTS);
         //auto detections = yolo_.predict(zed_.get_left_image());
         auto err = left_sl.setFrom(zed_.get_left_image(), sl::COPY_TYPE::GPU_CPU);
@@ -66,6 +80,20 @@ void DetectionsPlayback::detect() {
                     cv::Point(r.x, r.y + r.height + 15), // Positioning the text below the bounding box
                     cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0x00, 0xFF, 0xFF), 2);
         }
+
+        for (const auto& tag : detectedTags) {
+            // Draw tag outlines and IDs
+            LOG_INFO("Tag ID: ", tag.id);
+            for (int i = 0; i < 4; ++i) {
+                LOG_INFO("Corner ", i, ",: {", tag.corners[i].x, ", ", tag.corners[i].y, "}");
+                cv::line(left_cv, cv::Point(tag.corners[i].x, tag.corners[i].y),
+                        cv::Point(tag.corners[(i + 1) % 4].x, tag.corners[(i + 1) % 4].y),
+                        cv::Scalar(0, 255, 0), 2);
+            }
+            cv::putText(left_cv, std::to_string(tag.id),
+                    cv::Point(tag.corners[0].x, tag.corners[0].y),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 2);
+        };
         if (left_cv.type() == CV_8UC3) {
         } else if (left_cv.type() == CV_8UC4) {
             cv::Mat threeChannelMat;

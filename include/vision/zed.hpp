@@ -49,29 +49,30 @@ inline cv::Mat slMat_to_cvMat(const sl::Mat &input) {
 }
 
 enum class MeasurementType {
-    ALL,
-    IMAGE,
-    DEPTH,
-    SENSORS,
-    OBJECTS,
-    IMAGE_AND_SENSORS,
-    IMAGE_AND_DEPTH,
-    IMAGE_AND_OBJECTS, 
+  ALL,
+  IMAGE,
+  DEPTH,
+  SENSORS,
+  OBJECTS,
+  IMAGE_AND_SENSORS,
+  IMAGE_AND_DEPTH,
+  IMAGE_AND_POINT_CLOUD,
+  IMAGE_AND_OBJECTS,
 };
 
 typedef struct {
-    sl::Timestamp timestamp;
-    sl::Mat left_image;
-    sl::Pose camera_pose;
-    sl::Mat depth_map;
-    sl::Mat point_cloud;
-    sl::SensorsData sensor_data;
-    sl::SensorsData::IMUData imu_data;
+  sl::Timestamp timestamp;
+  sl::Mat left_image;
+  sl::Pose camera_pose;
+  sl::Mat depth_map;
+  sl::Mat point_cloud;
+  sl::SensorsData sensor_data;
+  sl::SensorsData::IMUData imu_data;
 } ZedMeasurements;
 
 struct zed_config {
-    sl::RESOLUTION res = sl::RESOLUTION::AUTO; // Defualt between cameras
-  int fps = 0;                         // use max unless specified.
+  sl::RESOLUTION res = sl::RESOLUTION::AUTO; // Defualt between cameras
+  int fps = 0;                               // use max unless specified.
   int flip_camera = sl::FLIP_MODE::AUTO;
   sl::DEPTH_MODE depth_mode = sl::DEPTH_MODE::ULTRA;
   bool sdk_verbose = false;
@@ -84,7 +85,8 @@ struct zed_config {
   bool enable_tracking = true;
   float prediction_timeout_s = 0.0f;
   bool enable_segmentation = false;
-  sl::OBJECT_DETECTION_MODEL model = sl::OBJECT_DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
+  sl::OBJECT_DETECTION_MODEL model =
+      sl::OBJECT_DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
 
   float detection_confidence_threshold = 0.5f;
 
@@ -117,18 +119,20 @@ public:
   int enable_object_detection();
 
   sl::Mat get_depth_map() const;
-  sl::Mat get_point_cloud() const;
-  const sl::Mat& get_left_image() const;
+  const sl::Mat &get_point_cloud() const;
+  const sl::Mat &get_left_image() const;
   void get_left_image(sl::Mat &img) const;
   sl::Pose get_camera_pose() const;
   sl::Timestamp get_measurement_timestamp() const;
   sl::SensorsData::IMUData get_imu_data() const;
   void ingest_custom_objects(std::vector<sl::CustomBoxObjectData> &objs);
-  const sl::Objects& retrieve_objects() const;
+  const sl::Objects &retrieve_objects() const;
   void set_memory_type(const sl::MEM &memory);
   const sl::ERROR_CODE get_grab_state();
 
   const sl::Resolution get_resolution() const;
+  const sl::Resolution get_svo_resolution();
+  CUstream_st *get_cuda_stream();
   void synchronize_cuda_stream();
   void close();
 

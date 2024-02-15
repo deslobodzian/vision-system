@@ -6,6 +6,7 @@
 #include <sl/Camera.hpp>
 #include "zed.hpp"
 #include "object_detector.hpp"
+#include "apriltag_detector.hpp"
 
 class DetectionsPlayback {
 public:
@@ -20,6 +21,7 @@ private:
     detection_config det_cfg;
     ZedCamera zed_;
     ObjectDetector<ZedCamera> detector_;
+    ApriltagDetector tag_detector_;
     //sl::Camera zed_;
     sl::Mat left_sl;
     sl::Resolution display_resolution;

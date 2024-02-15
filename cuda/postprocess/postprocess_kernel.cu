@@ -1,5 +1,6 @@
 #include "postprocess_kernel.h"
 
+// Based of off TensorRTX implementation, never tested
 static CudaBBoxInfo* d_bbox_infos = nullptr;
 static int* d_valid_count = nullptr;
 
@@ -35,9 +36,9 @@ static __global__ void nms_kernel(CudaBBoxInfo *bbox_infos, int num_boxes, float
             float iou = box_iou(currentBox, otherBox);
             if (iou > nms_threshold) {
                 if (currentBox.score >= otherBox.score) {
-                    bbox_infos[i].keep = 0; // Mark the other box for discard
+                    bbox_infos[i].keep = 0; 
                 } else {
-                    currentBox.keep = 0; // Mark current box for discard
+                    currentBox.keep = 0; 
                     bbox_infos[idx] = currentBox;
                     return;
                 }
@@ -55,8 +56,8 @@ static __global__ void postprocess_kernel(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_anchors) return;
 
-    float *bboxes_ptr = predictions + idx * (4 + num_classes); // Adjust if the layout differs
-    float *scores_ptr = bboxes_ptr + 4; // Assuming bbox has 4 values: x, y, w, h
+    float *bboxes_ptr = predictions + idx * (4 + num_classes); 
+    float *scores_ptr = bboxes_ptr + 4;
 
     float max_score = -1.0f;
     int best_class = -1;
@@ -96,7 +97,7 @@ static __global__ void postprocess_kernel(
 void init_postprocess_resources(int num_anchors) {
     cudaMalloc(&d_bbox_infos, num_anchors * sizeof(CudaBBoxInfo));
     cudaMalloc(&d_valid_count, sizeof(int));
-    cudaMemset(d_valid_count, 0, sizeof(int)); // Initialize valid count to 0
+    cudaMemset(d_valid_count, 0, sizeof(int));
 
 }
 

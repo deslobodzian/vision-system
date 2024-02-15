@@ -84,8 +84,10 @@ MODE args_interpreter(int argc, char **argv) {
         float tag_dim = 0.16f; 
 
 
-        ApriltagDetector detector(img_width, img_height, tile_size, tag_family, tag_dim);
-        auto detectedTags = detector.detectAprilTagsInCvImage(image);
+        ApriltagDetector detector;
+        detector.init_detector(img_width, img_height, tile_size, tag_family, tag_dim);
+
+        auto detectedTags = detector.detect_april_tags_in_cv_image(image);
 
         if (image.channels() == 1) {
             cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
