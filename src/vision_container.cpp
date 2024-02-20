@@ -48,10 +48,21 @@ void VisionContainer::zmq_heart_beat() {
 }
 
 void VisionContainer::init() {
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
     LOG_INFO("Init Vision container called");
+    int retries = 0;
 
     dev_list_ = sl::Camera::getDeviceList();
     int nb_detected_zed = dev_list_.size();
+
+    while (retries <= 5) {
+        if (nb_detected_zed <= 0) {
+            LOG_ERROR("Zed camera not detected, retrying after a second!");
+            retries++;
+            std::this_thread::sleep_for(1s);
+        }
+    }
 
 	for (int z = 0; z < nb_detected_zed; z++) {
 		std::cout << "ID : " << dev_list_[z].id << " ,model : " << dev_list_[z].camera_model << " , S/N : " << dev_list_[z].serial_number << " , state : "<<dev_list_[z].camera_state<<std::endl;
@@ -77,7 +88,8 @@ void VisionContainer::run() {
                 );
         vision_runner_->start();
     } else {
-        LOG_ERROR("No Vision Runner camera found, task not starting!");
+        LOG_ERROR("No Vision Runner camera found, task not starting and restating!");
+        return;
     }
 
     auto has_april_tag_runner = std::find(serial_numbers_.begin(), serial_numbers_.end(), APRIL_TAG_RUNNER_SN);

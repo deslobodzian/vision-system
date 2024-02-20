@@ -144,6 +144,6 @@ int main(int argc, char** argv) {
     VisionContainer container;
     container.run();
     signal(SIGINT, signal_callback_handler); 
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }
 
