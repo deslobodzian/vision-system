@@ -1,0 +1,9 @@
+// heart_beat.fbs
+namespace Messages;
+
+table UseDetection{
+	use_detection:bool;
+	timestamp:long;
+}
+
+root_type UseDetection;

@@ -14,9 +14,8 @@ public:
             subscriber_.connect(endpoint);
             subscriber_.set(zmq::sockopt::subscribe, topic_);
         }
-
-    template<typename T>
-    std::optional<T> receive() {
+        // This method now returns an optional pair containing the received topic and message data.
+    std::optional<std::pair<std::string, zmq::message_t>> receive() {
         zmq::message_t topic_msg;
         zmq::message_t data_msg;
 
@@ -28,14 +27,14 @@ public:
             return std::nullopt;
         }
 
-        auto verifier = flatbuffers::Verifier(static_cast<uint8_t*>(data_msg.data()), data_msg.size());
-        if (!T::Verify(verifier)) {
-            LOG_ERROR("Invalid message received");
-            return std::nullopt;
-        }
+        // Convert the topic message to string for returning.
+        std::string topic_received(static_cast<char*>(topic_msg.data()), topic_msg.size());
 
-        return T::Get(data_msg.data());
+        return std::make_optional(std::make_pair(std::move(topic_received), std::move(data_msg)));
     }
+
+
+
 
 private:
     zmq::context_t context_;

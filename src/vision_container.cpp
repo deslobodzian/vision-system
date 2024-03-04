@@ -16,6 +16,7 @@ VisionContainer::VisionContainer()
     : vision_runner_(nullptr), april_tag_runner_(nullptr),
     task_manager_(std::make_shared<TaskManager>()), zmq_manager_(std::make_shared<ZmqManager>()) {
         zmq_manager_->create_publisher("main", "tcp://*:5556");
+        zmq_manager_->create_subscriber("UseDetection", "tcp://*:5557");
     }
 
 void drawBoundingBoxes(cv::Mat &image, const std::vector<BBoxInfo> &bboxes) {
@@ -61,6 +62,8 @@ void VisionContainer::init() {
             LOG_ERROR("Zed camera not detected, retrying after a second!");
             retries++;
             std::this_thread::sleep_for(1s);
+        } else {
+            break;
         }
     }
 

@@ -31,6 +31,15 @@ public:
         }
     }
 
+    ZmqSubscriber& get_subscriber(const std::string& topic) {
+        auto it = subscribers_.find(topic);
+        if (it != subscribers_.end()) {
+            return *(it->second);
+        } else {
+            throw::std::runtime_error("Subscriber not found: " + topic);
+        }
+    }
+
 private:
     std::string publisher_endpoint_;
     std::map<std::string, std::unique_ptr<ZmqPublisher>> publishers_;
