@@ -1,3 +1,4 @@
+#ifdef WITH_CUDA
 #include "vision/apriltag_tracker.hpp"
 
 void ApriltagTracker::update(const std::vector<ZedAprilTag> &current_detections,
@@ -61,3 +62,4 @@ ApriltagTracker::calculate_velocity(const TagHistory &history) const {
 
   return velocity;
 }
+#endif /* WITH_CUDA */

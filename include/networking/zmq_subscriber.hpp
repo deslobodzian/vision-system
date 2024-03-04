@@ -10,9 +10,16 @@ class ZmqSubscriber {
 public:
     ZmqSubscriber(const std::string& topic, const std::string& endpoint)
         : topic_(topic), context_(1), subscriber_(context_, ZMQ_SUB) {
-            LOG_DEBUG("Subscriber created with topic: ", topic_);
+            int err = 0;
+            LOG_DEBUG("Connecting to endpoint: ", endpoint);
             subscriber_.connect(endpoint);
+            if (err == -1) {
+                LOG_ERROR("Failed to connect to endpoing: ", endpoint);
+            }
+            LOG_DEBUG("Connected to endpoint: ", endpoint);
             subscriber_.set(zmq::sockopt::subscribe, topic_);
+            LOG_DEBUG("Set subescriber to topic: ", topic_);
+            LOG_DEBUG("Subscriber created with topic: ", topic_);
         }
         // This method now returns an optional pair containing the received topic and message data.
     std::optional<std::pair<std::string, zmq::message_t>> receive() {

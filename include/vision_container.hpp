@@ -26,7 +26,9 @@ protected:
   std::shared_ptr<AprilTagRunner> april_tag_runner_;
   std::shared_ptr<ZmqManager> zmq_manager_;
 
+#ifdef WITH_CUDA
   std::vector<sl::DeviceProperties> dev_list_;
+#endif /* WITH_CUDA */ 
   std::vector<unsigned int> serial_numbers_;
 };
 

@@ -1,3 +1,4 @@
+#ifdef WITH_CUDA
 #include "vision/apriltag_detector.hpp"
 #include "utils/logger.hpp"
 #include <iostream>
@@ -113,4 +114,5 @@ std::vector<ZedAprilTag> ApriltagDetector::calculate_zed_apriltag(const sl::Mat&
 
     return zed_tags;
 }
+#endif /* WITH_CUDA */
 

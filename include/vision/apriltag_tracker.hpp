@@ -1,3 +1,4 @@
+#ifdef WITH_CUDA
 #ifndef VISION_SYSTEM_APRILTAG_TRACKER
 #define VISION_SYSTEM_APRILTAG_TRACKER
 
@@ -27,3 +28,4 @@ private:
 
 
 #endif /* VISION_SYSTEM_APRILTAG_TRACKER */
+#endif /* WITH_CUDA */
