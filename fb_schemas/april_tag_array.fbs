@@ -1,0 +1,11 @@
+// april_tag_array.fbs
+include "april_tag.fbs"; 
+
+namespace Messages;
+
+table AprilTagArray{
+  tags:[AprilTag]; 
+}
+
+root_type AprilTagArray;
+

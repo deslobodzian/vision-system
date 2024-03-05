@@ -118,6 +118,7 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
             case MeasurementType::IMAGE_AND_POINT_CLOUD:
                 zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
                 zed_.retrieveMeasure(measurements_.point_cloud, sl::MEASURE::XYZ);
+                zed_.retrieveMeasure(measurements_.normals, sl::MEASURE::NORMALS);
                 break;
             case MeasurementType::IMAGE_AND_OBJECTS:
                 zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
@@ -130,6 +131,8 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
 sl::Mat ZedCamera::get_depth_map() const { return measurements_.depth_map; }
 
 const sl::Mat &ZedCamera::get_point_cloud() const { return measurements_.point_cloud; }
+
+const sl::Mat &ZedCamera::get_normals() const { return measurements_.normals; }
 
 const sl::Mat &ZedCamera::get_left_image() const {
     return measurements_.left_image;

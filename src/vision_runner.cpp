@@ -6,6 +6,8 @@
 #include "utils/timer.h"
 #include "vision_pose_generated.h"
 #include "vision_pose_array_generated.h"
+#include "april_tag_generated.h"
+#include "april_tag_array_generated.h"
 #include "utils/zmq_flatbuffers_utils.hpp"
 #include <random>
 
@@ -93,7 +95,6 @@ void VisionRunner::run() {
 #ifdef WITH_CUDA 
 
     //auto msg = zmq_manager_->get_subscriber("UseDetetion").receive<Messages::VisionPose>();
-    std::vector<flatbuffers::Offset<Messages::VisionPose>> vision_pose_offsets;
     auto now = std::chrono::high_resolution_clock::now();
     auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     auto& builder = zmq_manager_->get_publisher("main").get_builder(); 
@@ -105,7 +106,8 @@ void VisionRunner::run() {
         detector_.detect_objects(camera_);
         camera_.fetch_measurements(MeasurementType::OBJECTS);
         const sl::Objects& objects = camera_.retrieve_objects();
-        std::string topic_name = "Objects";
+
+        std::vector<flatbuffers::Offset<Messages::VisionPose>> vision_pose_offsets;
         LOG_DEBUG("Detected Objects: ", objects.object_list.size());
 
         for (const auto& obj : objects.object_list) {
@@ -116,36 +118,54 @@ void VisionRunner::run() {
                     obj.position.y, 
                     obj.position.z, 
                     now_ms
-                    );
+            );
             vision_pose_offsets.push_back(vision_pose);
         }
+        auto poses_vector = builder.CreateVector(vision_pose_offsets);
+        auto vision_pose_array = Messages::CreateVisionPoseArray(builder, poses_vector);
 
+        builder.Finish(vision_pose_array);
+        zmq_manager_->get_publisher("main").publish_prebuilt(
+                topic_name,
+                builder.GetBufferPointer(),
+                builder.GetSize()  
+        );
     } else {
-        topic_name = "AprilTags";
+        topic_name = "BackAprilTags";
+        LOG_DEBUG("Using apriltag detection");
         camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
         auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image(), camera_.get_cuda_stream());
-        auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), tags);
+        auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), camera_.get_normals(), tags);
+        std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
+
+        auto current_ms  = t.get_ms();
         for (const auto& tag : zed_tags) {
-            auto vision_pose = Messages::CreateVisionPose(
+            auto april_tag = Messages::CreateAprilTag(
                     builder,
                     tag.tag_id,
                     tag.center.x,
                     tag.center.y,
                     tag.center.z,
-                    now_ms // convert this to frame capture time as some point
-                    );
-            vision_pose_offsets.push_back(vision_pose);
-        }
-    }
-    auto poses_vector = builder.CreateVector(vision_pose_offsets);
-    auto vision_pose_array = Messages::CreateVisionPoseArray(builder, poses_vector);
-
-    builder.Finish(vision_pose_array);
-    zmq_manager_->get_publisher("main").publish_prebuilt(
-            topic_name,
-            builder.GetBufferPointer(),
-            builder.GetSize()  
+                    tag.orientation.ow,
+                    tag.orientation.ox,
+                    tag.orientation.oy,
+                    tag.orientation.oz,
+                    current_ms // now just how long processing takes for latency (will roughly be 20ms)
             );
+            april_tag_offsets.push_back(april_tag);
+        }
+
+        auto tags_vector = builder.CreateVector(april_tag_offsets);
+        auto april_tags_array = Messages::CreateAprilTagArray(builder, tags_vector);
+
+        zmq_manager_->get_publisher("main").publish_prebuilt(
+                topic_name,
+                builder.GetBufferPointer(),
+                builder.GetSize()  
+        );
+
+        builder.Finish(april_tags_array);
+    }
     auto current_ms  = t.get_ms();
     LOG_DEBUG("Zed pipline took: ", current_ms, " ms");
 #endif

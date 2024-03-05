@@ -5,8 +5,8 @@
 #include "utils/logger.hpp"
 #include "utils/timer.h"
 #include "utils/zmq_flatbuffers_utils.hpp"
-#include "vision_pose_generated.h"
-#include "vision_pose_array_generated.h"
+#include "april_tag_generated.h"
+#include "april_tag_array_generated.h"
 #include "networking/zmq_subscriber.hpp"
 
 AprilTagRunner::AprilTagRunner(
@@ -68,33 +68,37 @@ void AprilTagRunner::run() {
         LOG_DEBUG("Using apriltag detection");
         camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
         auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image(), camera_.get_cuda_stream());
-        auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), tags);
-        std::vector<flatbuffers::Offset<Messages::VisionPose>> vision_pose_offsets;
+        auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), camera_.get_normals(), tags);
+        std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
 
         auto& builder = zmq_manager_->get_publisher("main").get_builder(); 
 
         auto current_ms  = t.get_ms();
         for (const auto& tag : zed_tags) {
-            auto vision_pose = Messages::CreateVisionPose(
+            auto april_tag = Messages::CreateAprilTag(
                     builder,
                     tag.tag_id,
                     tag.center.x,
                     tag.center.y,
                     tag.center.z,
+                    tag.orientation.ow,
+                    tag.orientation.ox,
+                    tag.orientation.oy,
+                    tag.orientation.oz,
                     current_ms // now just how long processing takes for latency (will roughly be 20ms)
                     );
-            vision_pose_offsets.push_back(vision_pose);
+            april_tag_offsets.push_back(april_tag);
         }
 
-        auto poses_vector = builder.CreateVector(vision_pose_offsets);
-        auto vision_pose_array = Messages::CreateVisionPoseArray(builder, poses_vector);
+        auto tags_vector = builder.CreateVector(april_tag_offsets);
+        auto april_tags_array = Messages::CreateAprilTagArray(builder, tags_vector);
 
         zmq_manager_->get_publisher("main").publish_prebuilt(
-                "AprilTags", 
+                "FrontAprilTags", 
                 builder.GetBufferPointer(),
                 builder.GetSize()  
                 );
-        builder.Finish(vision_pose_array);
+        builder.Finish(april_tags_array);
         current_ms  = t.get_ms();
         LOG_DEBUG("Zed pipline took: ", current_ms, " ms");
     } else {

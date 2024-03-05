@@ -91,28 +91,36 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(con
     return detected_tags;
 }
 
-std::vector<ZedAprilTag> ApriltagDetector::calculate_zed_apriltag(const sl::Mat& point_cloud, const std::vector<cuAprilTagsID_t>& detections) {
+std::vector<ZedAprilTag> ApriltagDetector::calculate_zed_apriltag(const sl::Mat& point_cloud, const sl::Mat& normals, const std::vector<cuAprilTagsID_t>& detections) {
     std::vector<ZedAprilTag> zed_tags;
 
     for (const auto& tag : detections) {
         ZedAprilTag z_tag;
-        sl::float4 center_position = {0, 0, 0, 0};
+        sl::float3 average_normal = {0, 0, 0};
+
         for (int i = 0; i < 4; ++i) {
             sl::float4 point3D;
             point_cloud.getValue(tag.corners[i].x, tag.corners[i].y, &point3D);
             z_tag.corners[i] = point3D;
-            center_position.x = point3D.x;
-            center_position.y = point3D.y;
-            center_position.z = point3D.z;
+            z_tag.center += point3D;
+
+            sl::float4 corner_normal;
+            normals.getValue(tag.corners[i].x, tag.corners[i].y, &corner_normal);
+            average_normal += sl::float3(corner_normal.x, corner_normal.y, corner_normal.z);
         }
-        center_position.x /= 4.0f;
-        center_position.z /= 4.0f;
-        center_position.y /= 4.0f;
+
+        z_tag.center /= 4.0f;
+        average_normal /= 4.0f;
+        sl::Orientation orientation = compute_orientation_from_normal(average_normal);
+        z_tag.orientation = orientation;
+
         z_tag.tag_id = tag.id;
-        z_tag.center = center_position;
+        zed_tags.push_back(z_tag); 
     }
 
     return zed_tags;
 }
+
+
 #endif /* WITH_CUDA */
 

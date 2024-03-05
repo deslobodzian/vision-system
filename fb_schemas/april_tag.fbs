@@ -1,0 +1,14 @@
+// april_tag.fbs
+namespace Messages;
+
+table AprilTag {
+  id:int;
+  x:float;
+  y:float;
+  z:float;
+  qw:float;
+  qx:float;
+  qy:float;
+  qz:float;
+  timestamp:long;
+}
