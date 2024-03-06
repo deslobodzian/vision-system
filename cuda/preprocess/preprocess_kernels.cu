@@ -2,6 +2,7 @@
 #include "utils/logger.hpp"
 // #include <opencv2/opencv.hpp> 
 
+
 static unsigned char* h_img = nullptr;
 static unsigned char* d_bgr = nullptr;
 static uchar3* d_april_tag_bgr = nullptr;
@@ -118,16 +119,7 @@ void init_preprocess_resources(int image_width, int image_height, int input_widt
     CUDA_CHECK(cudaMalloc(&d_output, input_width * input_height * 3 * sizeof(unsigned char)));
 }
 
-
-void init_preprocess_resources(kernel_resources& resources, int image_width, int image_height, int input_width, int input_height) {
-    LOG_INFO("Allocating cuda memory with kernel_resources");
-    resources.max_image_width = image_width * 3;
-    resources.max_image_height = image_height * 3;
-    CUDA_CHECK(cudaMalloc(&resources.d_bgr, resources.max_image_width * resources.max_image_height * 3 * sizeof(unsigned char)));
-    CUDA_CHECK(cudaMalloc(&resources.d_output, input_width * input_height * 3 * sizeof(unsigned char)));
-}
-
-void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, kernel_resources& resources, cudaStream_t& stream) {
+void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, cudaStream_t& stream) {
     const int image_width = left_img.getWidth();
     const int image_height = left_img.getHeight();
     LOG_DEBUG(image_width, ", ", image_height);
@@ -142,31 +134,31 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, kernel_resou
     if (d_input.device() != Device::GPU) {
         d_input.to_gpu();
     }
-    if (resources.d_bgr == nullptr || resources.d_output == nullptr) {
-        init_preprocess_resources(resources, image_width, image_height, input_width, input_height);
-    }
 
+    if (d_bgr == nullptr || d_output == nullptr) {
+        init_preprocess_resources(image_width, image_height, input_width, input_height);
+    }
     cudaError_t err;
 
     dim3 block(32, 32);
     dim3 grid_input((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
     dim3 grid_output((input_width + block.x - 1) / block.x, (input_height + block.y - 1) / block.y);
     
-    kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(left_img.getPtr<sl::uchar1>(sl::MEM::GPU), resources.d_bgr, image_width, image_height, left_img.getStepBytes(sl::MEM::GPU));
+    kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(left_img.getPtr<sl::uchar1>(sl::MEM::GPU), d_bgr, image_width, image_height, left_img.getStepBytes(sl::MEM::GPU));
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
         return;
     }
 
-    kernel_preprocess_letterbox<<<grid_output, block, 0, stream>>>(resources.d_bgr, resources.d_output, input_width, input_height, image_width, image_height);
+    kernel_preprocess_letterbox<<<grid_output, block, 0, stream>>>(d_bgr, d_output, input_width, input_height, image_width, image_height);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("kernel_preprocess_and_letterbox launch failed: %s\n", cudaGetErrorString(err));
         return;
     }
 
-    kernel_preprocess_to_tensor<<<grid_output, block, 0, stream>>>(resources.d_output, d_input.data(), input_height, input_width, frame_s, batch);
+    kernel_preprocess_to_tensor<<<grid_output, block, 0, stream>>>(d_output, d_input.data(), input_height, input_width, frame_s, batch);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("kernel_preprocess_to_tensor launch failed: %s\n", cudaGetErrorString(err));
@@ -263,14 +255,14 @@ __global__ void kernel_convert_to_bgr(unsigned char* input, uchar3* output, int 
     output[outIdx] = bgrPixel;
 }
 
-void init_april_tag_resources(kernel_resources& resources, int image_width, int image_height) {
-    resources.max_image_width = image_width * 3;
-    resources.max_image_height = image_height * 3;
-    CUDA_CHECK(cudaMalloc(&resources.d_april_tag_bgr, resources.max_image_width * resources.max_image_height * sizeof(uchar3)));
+void init_april_tag_resources(int image_width, int image_height) {
+    LOG_INFO("Allocating cuda apriltag memory");
+    int max_image_width = image_width * 3;  
+    int max_image_height = image_height * 3;  
+    CUDA_CHECK(cudaMalloc(&d_april_tag_bgr, max_image_width * max_image_height * sizeof(uchar3)));
 }
 
-
-void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, kernel_resources& resources, cudaStream_t stream) {
+void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, cudaStream_t stream) {
     cudaError_t err;
     if (zed_mat.getChannels() != 4 || zed_mat.getDataType() != sl::MAT_TYPE::U8_C4) {
         LOG_ERROR("Unsupported sl::Mat format: Expected RGBA U8");
@@ -281,21 +273,21 @@ void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageI
     const int image_height = zed_mat.getHeight();
     const size_t stride = zed_mat.getStepBytes(sl::MEM::GPU);
 
-    if (resources.d_april_tag_bgr == nullptr) {
-        init_april_tag_resources(resources, image_width, image_height);
+    if (d_april_tag_bgr == nullptr) {
+        init_april_tag_resources(image_width, image_height);
     }
 
     dim3 block(16, 16);
     dim3 grid((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
 
-    kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), resources.d_april_tag_bgr, image_width, image_height, stride);
+    kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr, image_width, image_height, stride);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         LOG_ERROR("kernel_convert_to_bgr launch failed: ", cudaGetErrorString(err));
         return;
     }
 
-    tag_input.dev_ptr = resources.d_april_tag_bgr;
+    tag_input.dev_ptr = d_april_tag_bgr;
     tag_input.pitch = 3 * image_width;
     tag_input.width = static_cast<uint16_t>(image_width);
     tag_input.height = static_cast<uint16_t>(image_height);
@@ -309,13 +301,4 @@ void free_preprocess_resources() {
 
 void free_april_tag_resources() {
     CUDA_CHECK(cudaFree(d_april_tag_bgr));
-}
-
-void free_preprocess_resources(kernel_resources& resources) {
-    CUDA_CHECK(cudaFree(resources.d_bgr));
-    CUDA_CHECK(cudaFree(resources.d_output));
-}
-
-void free_april_tag_resources(kernel_resources& resources) {
-    CUDA_CHECK(cudaFree(resources.d_april_tag_bgr));
 }

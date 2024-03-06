@@ -3,6 +3,7 @@
 #include "vision/apriltag_detector.hpp"
 #include "utils/logger.hpp"
 #include <iostream>
+#include "preprocess_kernels.h"
 
 bool convert_mat_to_cu_april_tags_image_input(const cv::Mat& image, cuAprilTagsImageInput_t& img_input) {
     if (image.type() != CV_8UC3) {
@@ -82,14 +83,14 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_cv_image(con
 }
 
 std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat& sl_image) {
-    timer_.start();
-    convert_sl_mat_to_april_tag_input(sl_image, input_image_, resources_, cuda_stream_);
+    convert_sl_mat_to_april_tag_input(sl_image, input_image_, cuda_stream_);
     LOG_DEBUG("Mat conversion took: ", timer_.get_nanoseconds(), " ns");
     cudaStreamSynchronize(cuda_stream_);
 
+    timer_.start();
     std::vector<cuAprilTagsID_t> detected_tags = detect_tags(input_image_);
     cudaStreamSynchronize(cuda_stream_);
-    LOG_DEBUG("Tag detection took: ", timer_.get_ms(), " ms");
+    LOG_DEBUG("Tag detection took: ", timer_.get_nanoseconds(), " ns");
 
     return detected_tags;
 }
@@ -103,7 +104,6 @@ std::vector<ZedAprilTag> ApriltagDetector::calculate_zed_apriltag(const sl::Mat&
 
         for (int i = 0; i < 4; ++i) {
             sl::float4 point3D;
-
             point_cloud.getValue(tag.corners[i].x, tag.corners[i].y, &point3D);
             z_tag.corners[i] = point3D;
             z_tag.center += point3D;
