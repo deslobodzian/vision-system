@@ -127,7 +127,7 @@ void VisionRunner::run() {
         );
     } else {
         camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
-        auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image());
+        auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image(), true);
         auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), camera_.get_normals(), tags);
 
         const auto apriltag_detection_time = high_resolution_clock::now();

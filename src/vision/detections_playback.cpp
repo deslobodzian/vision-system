@@ -53,7 +53,7 @@ void DetectionsPlayback::detect() {
         LOG_DEBUG("Zed image data type: ", zed_.get_left_image().getDataType());
         detector_.detect_objects(zed_);
         LOG_DEBUG("Detecting Tags");
-        auto detectedTags = tag_detector_.detect_april_tags_in_sl_image(zed_.get_left_image());
+        auto detectedTags = tag_detector_.detect_april_tags_in_sl_image(zed_.get_left_image(), true);
         auto zed_detected_tags = tag_detector_.calculate_zed_apriltag(zed_.get_point_cloud(), zed_.get_normals(), detectedTags);
         zed_.fetch_measurements(MeasurementType::OBJECTS);
         //auto detections = yolo_.predict(zed_.get_left_image());
