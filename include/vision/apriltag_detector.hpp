@@ -29,7 +29,7 @@ public:
 
     std::vector<cuAprilTagsID_t> detect_tags(const cuAprilTagsImageInput_t& img_input);
     std::vector<cuAprilTagsID_t> detect_april_tags_in_cv_image( const cv::Mat& cvImage); 
-    std::vector<cuAprilTagsID_t> detect_april_tags_in_sl_image(const sl::Mat& sl_image, bool is_cam_0);
+    std::vector<cuAprilTagsID_t> detect_april_tags_in_sl_image(const sl::Mat& sl_image);
     std::vector<ZedAprilTag> calculate_zed_apriltag(const sl::Mat& point_cloud, const sl::Mat& normals, const std::vector<cuAprilTagsID_t>& detetions);
 
 private:

@@ -6,7 +6,6 @@
 static unsigned char* h_img = nullptr;
 static unsigned char* d_bgr = nullptr;
 static uchar3* d_april_tag_bgr = nullptr;
-static uchar3* d_april_tag_bgr_1= nullptr;
 static unsigned char* d_output = nullptr;
 
 __global__ void kernel_convert_to_bgr(unsigned char* input, unsigned char* output, int width, int height, size_t stride) {
@@ -261,10 +260,9 @@ void init_april_tag_resources(int image_width, int image_height) {
     int max_image_width = image_width * 3;  
     int max_image_height = image_height * 3;  
     CUDA_CHECK(cudaMalloc(&d_april_tag_bgr, max_image_width * max_image_height * sizeof(uchar3)));
-    CUDA_CHECK(cudaMalloc(&d_april_tag_bgr_1, max_image_width * max_image_height * sizeof(uchar3)));
 }
 
-void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, cudaStream_t stream, bool is_cam_0) {
+void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, cudaStream_t stream) {
     cudaError_t err;
     if (zed_mat.getChannels() != 4 || zed_mat.getDataType() != sl::MAT_TYPE::U8_C4) {
         LOG_ERROR("Unsupported sl::Mat format: Expected RGBA U8");
@@ -282,19 +280,14 @@ void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageI
     dim3 block(16, 16);
     dim3 grid((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
 
-    if (is_cam_0) {
-        kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr, image_width, image_height, stride);
-        tag_input.dev_ptr = d_april_tag_bgr;
-    } else {
-        kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr_1, image_width, image_height, stride);
-        tag_input.dev_ptr = d_april_tag_bgr_1;
-    }
+    kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr, image_width, image_height, stride);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         LOG_ERROR("kernel_convert_to_bgr launch failed: ", cudaGetErrorString(err));
         return;
     }
 
+    tag_input.dev_ptr = d_april_tag_bgr;
     tag_input.pitch = 3 * image_width;
     tag_input.width = static_cast<uint16_t>(image_width);
     tag_input.height = static_cast<uint16_t>(image_height);

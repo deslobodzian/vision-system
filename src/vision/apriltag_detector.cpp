@@ -82,8 +82,8 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_cv_image(con
     return detected_tags;
 }
 
-std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat& sl_image, bool is_cam_0) {
-    convert_sl_mat_to_april_tag_input(sl_image, input_image_, cuda_stream_, is_cam_0);
+std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat& sl_image) {
+    convert_sl_mat_to_april_tag_input(sl_image, input_image_, cuda_stream_);
     LOG_DEBUG("Mat conversion took: ", timer_.get_nanoseconds(), " ns");
     cudaStreamSynchronize(cuda_stream_);
 
