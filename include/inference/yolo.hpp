@@ -34,6 +34,7 @@ class Yolo : public IModel<MatType> {
         std::unique_ptr<IInferenceEngine> inference_engine_;
         std::string model_;
         detection_config cfg_;
+        kernel_resources resources_;
 
         int input_h_;
         int input_w_;
@@ -87,7 +88,7 @@ void Yolo<MatType>::preprocess(const MatType &image) {
     } else {
 #ifdef WITH_CUDA
         LOG_DEBUG("Using sl::Mat");
-        preprocess_sl(image, inference_engine_->get_input_tensor(), stream_);
+        preprocess_sl(image, inference_engine_->get_input_tensor(), resources_, stream_);
 #else
         LOG_ERROR("No Cuda, use cpu cv::Mat");
 #endif
