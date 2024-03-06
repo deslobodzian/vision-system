@@ -7,6 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include "vision/zed.hpp"
+#include "utils/timer.h"
 
 
 typedef struct {
@@ -28,13 +29,15 @@ public:
 
     std::vector<cuAprilTagsID_t> detect_tags(const cuAprilTagsImageInput_t& img_input);
     std::vector<cuAprilTagsID_t> detect_april_tags_in_cv_image( const cv::Mat& cvImage); 
-    std::vector<cuAprilTagsID_t> detect_april_tags_in_sl_image(const sl::Mat& sl_image, CUstream_st* stream);
+    std::vector<cuAprilTagsID_t> detect_april_tags_in_sl_image(const sl::Mat& sl_image);
     std::vector<ZedAprilTag> calculate_zed_apriltag(const sl::Mat& point_cloud, const sl::Mat& normals, const std::vector<cuAprilTagsID_t>& detetions);
 
 private:
+    Timer timer_;
     cuAprilTagsHandle h_apriltags = nullptr;
     cuAprilTagsImageInput_t input_image_;
-    uint32_t max_tags = 50;
+    cudaStream_t cuda_stream_;
+    const uint32_t max_tags;
 };
 
 #endif /* VISION_SYSTEM_APRILTAG_DETECTOR_HPP */

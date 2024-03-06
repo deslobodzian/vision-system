@@ -54,16 +54,13 @@ VisionRunner::VisionRunner(
     camera_.configure(cfg_);
     camera_.open();
 
-    sl::Resolution display_resolution = camera_.get_resolution();
-
-    uint32_t img_height = display_resolution.height;
-    uint32_t img_width = display_resolution.width;
-    uint32_t tile_size = 4; 
-    cuAprilTagsFamily tag_family = NVAT_TAG36H11; 
-    float tag_dim = 0.16f;
+    const sl::Resolution display_resolution = camera_.get_resolution();
+    const uint32_t img_height = display_resolution.height;
+    const uint32_t img_width = display_resolution.width;
+    constexpr uint32_t tile_size = 4; 
+    constexpr cuAprilTagsFamily tag_family = NVAT_TAG36H11; 
+    constexpr float tag_dim = 0.16f;
     tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim);
-
-
 #endif
 }
 
@@ -80,44 +77,42 @@ void VisionRunner::init() {
 }
 
 void VisionRunner::run() {
-    Timer t;
-    t.start();
-    bool use_detection;
+    using namespace std::chrono;
 
-    auto received = zmq_manager_->get_subscriber("UseDetection").receive();
-    const auto& [topic, msg] = *received;
-    if (received) {
-            const auto& [topic, msg] = *received;
-            if (topic == "UseDetection") { 
-                use_detection = process_use_detection(msg);
-            }
+    bool use_detection = false;
+
+    if (const auto received = zmq_manager_->get_subscriber("UseDetection").receive()) {
+        const auto& [topic, msg] = *received;
+        if (topic == "UseDetection") { 
+            use_detection = process_use_detection(msg);
+        }
     }
-#ifdef WITH_CUDA 
 
-    //auto msg = zmq_manager_->get_subscriber("UseDetetion").receive<Messages::VisionPose>();
-    auto now = std::chrono::high_resolution_clock::now();
-    auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+#ifdef WITH_CUDA 
+    const auto start_time = high_resolution_clock::now();
     auto& builder = zmq_manager_->get_publisher("main").get_builder(); 
-    // default to objects
-    std::string topic_name = "Objects";
+    const char* topic_name = use_detection ? "Objects" : "BackAprilTags";
+
     if (use_detection) {
-        topic_name = "Objects";
         camera_.fetch_measurements(MeasurementType::IMAGE);
         detector_.detect_objects(camera_);
         camera_.fetch_measurements(MeasurementType::OBJECTS);
         const sl::Objects& objects = camera_.retrieve_objects();
 
+        const auto object_detection_time = high_resolution_clock::now();
+        const auto object_detection_ms = duration_cast<milliseconds>(object_detection_time - start_time).count();
+
         std::vector<flatbuffers::Offset<Messages::VisionPose>> vision_pose_offsets;
-        LOG_DEBUG("Detected Objects: ", objects.object_list.size());
+        vision_pose_offsets.reserve(objects.object_list.size());
 
         for (const auto& obj : objects.object_list) {
             auto vision_pose = Messages::CreateVisionPose(
                     builder, 
-                    obj.id + 100, // I'm being lazy, object detection will be offset by 100 for april tags 
+                    obj.id + 100,
                     obj.position.x, 
                     obj.position.y, 
                     obj.position.z, 
-                    now_ms
+                    object_detection_ms
             );
             vision_pose_offsets.push_back(vision_pose);
         }
@@ -131,14 +126,16 @@ void VisionRunner::run() {
                 builder.GetSize()  
         );
     } else {
-        topic_name = "BackAprilTags";
-        LOG_DEBUG("Using apriltag detection");
         camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
-        auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image(), camera_.get_cuda_stream());
+        auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image());
         auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), camera_.get_normals(), tags);
-        std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
 
-        auto current_ms  = t.get_ms();
+        const auto apriltag_detection_time = high_resolution_clock::now();
+        const auto apriltag_detection_ms = duration_cast<milliseconds>(apriltag_detection_time - start_time).count();
+
+        std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
+        april_tag_offsets.reserve(zed_tags.size());
+
         for (const auto& tag : zed_tags) {
             auto april_tag = Messages::CreateAprilTag(
                     builder,
@@ -150,7 +147,7 @@ void VisionRunner::run() {
                     tag.orientation.ox,
                     tag.orientation.oy,
                     tag.orientation.oz,
-                    current_ms // now just how long processing takes for latency (will roughly be 20ms)
+                    apriltag_detection_ms
             );
             april_tag_offsets.push_back(april_tag);
         }
@@ -158,16 +155,13 @@ void VisionRunner::run() {
         auto tags_vector = builder.CreateVector(april_tag_offsets);
         auto april_tags_array = Messages::CreateAprilTagArray(builder, tags_vector);
 
+        builder.Finish(april_tags_array);
         zmq_manager_->get_publisher("main").publish_prebuilt(
                 topic_name,
                 builder.GetBufferPointer(),
                 builder.GetSize()  
         );
-
-        builder.Finish(april_tags_array);
     }
-    auto current_ms  = t.get_ms();
-    LOG_DEBUG("Zed pipline took: ", current_ms, " ms");
 #endif
 /*
  *

@@ -67,7 +67,7 @@ void AprilTagRunner::run() {
     if (!use_detection) {
         LOG_DEBUG("Using apriltag detection");
         camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
-        auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image(), camera_.get_cuda_stream());
+        auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image());
         auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), camera_.get_normals(), tags);
         std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
 

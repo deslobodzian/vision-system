@@ -11,8 +11,7 @@ class ZmqManager {
 public:
     ZmqManager() = default;
 
-    ~ZmqManager() {
-    }
+    ~ZmqManager() {}
 
     void create_publisher(const std::string& name, const std::string& endpoint) {
         publishers_[name] = std::make_unique<ZmqPublisher>(endpoint);
@@ -23,25 +22,14 @@ public:
     }
 
     ZmqPublisher& get_publisher(const std::string& name) {
-        auto it = publishers_.find(name);
-        if (it != publishers_.end()) {
-            return *(it->second);
-        } else {
-            throw::std::runtime_error("Publisher not found: " + name);
-        }
+        return *publishers_.at(name);
     }
 
     ZmqSubscriber& get_subscriber(const std::string& topic) {
-        auto it = subscribers_.find(topic);
-        if (it != subscribers_.end()) {
-            return *(it->second);
-        } else {
-            throw::std::runtime_error("Subscriber not found: " + topic);
-        }
+        return *subscribers_.at(topic);
     }
 
 private:
-    std::string publisher_endpoint_;
     std::map<std::string, std::unique_ptr<ZmqPublisher>> publishers_;
     std::map<std::string, std::unique_ptr<ZmqSubscriber>> subscribers_;
 

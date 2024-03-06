@@ -9,9 +9,10 @@
 class ZmqPublisher {
 public:
     ZmqPublisher(const std::string& endpoint)
-        : context_(1), publisher_(context_, ZMQ_PUB) {
+        : publisher_(ZmqPublisher::context_, ZMQ_PUB) {
             publisher_.bind(endpoint);
-            LOG_DEBUG("Created publisher with endpoint: ", endpoint);
+            publisher_.set(zmq::sockopt::sndhwm, 1000); // Adjust the value based on your requirements
+            LOG_DEBUG("Binded to endpoint: ", endpoint);
         }
 
     template<typename Func, typename... Args>
@@ -32,13 +33,12 @@ public:
         send_message(topic, data, size);
     }
 
-
     flatbuffers::FlatBufferBuilder& get_builder() {
         return builder_;
     }
 
 private:
-    zmq::context_t context_;
+    static inline zmq::context_t context_{1};
     zmq::socket_t publisher_;
     flatbuffers::FlatBufferBuilder builder_;
     std::mutex mtx_;
@@ -46,9 +46,10 @@ private:
     void send_message(const std::string& topic, const uint8_t* data, size_t size) {
         zmq::message_t topic_msg(topic.data(), topic.size());
         zmq::message_t data_msg(data, size);
-        publisher_.send(topic_msg, zmq::send_flags::sndmore);
-        publisher_.send(data_msg, zmq::send_flags::none);
+        publisher_.send(topic_msg, zmq::send_flags::sndmore | zmq::send_flags::dontwait);
+        publisher_.send(data_msg, zmq::send_flags::dontwait);
     }
 };
+
 
 #endif /* VISION_SYSTEM_ZMQ_PUBLISHER_HPP */

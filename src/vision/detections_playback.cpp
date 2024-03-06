@@ -53,7 +53,7 @@ void DetectionsPlayback::detect() {
         LOG_DEBUG("Zed image data type: ", zed_.get_left_image().getDataType());
         detector_.detect_objects(zed_);
         LOG_DEBUG("Detecting Tags");
-        auto detectedTags = tag_detector_.detect_april_tags_in_sl_image(zed_.get_left_image(), zed_.get_cuda_stream());
+        auto detectedTags = tag_detector_.detect_april_tags_in_sl_image(zed_.get_left_image());
         auto zed_detected_tags = tag_detector_.calculate_zed_apriltag(zed_.get_point_cloud(), zed_.get_normals(), detectedTags);
         zed_.fetch_measurements(MeasurementType::OBJECTS);
         //auto detections = yolo_.predict(zed_.get_left_image());
@@ -81,23 +81,43 @@ void DetectionsPlayback::detect() {
                     cv::Point(r.x, r.y + r.height + 15), // Positioning the text below the bounding box
                     cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0x00, 0xFF, 0xFF), 2);
         }
-
-        for (const auto& tag : detectedTags) {
-            // Draw tag outlines and IDs
-            LOG_INFO("Tag ID: ", tag.id);
+        for (const auto& tag : zed_detected_tags) {
+            LOG_INFO("Tag ID: ", tag.tag_id);
             for (int i = 0; i < 4; ++i) {
                 LOG_INFO("Corner ", i, ",: {", tag.corners[i].x, ", ", tag.corners[i].y, "}");
                 cv::line(left_cv, cv::Point(tag.corners[i].x, tag.corners[i].y),
                         cv::Point(tag.corners[(i + 1) % 4].x, tag.corners[(i + 1) % 4].y),
                         cv::Scalar(0, 255, 0), 2);
             }
-            cv::putText(left_cv, std::to_string(tag.id),
+            cv::putText(left_cv, std::to_string(tag.tag_id),
                     cv::Point(tag.corners[0].x, tag.corners[0].y),
                     cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 2);
-            //cv::putText(left_cv, xyz_text, 
-            //        cv::Point(tag.pixel_corners[3].x, tag.pixel_corners[3].y + 15),
-            //        cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0x00, 0xFF, 0xFF), 2);
-        };
+
+            sl::float3 center(tag.center.x, tag.center.y, tag.center.z);
+            sl::Rotation rotation = tag.orientation.getRotationMatrix();
+
+            sl::float3 rotation_vector = rotation.getRotationVector();
+
+            float yaw = rotation_vector.z;
+            float pitch = rotation_vector.y;
+            float roll = rotation_vector.x;
+
+            sl::float3 yaw_axis(std::cos(yaw), std::sin(yaw), 0);
+            sl::float2 yaw_end(center.x + yaw_axis.x * 20.0f, center.y + yaw_axis.y * 20.0f);
+            cv::arrowedLine(left_cv, cv::Point(center.x, center.y), cv::Point(yaw_end.x, yaw_end.y),
+                    cv::Scalar(0, 0, 255), 2);
+
+            sl::float3 pitch_axis(-std::sin(pitch) * std::sin(yaw), std::sin(pitch) * std::cos(yaw), std::cos(pitch));
+            sl::float2 pitch_end(center.x + pitch_axis.x * 20.0f, center.y + pitch_axis.y * 20.0f);
+            cv::arrowedLine(left_cv, cv::Point(center.x, center.y), cv::Point(pitch_end.x, pitch_end.y),
+                    cv::Scalar(0, 255, 0), 2);
+
+            sl::float3 roll_axis(std::cos(roll) * std::cos(yaw), std::cos(roll) * std::sin(yaw), -std::sin(roll));
+            sl::float2 roll_end(center.x + roll_axis.x * 20.0f, center.y + roll_axis.y * 20.0f);
+            cv::arrowedLine(left_cv, cv::Point(center.x, center.y), cv::Point(roll_end.x, roll_end.y),
+                    cv::Scalar(255, 0, 0), 2);
+        }
+
         if (left_cv.type() == CV_8UC3) {
         } else if (left_cv.type() == CV_8UC4) {
             cv::Mat threeChannelMat;

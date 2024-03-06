@@ -1,8 +1,8 @@
+#include <cuda_runtime_api.h>
 #ifdef WITH_CUDA
 #include "vision/apriltag_detector.hpp"
 #include "utils/logger.hpp"
 #include <iostream>
-#include "utils/timer.h"
 #include "preprocess_kernels.h"
 
 bool convert_mat_to_cu_april_tags_image_input(const cv::Mat& image, cuAprilTagsImageInput_t& img_input) {
@@ -34,7 +34,9 @@ bool convert_mat_to_cu_april_tags_image_input(const cv::Mat& image, cuAprilTagsI
     return true;
 }
 
-ApriltagDetector::ApriltagDetector() {}
+ApriltagDetector::ApriltagDetector() : max_tags(1024) {
+    cudaStreamCreate(&cuda_stream_);
+} 
 
 void ApriltagDetector::init_detector(uint32_t img_width, uint32_t img_height, uint32_t tile_size, cuAprilTagsFamily tag_family, float tag_dim) {
     if (nvCreateAprilTagsDetector(&h_apriltags, img_width, img_height, tile_size, tag_family, nullptr, tag_dim) != 0) {
@@ -47,6 +49,7 @@ ApriltagDetector::~ApriltagDetector() {
         std::cerr << "Failed to destroy AprilTags detector" << std::endl;
     }
     cudaFree(input_image_.dev_ptr);
+    cudaStreamDestroy(cuda_stream_);
 }
 
 std::vector<cuAprilTagsID_t> ApriltagDetector::detect_tags(const cuAprilTagsImageInput_t& img_input) {
@@ -54,7 +57,7 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_tags(const cuAprilTagsImag
     detected_tags.resize(max_tags);
 
     uint32_t num_tags_detected;
-    if (cuAprilTagsDetect(h_apriltags, &img_input, detected_tags.data(), &num_tags_detected, max_tags, nullptr) != 0) {
+    if (cuAprilTagsDetect(h_apriltags, &img_input, detected_tags.data(), &num_tags_detected, max_tags, cuda_stream_) != 0) {
         throw std::runtime_error("Failed to detect AprilTags");
     }
     LOG_DEBUG("Number Detected Tags: ", num_tags_detected);
@@ -68,25 +71,26 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_cv_image(con
         throw std::runtime_error("Failed to convert OpenCV image to cu_april_tags_image_input_t");
     }
 
-    Timer t;
-    t.start();
+    timer_.start();
 
     std::vector<cuAprilTagsID_t> detected_tags = detect_tags(input_image_);
 
-    LOG_DEBUG("Timer took: ", t.get_nanoseconds(), "ns");
+    cudaStreamSynchronize(cuda_stream_);
+    LOG_DEBUG("Timer took: ", timer_.get_nanoseconds(), "ns");
 
 
     return detected_tags;
 }
 
-std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat& sl_image, CUstream_st* stream) {
-    Timer t;
-    convert_sl_mat_to_april_tag_input(sl_image, input_image_, stream);
-    LOG_DEBUG("Mat conversion took: ", t.get_nanoseconds(), " ns");
+std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat& sl_image) {
+    convert_sl_mat_to_april_tag_input(sl_image, input_image_, cuda_stream_);
+    LOG_DEBUG("Mat conversion took: ", timer_.get_nanoseconds(), " ns");
+    cudaStreamSynchronize(cuda_stream_);
 
-    t.start();
+    timer_.start();
     std::vector<cuAprilTagsID_t> detected_tags = detect_tags(input_image_);
-    LOG_DEBUG("Tag detection took: ", t.get_nanoseconds(), " ns");
+    cudaStreamSynchronize(cuda_stream_);
+    LOG_DEBUG("Tag detection took: ", timer_.get_nanoseconds(), " ns");
 
     return detected_tags;
 }
