@@ -67,16 +67,15 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_tags(const cuAprilTagsImag
 }
 
 std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_cv_image(const cv::Mat& cv_image) {
+    timer_.start();
     if (!convert_mat_to_cu_april_tags_image_input(cv_image, input_image_)) {
         throw std::runtime_error("Failed to convert OpenCV image to cu_april_tags_image_input_t");
     }
 
-    timer_.start();
-
     std::vector<cuAprilTagsID_t> detected_tags = detect_tags(input_image_);
 
     cudaStreamSynchronize(cuda_stream_);
-    LOG_DEBUG("Timer took: ", timer_.get_nanoseconds(), "ns");
+    LOG_DEBUG("Timer took: ", timer_.get_ms(), "ms");
 
 
     return detected_tags;
