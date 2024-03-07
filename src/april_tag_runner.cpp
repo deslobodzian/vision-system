@@ -52,13 +52,11 @@ void AprilTagRunner::run() {
     Timer t;
     t.start();
 
-    auto received = zmq_manager_->get_subscriber("UseDetection").receive();
-    const auto& [topic, msg] = *received;
-    if (received) {
-            const auto& [topic, msg] = *received;
-            if (topic == "UseDetection") { 
-                use_detection_ = process_use_detection(msg);
-            }
+    if (auto received = zmq_manager_->get_subscriber("UseDetection").receive()) {
+        const auto& [topic, msg] = *received;
+        if (topic == "UseDetection") {
+            use_detection_ = process_use_detection(msg);
+        }
     }
     // Use this to bypass message
     //use_detectinons = false;
