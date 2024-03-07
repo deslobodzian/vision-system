@@ -28,7 +28,7 @@ private:
     ApriltagDetector tag_detector_;
 #endif
     std::shared_ptr<ZmqManager> zmq_manager_;
-
+    bool use_detection_;
 };
 
 #endif /* VISION_SYSTEM_APRIL_TAG_RUNNER_HPP */

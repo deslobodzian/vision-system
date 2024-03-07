@@ -33,7 +33,8 @@ VisionRunner::VisionRunner(
         const std::string& name,
         const std::shared_ptr<ZmqManager> zmq_manager) :
         Task(manager, period, name),
-        zmq_manager_(zmq_manager)
+        zmq_manager_(zmq_manager),
+        use_detection_(false)
         {
 #ifdef WITH_CUDA
     // Dennis's camera: 47502321
@@ -79,21 +80,19 @@ void VisionRunner::init() {
 void VisionRunner::run() {
     using namespace std::chrono;
 
-    bool use_detection = false;
-
     if (const auto received = zmq_manager_->get_subscriber("UseDetection").receive()) {
         const auto& [topic, msg] = *received;
         if (topic == "UseDetection") { 
-            use_detection = process_use_detection(msg);
+            use_detection_ = process_use_detection(msg);
         }
     }
 
 #ifdef WITH_CUDA 
     const auto start_time = high_resolution_clock::now();
     auto& builder = zmq_manager_->get_publisher("main").get_builder(); 
-    const char* topic_name = use_detection ? "Objects" : "BackAprilTags";
+    const char* topic_name = use_detection_ ? "Objects" : "BackAprilTags";
 
-    if (use_detection) {
+    if (use_detection_) {
         camera_.fetch_measurements(MeasurementType::IMAGE);
         detector_.detect_objects(camera_);
         camera_.fetch_measurements(MeasurementType::OBJECTS);

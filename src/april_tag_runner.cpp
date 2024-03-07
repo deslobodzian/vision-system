@@ -15,7 +15,8 @@ AprilTagRunner::AprilTagRunner(
         const std::string& name,
         const std::shared_ptr<ZmqManager> zmq_manager) :
         Task(manager, period, name),
-        zmq_manager_(zmq_manager)
+        zmq_manager_(zmq_manager),
+        use_detection_(false)
         {
 #ifdef WITH_CUDA
     // Dennis's camera: 47502321
@@ -50,21 +51,20 @@ void AprilTagRunner::init() {
 void AprilTagRunner::run() {
     Timer t;
     t.start();
-    bool use_detection;
 
     auto received = zmq_manager_->get_subscriber("UseDetection").receive();
     const auto& [topic, msg] = *received;
     if (received) {
             const auto& [topic, msg] = *received;
             if (topic == "UseDetection") { 
-                use_detection = process_use_detection(msg);
+                use_detection_ = process_use_detection(msg);
             }
     }
     // Use this to bypass message
     //use_detectinons = false;
 
 #ifdef WITH_CUDA 
-    if (!use_detection) {
+    if (!use_detection_) {
         LOG_DEBUG("Using apriltag detection");
         camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
         auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image());

@@ -33,7 +33,7 @@ private:
     ObjectDetector<MonocularCamera> detector_;
 #endif
     std::shared_ptr<ZmqManager> zmq_manager_;
-
+    bool use_detection_;
 };
 
 #endif //VISION_SYSTEM_VISION_RUNNER_HPP

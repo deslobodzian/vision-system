@@ -13,7 +13,7 @@ public:
         : topic_(topic), subscriber_(ZmqSubscriber::context_, ZMQ_SUB) {
             subscriber_.connect(endpoint);
             subscriber_.set(zmq::sockopt::subscribe, topic_);
-            subscriber_.set(zmq::sockopt::rcvhwm, 1000); // Adjust the value based on your requirements
+            subscriber_.set(zmq::sockopt::rcvhwm, 100); 
             LOG_DEBUG("Connected to endpoint: ", endpoint, " with topic: ", topic_);
         }
 
