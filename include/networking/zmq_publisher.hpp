@@ -46,7 +46,7 @@ private:
     void send_message(const std::string& topic, const uint8_t* data, size_t size) {
         zmq::message_t topic_msg(topic.data(), topic.size());
         zmq::message_t data_msg(data, size);
-        publisher_.send(topic_msg, zmq::send_flags::sndmore | zmq::send_flags::dontwait);
+        publisher_.send(topic_msg, zmq::send_flags::sndmore);
         publisher_.send(data_msg, zmq::send_flags::dontwait);
     }
 };

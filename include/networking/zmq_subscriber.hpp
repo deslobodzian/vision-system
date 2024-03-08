@@ -18,6 +18,7 @@ public:
         }
 
     std::optional<std::pair<std::string, zmq::message_t>> receive() {
+        std::lock_guard<std::mutex> lock(mtx_);
         zmq::message_t topic_msg;
         zmq::message_t data_msg;
 
@@ -38,6 +39,7 @@ private:
     static inline zmq::context_t context_{1};
     zmq::socket_t subscriber_;
     std::string topic_;
+    std::mutex mtx_;
 };
 
 #endif /* VISION_SYSTEM_ZMQ_SUBSCRIBER_HPP */

@@ -84,6 +84,7 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_cv_image(con
 
 std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat& sl_image) {
     timer_.start();
+    original_res_ = sl_image.getResolution();
     convert_sl_mat_to_april_tag_input(sl_image, input_image_, decimate_, cuda_stream_);
     LOG_DEBUG("Mat conversion took: ", timer_.get_nanoseconds(), " ns");
     cudaStreamSynchronize(cuda_stream_);
@@ -104,31 +105,38 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(con
 
 std::vector<ZedAprilTag> ApriltagDetector::calculate_zed_apriltag(const sl::Mat& point_cloud, const sl::Mat& normals, const std::vector<cuAprilTagsID_t>& detections) {
     std::vector<ZedAprilTag> zed_tags;
-
+    
+    sl::Resolution depth_res = point_cloud.getResolution();
+    
+    float scale_x = static_cast<float>(depth_res.width) / original_res_.width;
+    float scale_y = static_cast<float>(depth_res.height) / original_res_.height;
+    
     for (const auto& tag : detections) {
         ZedAprilTag z_tag;
         sl::float3 average_normal = {0, 0, 0};
-
+        
         for (int i = 0; i < 4; ++i) {
+            int depth_x = static_cast<int>(tag.corners[i].x * scale_x);
+            int depth_y = static_cast<int>(tag.corners[i].y * scale_y);
+            
             sl::float4 point3D;
-            point_cloud.getValue(tag.corners[i].x, tag.corners[i].y, &point3D);
+            point_cloud.getValue(depth_x, depth_y, &point3D);
             z_tag.corners[i] = point3D;
             z_tag.center += point3D;
-
+            
             sl::float4 corner_normal;
-            normals.getValue(tag.corners[i].x, tag.corners[i].y, &corner_normal);
+            normals.getValue(depth_x, depth_y, &corner_normal);
             average_normal += sl::float3(corner_normal.x, corner_normal.y, corner_normal.z);
         }
-
+        
         z_tag.center /= 4.0f;
         average_normal /= 4.0f;
         sl::Orientation orientation = compute_orientation_from_normal(average_normal);
         z_tag.orientation = orientation;
-
         z_tag.tag_id = tag.id;
-        zed_tags.push_back(z_tag); 
+        zed_tags.push_back(z_tag);
     }
-
+    
     return zed_tags;
 }
 

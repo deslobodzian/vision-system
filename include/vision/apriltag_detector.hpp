@@ -38,6 +38,7 @@ private:
     cuAprilTagsImageInput_t input_image_;
     cudaStream_t cuda_stream_;
     const uint32_t max_tags;
+    sl::Resolution original_res_;
     int decimate_;
 };
 
