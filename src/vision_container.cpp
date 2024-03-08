@@ -42,11 +42,11 @@ void drawBoundingBoxes(cv::Mat &image, const std::vector<BBoxInfo> &bboxes) {
 }
 
 void VisionContainer::zmq_heart_beat() {
-  using namespace std::chrono;
-  auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch())
-                 .count();
-  zmq_manager_->get_publisher("main").publish(
-      "HeartBeat", Messages::CreateHeartBeat, 111, now);
+  //using namespace std::chrono;
+  //auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch())
+  //               .count();
+  //zmq_manager_->get_publisher("main").publish(
+  //    "HeartBeat", Messages::CreateHeartBeat, 111, now);
 }
 
 void VisionContainer::init() {
