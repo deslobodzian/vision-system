@@ -8,8 +8,15 @@
 #include <vector>
 #include "vision/zed.hpp"
 #include "utils/timer.h"
-#include "april_tag_kernel.h"
 
+
+typedef struct {
+    /* xyz corners */
+    sl::float4 corners[4];
+    sl::float4 center;
+    sl::Orientation orientation;
+    int tag_id;
+} ZedAprilTag;
 
 class ApriltagDetector {
 public:
@@ -29,11 +36,6 @@ private:
     Timer timer_;
     cuAprilTagsHandle h_apriltags = nullptr;
     cuAprilTagsImageInput_t input_image_;
-
-    cuAprilTagsID_t* gpu_detections;
-    ZedAprilTag* gpu_zed_tags;
-    int max_detections;
-
     cudaStream_t cuda_stream_;
     const uint32_t max_tags;
 };
