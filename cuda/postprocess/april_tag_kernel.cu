@@ -1,11 +1,6 @@
 #include "april_tag_kernel.h"
 #include "sl/Camera.hpp"
-#include <cuda_runtime_api.h>
-#include "utils/logger.hpp"
 
-__device__ bool is_valid_depth(float depth) {
-    return depth > 0.0f && depth < 1000.0f; // Adjust the range according to your requirements
-}
 
 __device__ sl::float3 normalize(const sl::float3& v) {
     float length = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
@@ -61,57 +56,34 @@ __global__ void calculate_zed_apriltag_kernel(const sl::uchar4* point_cloud, siz
         ZedAprilTag z_tag;
 
         sl::float3 average_normal = {0, 0, 0};
-        int valid_corners = 0;
 
         for (int i = 0; i < 4; ++i) {
             size_t point_offset = tag.corners[i].y * point_cloud_step + tag.corners[i].x * sizeof(sl::uchar4);
-            if (point_offset >= point_cloud_step * tag.corners[i].y) {
-                printf("Invalid point_offset: %zu\n", point_offset);
-                return;
-            }
             const sl::uchar4* point_ptr = reinterpret_cast<const sl::uchar4*>(reinterpret_cast<const unsigned char*>(point_cloud) + point_offset);
-            sl::float4 point = sl::float4(point_ptr->x, point_ptr->y, point_ptr->z, point_ptr->w);
+            z_tag.corners[i] = sl::float4(point_ptr->x, point_ptr->y, point_ptr->z, point_ptr->w);
+            z_tag.center += z_tag.corners[i];
 
-            if (is_valid_depth(point.z)) {
-                z_tag.corners[valid_corners] = point;
-                z_tag.center += point;
-                valid_corners++;
-
-                 size_t normal_offset = tag.corners[i].y * normals_step + tag.corners[i].x * sizeof(sl::uchar4);
-                 const sl::uchar4* normal_ptr = reinterpret_cast<const sl::uchar4*>(reinterpret_cast<const unsigned char*>(normals) + normal_offset);
-                 sl::float4 corner_normal = sl::float4(normal_ptr->x, normal_ptr->y, normal_ptr->z, normal_ptr->w);
-
-                average_normal += sl::float3(corner_normal.x, corner_normal.y, corner_normal.z);
-            }
+            size_t normal_offset = tag.corners[i].y * normals_step + tag.corners[i].x * sizeof(sl::uchar4);
+            const sl::uchar4* normal_ptr = reinterpret_cast<const sl::uchar4*>(reinterpret_cast<const unsigned char*>(normals) + normal_offset);
+            sl::float4 corner_normal = sl::float4(normal_ptr->x, normal_ptr->y, normal_ptr->z, normal_ptr->w);
+            average_normal += sl::float3(corner_normal.x, corner_normal.y, corner_normal.z);
         }
 
-        if (valid_corners > 0) {
-            z_tag.center /= valid_corners;
-            average_normal /= valid_corners;
+        z_tag.center /= 4.0f;
+        average_normal /= 4.0f;
 
-            z_tag.orientation = compute_orientation_from_normal(average_normal);
-            z_tag.tag_id = tag.id;
+        z_tag.orientation = compute_orientation_from_normal(average_normal);
+        z_tag.tag_id = tag.id;
 
-            zed_tags[tid] = z_tag;
-        } else {
-            z_tag.tag_id = 9999999;
-            zed_tags[tid] = z_tag;
-        }
+        zed_tags[tid] = z_tag;
     }
 }
-
 
 std::vector<ZedAprilTag> detect_and_calculate(const sl::Mat& point_cloud, const sl::Mat& normals, const std::vector<cuAprilTagsID_t>& detections,
                                               cuAprilTagsID_t* gpu_detections, ZedAprilTag* gpu_zed_tags, int max_detections, cudaStream_t& stream) {
     int num_detections = detections.size();
-    if (num_detections == 0) {
-        return std::vector<ZedAprilTag>();
-    }
 
-    cudaError_t err = cudaMemcpyAsync(gpu_detections, detections.data(), num_detections * sizeof(cuAprilTagsID_t), cudaMemcpyHostToDevice, stream);
-    if (err != cudaSuccess) {
-        throw std::runtime_error("Failed to copy detections to GPU: " + std::string(cudaGetErrorString(err)));
-    }
+    cudaMemcpyAsync(gpu_detections, detections.data(), num_detections * sizeof(cuAprilTagsID_t), cudaMemcpyHostToDevice, stream);
 
     const sl::uchar4* gpu_point_cloud = point_cloud.getPtr<sl::uchar4>(sl::MEM::GPU);
     size_t point_cloud_step = point_cloud.getStepBytes(sl::MEM::GPU);
@@ -123,17 +95,9 @@ std::vector<ZedAprilTag> detect_and_calculate(const sl::Mat& point_cloud, const 
     calculate_zed_apriltag_kernel<<<num_blocks, block_size, 0, stream>>>(gpu_point_cloud, point_cloud_step, gpu_normals, normals_step,
                                                               gpu_detections, gpu_zed_tags, num_detections);
 
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        throw std::runtime_error("Kernel launch failed: " + std::string(cudaGetErrorString(err)));
-    }
-
+    // Copy the calculated ZedAprilTags from GPU to CPU
     std::vector<ZedAprilTag> zed_tags(num_detections);
-    err = cudaMemcpyAsync(zed_tags.data(), gpu_zed_tags, num_detections * sizeof(ZedAprilTag), cudaMemcpyDeviceToHost, stream);
-    if (err != cudaSuccess) {
-        throw std::runtime_error("Failed to copy ZedAprilTags from GPU to CPU: " + std::string(cudaGetErrorString(err)));
-    }
+    cudaMemcpyAsync(zed_tags.data(), gpu_zed_tags, num_detections * sizeof(ZedAprilTag), cudaMemcpyDeviceToHost, stream);
 
     return zed_tags;
 }
-
