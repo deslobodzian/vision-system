@@ -131,6 +131,8 @@ void VisionRunner::run() {
 
         const auto apriltag_detection_time = high_resolution_clock::now();
         const auto apriltag_detection_ms = duration_cast<milliseconds>(apriltag_detection_time - start_time).count();
+        LOG_DEBUG("April tag detection with positioning took: ", apriltag_detection_ms, " ms");
+
 
         std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
         april_tag_offsets.reserve(zed_tags.size());
