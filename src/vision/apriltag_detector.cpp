@@ -99,7 +99,7 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(con
 }
 
 std::vector<ZedAprilTag> ApriltagDetector::calculate_zed_apriltag(const sl::Mat& point_cloud, const sl::Mat& normals, const std::vector<cuAprilTagsID_t>& detections) {
-    return detect_and_calculate(point_cloud, normals, detections, gpu_detections, gpu_zed_tags, max_detections);
+    return detect_and_calculate(point_cloud, normals, detections, gpu_detections, gpu_zed_tags, max_detections, cuda_stream_);
 //    std::vector<ZedAprilTag> zed_tags;
 //
 //    for (const auto& tag : detections) {
