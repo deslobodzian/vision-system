@@ -119,6 +119,7 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
                 zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
                 zed_.retrieveMeasure(measurements_.point_cloud, sl::MEASURE::XYZ, memory_type_);
                 zed_.retrieveMeasure(measurements_.normals, sl::MEASURE::NORMALS, memory_type_);
+                synchronize_cuda_stream();
                 break;
             case MeasurementType::IMAGE_AND_OBJECTS:
                 zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);

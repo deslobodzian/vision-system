@@ -277,7 +277,7 @@ void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageI
         init_april_tag_resources(image_width, image_height);
     }
 
-    dim3 block(16, 16);
+    dim3 block(32, 32);
     dim3 grid((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
     kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr, image_width, image_height, stride);
 

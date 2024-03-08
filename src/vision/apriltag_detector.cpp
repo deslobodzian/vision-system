@@ -34,7 +34,7 @@ bool convert_mat_to_cu_april_tags_image_input(const cv::Mat& image, cuAprilTagsI
     return true;
 }
 
-ApriltagDetector::ApriltagDetector() : max_tags(1024), max_detections(1024) {
+ApriltagDetector::ApriltagDetector() : max_tags(1024), max_detections(4096) {
     cudaMallocHost(&gpu_detections, max_detections * sizeof(cuAprilTagsID_t));
     cudaMallocHost(&gpu_zed_tags, max_detections * sizeof(ZedAprilTag));
     cudaStreamCreate(&cuda_stream_);
