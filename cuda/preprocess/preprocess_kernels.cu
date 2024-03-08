@@ -147,7 +147,7 @@ void preprocess_sl(const sl::Mat& left_img, Tensor<float>& d_input, cudaStream_t
     kernel_convert_to_bgr<<<grid_input, block, 0, stream>>>(left_img.getPtr<sl::uchar1>(sl::MEM::GPU), d_bgr, image_width, image_height, left_img.getStepBytes(sl::MEM::GPU));
     err = cudaGetLastError();
     if (err != cudaSuccess) {
-        printf("kernel_convert_to_bgr launch failed: %s\n", cudaGetErrorString(err));
+        printf("kernel_convert_to_bgr_detection launch failed: %s\n", cudaGetErrorString(err));
         return;
     }
 
@@ -241,7 +241,7 @@ __global__ void kernel_convert_to_bgr(unsigned char* input, uchar3* output, int 
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if(x >= width || y >= height)
+    if (x >= width || y >= height)
         return;
 
     const int inIdx = y * stride + x * 4;  
@@ -279,8 +279,8 @@ void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageI
 
     dim3 block(16, 16);
     dim3 grid((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
-
     kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr, image_width, image_height, stride);
+
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         LOG_ERROR("kernel_convert_to_bgr launch failed: ", cudaGetErrorString(err));

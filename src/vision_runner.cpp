@@ -142,10 +142,10 @@ void VisionRunner::run() {
                     tag.center.x,
                     tag.center.y,
                     tag.center.z,
-                    tag.orientation.ow,
-                    tag.orientation.ox,
-                    tag.orientation.oy,
-                    tag.orientation.oz,
+                    tag.orientation.data[0],
+                    tag.orientation.data[1],
+                    tag.orientation.data[2],
+                    tag.orientation.data[3],
                     apriltag_detection_ms
             );
             april_tag_offsets.push_back(april_tag);
