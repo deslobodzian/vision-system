@@ -34,12 +34,13 @@ bool convert_mat_to_cu_april_tags_image_input(const cv::Mat& image, cuAprilTagsI
     return true;
 }
 
-ApriltagDetector::ApriltagDetector() : max_tags(1024) {
+ApriltagDetector::ApriltagDetector() : max_tags(1024), decimate_(1) {
     cudaStreamCreate(&cuda_stream_);
 } 
 
-void ApriltagDetector::init_detector(uint32_t img_width, uint32_t img_height, uint32_t tile_size, cuAprilTagsFamily tag_family, float tag_dim) {
-    if (nvCreateAprilTagsDetector(&h_apriltags, img_width / 2, img_height / 2, tile_size, tag_family, nullptr, tag_dim) != 0) {
+void ApriltagDetector::init_detector(uint32_t img_width, uint32_t img_height, uint32_t tile_size, cuAprilTagsFamily tag_family, float tag_dim, int decimate) {
+    decimate_ = decimate;
+    if (nvCreateAprilTagsDetector(&h_apriltags, img_width / decimate, img_height / decimate, tile_size, tag_family, nullptr, tag_dim) != 0) {
         throw std::runtime_error("Failed to create AprilTags detector");
     }
 }
@@ -83,13 +84,20 @@ std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_cv_image(con
 
 std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat& sl_image) {
     timer_.start();
-    convert_sl_mat_to_april_tag_input(sl_image, input_image_, cuda_stream_);
+    convert_sl_mat_to_april_tag_input(sl_image, input_image_, decimate_, cuda_stream_);
     LOG_DEBUG("Mat conversion took: ", timer_.get_nanoseconds(), " ns");
     cudaStreamSynchronize(cuda_stream_);
 
     std::vector<cuAprilTagsID_t> detected_tags = detect_tags(input_image_);
     cudaStreamSynchronize(cuda_stream_);
     LOG_DEBUG("Tag detection took: ", timer_.get_ms(), " ms");
+
+    for (auto& tag : detected_tags) {
+        for (int i = 0; i < 4; ++i) {
+            tag.corners[i].x *= decimate_;
+            tag.corners[i].y *= decimate_;
+        }
+    }
 
     return detected_tags;
 }

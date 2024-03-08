@@ -21,7 +21,7 @@ typedef struct {
 class ApriltagDetector {
 public:
     ApriltagDetector();
-    void init_detector(uint32_t img_width, uint32_t img_height, uint32_t tile_size, cuAprilTagsFamily tag_family, float tag_dim);
+    void init_detector(uint32_t img_width, uint32_t img_height, uint32_t tile_size, cuAprilTagsFamily tag_family, float tag_dim, int decimate);
     ~ApriltagDetector();
 
     ApriltagDetector(const ApriltagDetector&) = delete;
@@ -38,6 +38,7 @@ private:
     cuAprilTagsImageInput_t input_image_;
     cudaStream_t cuda_stream_;
     const uint32_t max_tags;
+    int decimate_;
 };
 
 #endif /* VISION_SYSTEM_APRILTAG_DETECTOR_HPP */

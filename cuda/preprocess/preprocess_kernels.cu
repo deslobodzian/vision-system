@@ -241,89 +241,71 @@ void preprocess_cv(const cv::Mat& img, Tensor<float>& d_input, cudaStream_t& str
 __global__ void kernel_convert_to_bgr(unsigned char* input, uchar3* output, int width, int height, size_t stride) {
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if(x >= width || y >= height)
+    if (x >= width || y >= height)
         return;
-
-    const int inIdx = y * stride + x * 4;  
-    const int outIdx = y * width + x; 
-
+    const int inIdx = y * stride + x * 4;
+    const int outIdx = y * width + x;
     uchar3 bgrPixel;
     bgrPixel.x = input[inIdx];     // B
     bgrPixel.y = input[inIdx + 1]; // G
     bgrPixel.z = input[inIdx + 2]; // R
-
     output[outIdx] = bgrPixel;
 }
 
-__global__ void kernel_quad_decimate(uchar3* input, uchar3* output, int width, int height) {
+__global__ void kernel_quad_decimate(uchar3* input, uchar3* output, int width, int height, int decimate) {
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
-    const int decimated_width = width / 2;
-    const int decimated_height = height / 2;
+    const int decimated_width = width / decimate;
+    const int decimated_height = height / decimate;
     if (x >= decimated_width || y >= decimated_height)
         return;
-
-    const int inIdx = y * 2 * width + x * 2;
+    const int inIdx = y * decimate * width + x * decimate;
     const int outIdx = y * decimated_width + x;
-
     uchar3 decimated_pixel;
     decimated_pixel.x = (input[inIdx].x + input[inIdx + 1].x + input[inIdx + width].x + input[inIdx + width + 1].x) / 4;
     decimated_pixel.y = (input[inIdx].y + input[inIdx + 1].y + input[inIdx + width].y + input[inIdx + width + 1].y) / 4;
     decimated_pixel.z = (input[inIdx].z + input[inIdx + 1].z + input[inIdx + width].z + input[inIdx + width + 1].z) / 4;
-
     output[outIdx] = decimated_pixel;
 }
 
-void init_april_tag_resources(int image_width, int image_height) {
+void init_april_tag_resources(int image_width, int image_height, int decimate) {
     LOG_INFO("Allocating cuda apriltag memory");
-    int max_image_width = image_width * 3;
-    int max_image_height = image_height * 3;
-    CUDA_CHECK(cudaMalloc(&d_april_tag_bgr, max_image_width * max_image_height * sizeof(uchar3)));
-    CUDA_CHECK(cudaMalloc(&d_april_tag_decimated, (max_image_width / 2) * (max_image_height / 2) * sizeof(uchar3)));
+    CUDA_CHECK(cudaMalloc(&d_april_tag_bgr, image_width * image_height * sizeof(uchar3)));
+    CUDA_CHECK(cudaMalloc(&d_april_tag_decimated, (image_width / decimate) * (image_height / decimate) * sizeof(uchar3)));
 }
 
-void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, cudaStream_t stream) {
+void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, int decimate, cudaStream_t& stream) {
     cudaError_t err;
     if (zed_mat.getChannels() != 4 || zed_mat.getDataType() != sl::MAT_TYPE::U8_C4) {
         LOG_ERROR("Unsupported sl::Mat format: Expected RGBA U8");
         return;
     }
-
     const int image_width = zed_mat.getWidth();
     const int image_height = zed_mat.getHeight();
     const size_t stride = zed_mat.getStepBytes(sl::MEM::GPU);
-
     if (d_april_tag_bgr == nullptr) {
-        init_april_tag_resources(image_width, image_height);
+        init_april_tag_resources(image_width, image_height, decimate);
     }
-
     dim3 block(16, 16);
     dim3 grid((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
-
     kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr, image_width, image_height, stride);
-
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         LOG_ERROR("kernel_convert_to_bgr launch failed: ", cudaGetErrorString(err));
         return;
     }
-
     dim3 decimate_block(16, 16);
-    dim3 decimate_grid((image_width / 2 + decimate_block.x - 1) / decimate_block.x, (image_height / 2 + decimate_block.y - 1) / decimate_block.y);
-
-    kernel_quad_decimate<<<decimate_grid, decimate_block, 0, stream>>>(d_april_tag_bgr, d_april_tag_decimated, image_width, image_height);
-
+    dim3 decimate_grid((image_width / decimate + decimate_block.x - 1) / decimate_block.x, (image_height / decimate + decimate_block.y - 1) / decimate_block.y);
+    kernel_quad_decimate<<<decimate_grid, decimate_block, 0, stream>>>(d_april_tag_bgr, d_april_tag_decimated, image_width, image_height, decimate);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         LOG_ERROR("kernel_quad_decimate launch failed: ", cudaGetErrorString(err));
         return;
     }
-
     tag_input.dev_ptr = d_april_tag_decimated;
-    tag_input.pitch = 3 * (image_width / 2);
-    tag_input.width = static_cast<uint16_t>(image_width / 2);
-    tag_input.height = static_cast<uint16_t>(image_height / 2);
+    tag_input.pitch = 3 * (image_width / decimate);
+    tag_input.width = static_cast<uint16_t>(image_width / decimate);
+    tag_input.height = static_cast<uint16_t>(image_height / decimate);
 }
 
 void free_preprocess_resources() {
@@ -334,4 +316,5 @@ void free_preprocess_resources() {
 
 void free_april_tag_resources() {
     CUDA_CHECK(cudaFree(d_april_tag_bgr));
+    CUDA_CHECK(cudaFree(d_april_tag_decimated));
 }

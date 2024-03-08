@@ -16,8 +16,9 @@ VisionContainer::VisionContainer()
     : vision_runner_(nullptr), april_tag_runner_(nullptr),
       task_manager_(std::make_shared<TaskManager>()),
       zmq_manager_(std::make_shared<ZmqManager>()) {
-  zmq_manager_->create_publisher("main", "tcp://*:5556");
-  zmq_manager_->create_subscriber("UseDetection", "tcp://localhost:5557");
+  zmq_manager_->create_publisher("FrontZed", "tcp://*:5556");
+  zmq_manager_->create_publisher("BackZed", "tcp://*:5557");
+  zmq_manager_->create_subscriber("UseDetection", "tcp://localhost:5558");
 }
 
 void drawBoundingBoxes(cv::Mat &image, const std::vector<BBoxInfo> &bboxes) {

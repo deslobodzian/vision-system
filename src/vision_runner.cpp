@@ -43,15 +43,23 @@ VisionRunner::VisionRunner(
     cfg_.res = sl::RESOLUTION::SVGA;
     //cfg_.res = sl::RESOLUTION::VGA;
     cfg_.sdk_verbose = false;
-    cfg_.enable_tracking = true;
+    cfg_.enable_tracking = false;
     cfg_.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
     cfg_.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
     cfg_.max_depth = 20;
+    cfg_.min_depth = 0.3f;
+    cfg_.async_grab = true;
     cfg_.prediction_timeout_s = 0.2f;
     cfg_.batch_latency = 0.2f;
     cfg_.id_retention_time = 0.f;
     cfg_.detection_confidence_threshold = 50;
     cfg_.default_memory = sl::MEM::GPU;
+
+    sl::Resolution res = sl::getResolution(cfg_.res);
+    res.height = res.height / 2;
+    res.width = res.width / 2;
+
+    cfg_.depth_resolution = res;
     camera_.configure(cfg_);
     camera_.open();
 
@@ -61,14 +69,15 @@ VisionRunner::VisionRunner(
     constexpr uint32_t tile_size = 4; 
     constexpr cuAprilTagsFamily tag_family = NVAT_TAG36H11; 
     constexpr float tag_dim = 0.16f;
-    tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim);
+    constexpr int decimate = 2;
+    tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim, decimate);
 #endif
 }
 
 void VisionRunner::init() {
     LOG_INFO("Initializing [VisionRunner]");
 #ifdef WITH_CUDA
-    camera_.enable_tracking();
+    //camera_.enable_tracking();
     camera_.enable_object_detection();
     detection_config det_cfg;
     det_cfg.nms_thres = 0.5;
@@ -89,7 +98,7 @@ void VisionRunner::run() {
 
 #ifdef WITH_CUDA 
     const auto start_time = high_resolution_clock::now();
-    auto& builder = zmq_manager_->get_publisher("main").get_builder(); 
+    auto& builder = zmq_manager_->get_publisher("BackZed").get_builder(); 
     const char* topic_name = use_detection_ ? "Objects" : "BackAprilTags";
 
     if (use_detection_) {
@@ -107,7 +116,7 @@ void VisionRunner::run() {
         for (const auto& obj : objects.object_list) {
             auto vision_pose = Messages::CreateVisionPose(
                     builder, 
-                    obj.id + 100,
+                    obj.id,
                     obj.position.x, 
                     obj.position.y, 
                     obj.position.z, 
@@ -119,7 +128,7 @@ void VisionRunner::run() {
         auto vision_pose_array = Messages::CreateVisionPoseArray(builder, poses_vector);
 
         builder.Finish(vision_pose_array);
-        zmq_manager_->get_publisher("main").publish_prebuilt(
+        zmq_manager_->get_publisher("BackZed").publish_prebuilt(
                 topic_name,
                 builder.GetBufferPointer(),
                 builder.GetSize()  
@@ -157,7 +166,7 @@ void VisionRunner::run() {
         auto april_tags_array = Messages::CreateAprilTagArray(builder, tags_vector);
 
         builder.Finish(april_tags_array);
-        zmq_manager_->get_publisher("main").publish_prebuilt(
+        zmq_manager_->get_publisher("BackZed").publish_prebuilt(
                 topic_name,
                 builder.GetBufferPointer(),
                 builder.GetSize()  

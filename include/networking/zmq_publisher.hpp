@@ -9,9 +9,9 @@
 class ZmqPublisher {
 public:
     ZmqPublisher(const std::string& endpoint)
-        : publisher_(ZmqPublisher::context_, ZMQ_PUB) {
+        : context_(1), publisher_(context_, ZMQ_PUB) {
             publisher_.bind(endpoint);
-            publisher_.set(zmq::sockopt::sndhwm, 1000); // Adjust the value based on your requirements
+            publisher_.set(zmq::sockopt::sndhwm, 1000); 
             LOG_DEBUG("Binded to endpoint: ", endpoint);
         }
 
@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    static inline zmq::context_t context_{1};
+    zmq::context_t context_;
     zmq::socket_t publisher_;
     flatbuffers::FlatBufferBuilder builder_;
     std::mutex mtx_;

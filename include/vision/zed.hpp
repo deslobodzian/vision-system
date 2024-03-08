@@ -116,6 +116,8 @@ struct zed_config {
   sl::COORDINATE_SYSTEM coordinate_system = sl::COORDINATE_SYSTEM::IMAGE;
   sl::UNIT units = sl::UNIT::METER;
   float max_depth = 10.0f;
+  float min_depth = 0.3f;
+  bool async_grab = false;
 
   sl::REFERENCE_FRAME reference_frame = sl::REFERENCE_FRAME::CAMERA;
 
@@ -132,6 +134,7 @@ struct zed_config {
   float batch_latency = 0.0f;
 
   sl::MEM default_memory = sl::MEM::CPU;
+  sl::Resolution depth_resolution = sl::getResolution(sl::RESOLUTION::AUTO);
 
   zed_config() = default;
 };
@@ -188,6 +191,7 @@ private:
   sl::Objects detected_objects_;
 
   sl::MEM memory_type_;
+  sl::Resolution depth_resolution_;
   bool successful_grab();
   std::string svo_;
 };

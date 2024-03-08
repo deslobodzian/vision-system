@@ -24,7 +24,9 @@ void ZedCamera::configure(const zed_config &config) {
     init_params_.sdk_verbose = config.sdk_verbose;
     init_params_.coordinate_system = config.coordinate_system;
     init_params_.coordinate_units = config.units;
+    init_params_.depth_minimum_distance = config.min_depth;
     init_params_.depth_maximum_distance = config.max_depth;
+    init_params_.async_grab_camera_recovery = config.async_grab;
 
     runtime_params_.measure3D_reference_frame = config.reference_frame;
 
@@ -42,6 +44,7 @@ void ZedCamera::configure(const zed_config &config) {
     obj_detection_params_.batch_parameters = batch_params_;
 
     memory_type_ = config.default_memory;
+    depth_resolution_ = config.depth_resolution;
 }
 
 bool ZedCamera::successful_grab() {
@@ -85,7 +88,8 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
     if (successful_grab()) {
         switch (type) {
             case MeasurementType::ALL:
-                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT,
+                        memory_type_);
                 zed_.getSensorsData(measurements_.sensor_data, sl::TIME_REFERENCE::IMAGE);
                 measurements_.imu_data = measurements_.sensor_data.imu;
                 measurements_.timestamp = measurements_.left_image.timestamp;
@@ -94,7 +98,8 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
                 zed_.retrieveMeasure(measurements_.point_cloud, sl::MEASURE::XYZ);
                 break;
             case MeasurementType::IMAGE:
-                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT,
+                        memory_type_);
                 break;
             case MeasurementType::DEPTH:
                 zed_.retrieveMeasure(measurements_.depth_map, sl::MEASURE::DEPTH);
@@ -107,21 +112,27 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
                 measurements_.imu_data = measurements_.sensor_data.imu;
                 break;
             case MeasurementType::IMAGE_AND_SENSORS:
-                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT,
+                        memory_type_);
                 zed_.getSensorsData(measurements_.sensor_data, sl::TIME_REFERENCE::IMAGE);
                 measurements_.timestamp = measurements_.left_image.timestamp;
                 break;
             case MeasurementType::IMAGE_AND_DEPTH:
-                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT,
+                        memory_type_);
                 zed_.retrieveMeasure(measurements_.depth_map, sl::MEASURE::DEPTH);
                 break;
             case MeasurementType::IMAGE_AND_POINT_CLOUD:
-                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
-                zed_.retrieveMeasure(measurements_.point_cloud, sl::MEASURE::XYZ);
-                zed_.retrieveMeasure(measurements_.normals, sl::MEASURE::NORMALS);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT,
+                        memory_type_);
+                zed_.retrieveMeasure(measurements_.point_cloud, sl::MEASURE::XYZ,
+                        sl::MEM::CPU, depth_resolution_);
+                zed_.retrieveMeasure(measurements_.normals, sl::MEASURE::NORMALS,
+                        sl::MEM::CPU, depth_resolution_);
                 break;
             case MeasurementType::IMAGE_AND_OBJECTS:
-                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT, memory_type_);
+                zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT,
+                        memory_type_);
                 zed_.retrieveObjects(detected_objects_, obj_rt_params_);
                 break;
         }
@@ -130,7 +141,9 @@ void ZedCamera::fetch_measurements(const MeasurementType &type) {
 
 sl::Mat ZedCamera::get_depth_map() const { return measurements_.depth_map; }
 
-const sl::Mat &ZedCamera::get_point_cloud() const { return measurements_.point_cloud; }
+const sl::Mat &ZedCamera::get_point_cloud() const {
+    return measurements_.point_cloud;
+}
 
 const sl::Mat &ZedCamera::get_normals() const { return measurements_.normals; }
 
@@ -159,9 +172,13 @@ void ZedCamera::ingest_custom_objects(
     zed_.ingestCustomBoxObjects(objs);
 }
 
-const sl::Objects &ZedCamera::retrieve_objects() const { return detected_objects_; }
+const sl::Objects &ZedCamera::retrieve_objects() const {
+    return detected_objects_;
+}
 
-void ZedCamera::set_memory_type(const sl::MEM &memory) { memory_type_ = memory; }
+void ZedCamera::set_memory_type(const sl::MEM &memory) {
+    memory_type_ = memory;
+}
 
 const sl::Resolution ZedCamera::get_resolution() const {
     LOG_DEBUG("Init_params res: ", init_params_.camera_resolution);
@@ -183,9 +200,7 @@ const sl::ERROR_CODE ZedCamera::get_grab_state() { return grab_state_; }
 
 void ZedCamera::close() { zed_.close(); }
 
-CUstream_st* ZedCamera::get_cuda_stream() {
-    return zed_.getCUDAStream();
-}
+CUstream_st *ZedCamera::get_cuda_stream() { return zed_.getCUDAStream(); }
 
 void ZedCamera::synchronize_cuda_stream() {
     cudaStreamSynchronize(zed_.getCUDAStream());

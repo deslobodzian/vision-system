@@ -33,8 +33,9 @@ DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
     uint32_t tile_size = 4; 
     cuAprilTagsFamily tag_family = NVAT_TAG36H11; 
     float tag_dim = 0.16f;
+    int decimate = 3;
 
-    tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim);
+    tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim, decimate);
 
     video_writer.open("output_video.avi", cv::CAP_FFMPEG, cv::VideoWriter::fourcc('X', 'V', 'I', 'D'), 30, cv::Size(display_resolution.width, display_resolution.height), true);
 }
@@ -81,41 +82,17 @@ void DetectionsPlayback::detect() {
                     cv::Point(r.x, r.y + r.height + 15), // Positioning the text below the bounding box
                     cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0x00, 0xFF, 0xFF), 2);
         }
-        for (const auto& tag : zed_detected_tags) {
-            LOG_INFO("Tag ID: ", tag.tag_id);
+        for (const auto& tag : detectedTags) {
+            LOG_INFO("Tag ID: ", tag.id);
             for (int i = 0; i < 4; ++i) {
                 LOG_INFO("Corner ", i, ",: {", tag.corners[i].x, ", ", tag.corners[i].y, "}");
                 cv::line(left_cv, cv::Point(tag.corners[i].x, tag.corners[i].y),
                         cv::Point(tag.corners[(i + 1) % 4].x, tag.corners[(i + 1) % 4].y),
                         cv::Scalar(0, 255, 0), 2);
             }
-            cv::putText(left_cv, std::to_string(tag.tag_id),
+            cv::putText(left_cv, std::to_string(tag.id),
                     cv::Point(tag.corners[0].x, tag.corners[0].y),
                     cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 2);
-
-            sl::float3 center(tag.center.x, tag.center.y, tag.center.z);
-            sl::Rotation rotation = tag.orientation.getRotationMatrix();
-
-            sl::float3 rotation_vector = rotation.getRotationVector();
-
-            float yaw = rotation_vector.z;
-            float pitch = rotation_vector.y;
-            float roll = rotation_vector.x;
-
-            sl::float3 yaw_axis(std::cos(yaw), std::sin(yaw), 0);
-            sl::float2 yaw_end(center.x + yaw_axis.x * 20.0f, center.y + yaw_axis.y * 20.0f);
-            cv::arrowedLine(left_cv, cv::Point(center.x, center.y), cv::Point(yaw_end.x, yaw_end.y),
-                    cv::Scalar(0, 0, 255), 2);
-
-            sl::float3 pitch_axis(-std::sin(pitch) * std::sin(yaw), std::sin(pitch) * std::cos(yaw), std::cos(pitch));
-            sl::float2 pitch_end(center.x + pitch_axis.x * 20.0f, center.y + pitch_axis.y * 20.0f);
-            cv::arrowedLine(left_cv, cv::Point(center.x, center.y), cv::Point(pitch_end.x, pitch_end.y),
-                    cv::Scalar(0, 255, 0), 2);
-
-            sl::float3 roll_axis(std::cos(roll) * std::cos(yaw), std::cos(roll) * std::sin(yaw), -std::sin(roll));
-            sl::float2 roll_end(center.x + roll_axis.x * 20.0f, center.y + roll_axis.y * 20.0f);
-            cv::arrowedLine(left_cv, cv::Point(center.x, center.y), cv::Point(roll_end.x, roll_end.y),
-                    cv::Scalar(255, 0, 0), 2);
         }
 
         if (left_cv.type() == CV_8UC3) {

@@ -82,10 +82,11 @@ MODE args_interpreter(int argc, char **argv) {
         uint32_t tile_size = 4; 
         cuAprilTagsFamily tag_family = NVAT_TAG36H11; 
         float tag_dim = 0.16f; 
+        int decimate = 1;
 
 
         ApriltagDetector detector;
-        detector.init_detector(img_width, img_height, tile_size, tag_family, tag_dim);
+        detector.init_detector(img_width, img_height, tile_size, tag_family, tag_dim, decimate);
 
         auto detectedTags = detector.detect_april_tags_in_cv_image(image);
 
