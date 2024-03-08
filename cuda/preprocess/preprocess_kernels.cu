@@ -6,6 +6,7 @@
 static unsigned char* h_img = nullptr;
 static unsigned char* d_bgr = nullptr;
 static uchar3* d_april_tag_bgr = nullptr;
+static uchar3* d_april_tag_decimated = nullptr;
 static unsigned char* d_output = nullptr;
 
 __global__ void kernel_convert_to_bgr(unsigned char* input, unsigned char* output, int width, int height, size_t stride) {
@@ -255,11 +256,31 @@ __global__ void kernel_convert_to_bgr(unsigned char* input, uchar3* output, int 
     output[outIdx] = bgrPixel;
 }
 
+__global__ void kernel_quad_decimate(uchar3* input, uchar3* output, int width, int height) {
+    const int x = blockIdx.x * blockDim.x + threadIdx.x;
+    const int y = blockIdx.y * blockDim.y + threadIdx.y;
+    const int decimated_width = width / 2;
+    const int decimated_height = height / 2;
+    if (x >= decimated_width || y >= decimated_height)
+        return;
+
+    const int inIdx = y * 2 * width + x * 2;
+    const int outIdx = y * decimated_width + x;
+
+    uchar3 decimated_pixel;
+    decimated_pixel.x = (input[inIdx].x + input[inIdx + 1].x + input[inIdx + width].x + input[inIdx + width + 1].x) / 4;
+    decimated_pixel.y = (input[inIdx].y + input[inIdx + 1].y + input[inIdx + width].y + input[inIdx + width + 1].y) / 4;
+    decimated_pixel.z = (input[inIdx].z + input[inIdx + 1].z + input[inIdx + width].z + input[inIdx + width + 1].z) / 4;
+
+    output[outIdx] = decimated_pixel;
+}
+
 void init_april_tag_resources(int image_width, int image_height) {
     LOG_INFO("Allocating cuda apriltag memory");
-    int max_image_width = image_width * 3;  
-    int max_image_height = image_height * 3;  
+    int max_image_width = image_width * 3;
+    int max_image_height = image_height * 3;
     CUDA_CHECK(cudaMalloc(&d_april_tag_bgr, max_image_width * max_image_height * sizeof(uchar3)));
+    CUDA_CHECK(cudaMalloc(&d_april_tag_decimated, (max_image_width / 2) * (max_image_height / 2) * sizeof(uchar3)));
 }
 
 void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, cudaStream_t stream) {
@@ -281,16 +302,28 @@ void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageI
     dim3 grid((image_width + block.x - 1) / block.x, (image_height + block.y - 1) / block.y);
 
     kernel_convert_to_bgr<<<grid, block, 0, stream>>>(zed_mat.getPtr<sl::uchar1>(sl::MEM::GPU), d_april_tag_bgr, image_width, image_height, stride);
+
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         LOG_ERROR("kernel_convert_to_bgr launch failed: ", cudaGetErrorString(err));
         return;
     }
 
-    tag_input.dev_ptr = d_april_tag_bgr;
-    tag_input.pitch = 3 * image_width;
-    tag_input.width = static_cast<uint16_t>(image_width);
-    tag_input.height = static_cast<uint16_t>(image_height);
+    dim3 decimate_block(16, 16);
+    dim3 decimate_grid((image_width / 2 + decimate_block.x - 1) / decimate_block.x, (image_height / 2 + decimate_block.y - 1) / decimate_block.y);
+
+    kernel_quad_decimate<<<decimate_grid, decimate_block, 0, stream>>>(d_april_tag_bgr, d_april_tag_decimated, image_width, image_height);
+
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        LOG_ERROR("kernel_quad_decimate launch failed: ", cudaGetErrorString(err));
+        return;
+    }
+
+    tag_input.dev_ptr = d_april_tag_decimated;
+    tag_input.pitch = 3 * (image_width / 2);
+    tag_input.width = static_cast<uint16_t>(image_width / 2);
+    tag_input.height = static_cast<uint16_t>(image_height / 2);
 }
 
 void free_preprocess_resources() {

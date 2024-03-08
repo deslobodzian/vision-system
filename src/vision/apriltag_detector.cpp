@@ -39,7 +39,7 @@ ApriltagDetector::ApriltagDetector() : max_tags(1024) {
 } 
 
 void ApriltagDetector::init_detector(uint32_t img_width, uint32_t img_height, uint32_t tile_size, cuAprilTagsFamily tag_family, float tag_dim) {
-    if (nvCreateAprilTagsDetector(&h_apriltags, img_width, img_height, tile_size, tag_family, nullptr, tag_dim) != 0) {
+    if (nvCreateAprilTagsDetector(&h_apriltags, img_width / 2, img_height / 2, tile_size, tag_family, nullptr, tag_dim) != 0) {
         throw std::runtime_error("Failed to create AprilTags detector");
     }
 }
