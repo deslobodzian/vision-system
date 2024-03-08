@@ -20,6 +20,6 @@ std::vector<ZedAprilTag>
 detect_and_calculate(const sl::Mat &point_cloud, const sl::Mat &normals,
         const std::vector<cuAprilTagsID_t> &detections,
         cuAprilTagsID_t *gpu_detections, ZedAprilTag *gpu_zed_tags,
-        int max_detections, cudaStream_t& stream);
+        int max_detections);
 
 #endif // APRIL_TAG_KERNEL_H

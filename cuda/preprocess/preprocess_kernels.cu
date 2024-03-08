@@ -262,7 +262,7 @@ void init_april_tag_resources(int image_width, int image_height) {
     CUDA_CHECK(cudaMalloc(&d_april_tag_bgr, max_image_width * max_image_height * sizeof(uchar3)));
 }
 
-void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, cudaStream_t& stream) {
+void convert_sl_mat_to_april_tag_input(const sl::Mat& zed_mat, cuAprilTagsImageInput_t& tag_input, cudaStream_t stream) {
     cudaError_t err;
     if (zed_mat.getChannels() != 4 || zed_mat.getDataType() != sl::MAT_TYPE::U8_C4) {
         LOG_ERROR("Unsupported sl::Mat format: Expected RGBA U8");

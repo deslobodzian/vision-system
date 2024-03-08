@@ -80,24 +80,27 @@ __global__ void calculate_zed_apriltag_kernel(const sl::uchar4* point_cloud, siz
 }
 
 std::vector<ZedAprilTag> detect_and_calculate(const sl::Mat& point_cloud, const sl::Mat& normals, const std::vector<cuAprilTagsID_t>& detections,
-                                              cuAprilTagsID_t* gpu_detections, ZedAprilTag* gpu_zed_tags, int max_detections, cudaStream_t& stream) {
+                                              cuAprilTagsID_t* gpu_detections, ZedAprilTag* gpu_zed_tags, int max_detections) {
     int num_detections = detections.size();
 
-    cudaMemcpyAsync(gpu_detections, detections.data(), num_detections * sizeof(cuAprilTagsID_t), cudaMemcpyHostToDevice, stream);
+    // Copy detections from CPU to GPU
+    cudaMemcpy(gpu_detections, detections.data(), num_detections * sizeof(cuAprilTagsID_t), cudaMemcpyHostToDevice);
 
+    // Get pointers to GPU memory for point cloud and normals
     const sl::uchar4* gpu_point_cloud = point_cloud.getPtr<sl::uchar4>(sl::MEM::GPU);
     size_t point_cloud_step = point_cloud.getStepBytes(sl::MEM::GPU);
     const sl::uchar4* gpu_normals = normals.getPtr<sl::uchar4>(sl::MEM::GPU);
     size_t normals_step = normals.getStepBytes(sl::MEM::GPU);
 
+    // Launch the kernel to calculate ZedAprilTags
     int block_size = 256;
     int num_blocks = (num_detections + block_size - 1) / block_size;
-    calculate_zed_apriltag_kernel<<<num_blocks, block_size, 0, stream>>>(gpu_point_cloud, point_cloud_step, gpu_normals, normals_step,
+    calculate_zed_apriltag_kernel<<<num_blocks, block_size>>>(gpu_point_cloud, point_cloud_step, gpu_normals, normals_step,
                                                               gpu_detections, gpu_zed_tags, num_detections);
 
     // Copy the calculated ZedAprilTags from GPU to CPU
     std::vector<ZedAprilTag> zed_tags(num_detections);
-    cudaMemcpyAsync(zed_tags.data(), gpu_zed_tags, num_detections * sizeof(ZedAprilTag), cudaMemcpyDeviceToHost, stream);
+    cudaMemcpy(zed_tags.data(), gpu_zed_tags, num_detections * sizeof(ZedAprilTag), cudaMemcpyDeviceToHost);
 
     return zed_tags;
 }
