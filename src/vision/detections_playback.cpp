@@ -3,6 +3,7 @@
 #include "utils/logger.hpp"
 #include <chrono>
 #include "vision/detection_utils.hpp"
+#include "utils/april_tag_utils.hpp"
 
 DetectionsPlayback::DetectionsPlayback(const std::string& svo_file) :
 //    yolo_("yolov8s.engine", det_cfg) {
@@ -55,7 +56,10 @@ void DetectionsPlayback::detect() {
         detector_.detect_objects(zed_);
         LOG_DEBUG("Detecting Tags");
         auto detectedTags = tag_detector_.detect_april_tags_in_sl_image(zed_.get_left_image());
-        auto zed_detected_tags = tag_detector_.calculate_zed_apriltag(zed_.get_point_cloud(), zed_.get_normals(), detectedTags);
+        // this will calculate tags twice
+        auto zed_detected_tags = AprilTagUtils::calculate_zed_apriltags(zed_, tag_detector_);
+
+//        auto zed_detected_tags = tag_detector_.calculate_zed_apriltag(zed_.get_point_cloud(), zed_.get_normals(), detectedTags);
         zed_.fetch_measurements(MeasurementType::OBJECTS);
         //auto detections = yolo_.predict(zed_.get_left_image());
         auto err = left_sl.setFrom(zed_.get_left_image(), sl::COPY_TYPE::GPU_CPU);

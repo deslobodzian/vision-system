@@ -185,6 +185,10 @@ const sl::Resolution ZedCamera::get_resolution() const {
     return sl::getResolution(init_params_.camera_resolution);
 }
 
+sl::ERROR_CODE ZedCamera::get_plane(const sl::uint2& point, sl::Plane& plane) {
+    return zed_.findPlaneAtHit(point, plane);
+}
+
 // requires camera to already be open
 const sl::Resolution ZedCamera::get_svo_resolution() {
     if (successful_grab()) {

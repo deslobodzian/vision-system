@@ -3,12 +3,12 @@
 //
 #include "vision_runner.hpp"
 #include "utils/logger.hpp"
-#include "utils/timer.h"
 #include "vision_pose_generated.h"
 #include "vision_pose_array_generated.h"
 #include "april_tag_generated.h"
 #include "april_tag_array_generated.h"
 #include "utils/zmq_flatbuffers_utils.hpp"
+#include "utils/april_tag_utils.hpp"
 #include <random>
 
 //namespace {
@@ -99,7 +99,7 @@ void VisionRunner::run() {
 #ifdef WITH_CUDA 
     const auto start_time = high_resolution_clock::now();
     auto& builder = zmq_manager_->get_publisher("BackZed").get_builder(); 
-    const char* topic_name = use_detection_ ? "Objects" : "BackAprilTags";
+    const char* topic_name = use_detection_ ? "Objects" : "AprilTags";
 
     if (use_detection_) {
         camera_.fetch_measurements(MeasurementType::IMAGE);
@@ -135,8 +135,7 @@ void VisionRunner::run() {
         );
     } else {
         camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
-        auto tags = tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image());
-        auto zed_tags = tag_detector_.calculate_zed_apriltag(camera_.get_point_cloud(), camera_.get_normals(), tags);
+        auto zed_tags = AprilTagUtils::calculate_zed_apriltags(camera_, tag_detector_);
 
         const auto apriltag_detection_time = high_resolution_clock::now();
         const auto apriltag_detection_ms = duration_cast<milliseconds>(apriltag_detection_time - start_time).count();

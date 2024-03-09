@@ -41,9 +41,9 @@ static int get_ocv_type(sl::MAT_TYPE type) {
   return cv_type;
 }
 
-inline sl::float3 normalize(const sl::float3& v) {
-    float norm = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-    return {v.x / norm, v.y / norm, v.z / norm};
+inline sl::float3 normalize(const sl::float3 &v) {
+  float norm = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+  return {v.x / norm, v.y / norm, v.z / norm};
 }
 
 inline cv::Mat slMat_to_cvMat(const sl::Mat &input) {
@@ -53,35 +53,35 @@ inline cv::Mat slMat_to_cvMat(const sl::Mat &input) {
           input.getPtr<sl::uchar1>(sl::MEM::CPU)};
 }
 
-inline sl::Orientation compute_orientation_from_normal(const sl::float3& normal) {
-    sl::float3 up_vector = {0.0f, 0.0f, 1.0f};
+inline sl::Orientation
+compute_orientation_from_normal(const sl::float3 &normal) {
+  sl::float3 up_vector = {0.0f, 0.0f, 1.0f};
 
-    sl::float3 normalized_normal = normalize(normal);
+  sl::float3 normalized_normal = normalize(normal);
 
-    sl::float3 rotation_axis = {
-        up_vector.y * normalized_normal.z - up_vector.z * normalized_normal.y,
-        up_vector.z * normalized_normal.x - up_vector.x * normalized_normal.z,
-        up_vector.x * normalized_normal.y - up_vector.y * normalized_normal.x
-    };
+  sl::float3 rotation_axis = {
+      up_vector.y * normalized_normal.z - up_vector.z * normalized_normal.y,
+      up_vector.z * normalized_normal.x - up_vector.x * normalized_normal.z,
+      up_vector.x * normalized_normal.y - up_vector.y * normalized_normal.x};
 
-    rotation_axis = normalize(rotation_axis);
+  rotation_axis = normalize(rotation_axis);
 
-    float dot_product = sl::float3::dot(up_vector, normalized_normal);
-    //float dot_product = up_vector.x * normalized_normal.x + up_vector.y * normalized_normal.y + up_vector.z * normalized_normal.z;
-    float angle = acos(dot_product); // Angle in radians
+  float dot_product = sl::float3::dot(up_vector, normalized_normal);
+  // float dot_product = up_vector.x * normalized_normal.x + up_vector.y *
+  // normalized_normal.y + up_vector.z * normalized_normal.z;
+  float angle = acos(dot_product); // Angle in radians
 
-    float s = sin(angle / 2);
-    sl::Orientation orientation;
-    orientation[0] = rotation_axis.x * s; // ox
-    orientation[1] = rotation_axis.y * s; // oy
-    orientation[2] = rotation_axis.z * s; // oz
-    orientation[3] = cos(angle / 2); // ow
+  float s = sin(angle / 2);
+  sl::Orientation orientation;
+  orientation[0] = rotation_axis.x * s; // ox
+  orientation[1] = rotation_axis.y * s; // oy
+  orientation[2] = rotation_axis.z * s; // oz
+  orientation[3] = cos(angle / 2);      // ow
 
-    orientation.normalise();
+  orientation.normalise();
 
-    return orientation;
+  return orientation;
 }
-
 
 enum class MeasurementType {
   ALL,
@@ -162,6 +162,7 @@ public:
   const sl::Mat &get_point_cloud() const;
   const sl::Mat &get_normals() const;
   const sl::Mat &get_left_image() const;
+  sl::ERROR_CODE get_plane(const sl::uint2 &point, sl::Plane &plane);
   void get_left_image(sl::Mat &img) const;
   sl::Pose get_camera_pose() const;
   sl::Timestamp get_measurement_timestamp() const;

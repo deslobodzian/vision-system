@@ -8,6 +8,7 @@
 #include "utils/logger.hpp"
 #include "utils/timer.h"
 #include "utils/zmq_flatbuffers_utils.hpp"
+#include "utils/april_tag_utils.hpp"
 
 AprilTagRunner::AprilTagRunner(std::shared_ptr<TaskManager> manager,
         double period, const std::string &name,
@@ -68,10 +69,7 @@ void AprilTagRunner::run() {
     if (!use_detection_) {
         LOG_DEBUG("Using apriltag detection");
         camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
-        auto tags =
-            tag_detector_.detect_april_tags_in_sl_image(camera_.get_left_image());
-        auto zed_tags = tag_detector_.calculate_zed_apriltag(
-                camera_.get_point_cloud(), camera_.get_normals(), tags);
+        auto zed_tags = AprilTagUtils::calculate_zed_apriltags(camera_, tag_detector_);
         std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
 
         auto &builder = zmq_manager_->get_publisher("FrontZed").get_builder();
@@ -91,9 +89,9 @@ void AprilTagRunner::run() {
         auto tags_vector = builder.CreateVector(april_tag_offsets);
         auto april_tags_array = Messages::CreateAprilTagArray(builder, tags_vector);
 
+        builder.Finish(april_tags_array);
         zmq_manager_->get_publisher("FrontZed").publish_prebuilt(
                 "AprilTags", builder.GetBufferPointer(), builder.GetSize());
-        builder.Finish(april_tags_array);
         current_ms = t.get_ms();
         LOG_DEBUG("Zed pipline took: ", current_ms, " ms");
     } else {
