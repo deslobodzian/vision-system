@@ -5,9 +5,6 @@
 #include "utils/logger.hpp"
 #include "vision_pose_generated.h"
 #include "vision_pose_array_generated.h"
-#include "april_tag_generated.h"
-#include "april_tag_array_generated.h"
-#include "utils/zmq_flatbuffers_utils.hpp"
 #include "utils/april_tag_utils.hpp"
 #include <random>
 
@@ -40,6 +37,7 @@ VisionRunner::VisionRunner(
     // Dennis's camera: 47502321
     // Outliers's camera: 41535987
     cfg_.serial_number = 41535987;
+    //cfg_.serial_number = 47502321;
     cfg_.res = sl::RESOLUTION::SVGA;
     //cfg_.res = sl::RESOLUTION::VGA;
     cfg_.sdk_verbose = false;
@@ -79,7 +77,7 @@ VisionRunner::VisionRunner(
 void VisionRunner::init() {
     LOG_INFO("Initializing [VisionRunner]");
 #ifdef WITH_CUDA
-    camera_.enable_tracking();
+    //camera_.enable_tracking();
     camera_.enable_object_detection();
     detection_config det_cfg;
     det_cfg.nms_thres = 0.5;
@@ -94,39 +92,38 @@ void VisionRunner::run() {
     const auto start_time = high_resolution_clock::now();
     auto& builder = zmq_manager_->get_publisher("BackZed").get_builder(); 
 
-    if (use_detection_) {
-        camera_.fetch_measurements(MeasurementType::IMAGE_AND_OBJECTS); // use for async grab
-        detector_.detect_objects(camera_);
-//        camera_.fetch_measurements(MeasurementType::OBJECTS);
-        const sl::Objects& objects = camera_.retrieve_objects();
+    camera_.fetch_measurements(MeasurementType::IMAGE_AND_OBJECTS); // use for async grab
+    detector_.detect_objects(camera_);
+    //        camera_.fetch_measurements(MeasurementType::OBJECTS);
+    const sl::Objects& objects = camera_.retrieve_objects();
 
-        const auto object_detection_time = high_resolution_clock::now();
-        const auto object_detection_ms = duration_cast<milliseconds>(object_detection_time - start_time).count();
+    const auto object_detection_time = high_resolution_clock::now();
+    const auto object_detection_ms = duration_cast<milliseconds>(object_detection_time - start_time).count();
+    LOG_DEBUG("Object detection took: ", object_detection_ms, " ms");
 
-        std::vector<flatbuffers::Offset<Messages::VisionPose>> vision_pose_offsets;
-        vision_pose_offsets.reserve(objects.object_list.size());
+    std::vector<flatbuffers::Offset<Messages::VisionPose>> vision_pose_offsets;
+    vision_pose_offsets.reserve(objects.object_list.size());
 
-        for (const auto& obj : objects.object_list) {
-            auto vision_pose = Messages::CreateVisionPose(
-                    builder, 
-                    obj.id,
-                    obj.position.x, 
-                    obj.position.y, 
-                    obj.position.z, 
-                    object_detection_ms
+    for (const auto& obj : objects.object_list) {
+        auto vision_pose = Messages::CreateVisionPose(
+                builder, 
+                obj.id,
+                obj.position.x, 
+                obj.position.y, 
+                obj.position.z, 
+                object_detection_ms
+                );
+        vision_pose_offsets.push_back(vision_pose);
+    }
+    auto poses_vector = builder.CreateVector(vision_pose_offsets);
+    auto vision_pose_array = Messages::CreateVisionPoseArray(builder, poses_vector);
+
+    builder.Finish(vision_pose_array);
+    zmq_manager_->get_publisher("BackZed").publish_prebuilt(
+            "Objects",
+            builder.GetBufferPointer(),
+            builder.GetSize()  
             );
-            vision_pose_offsets.push_back(vision_pose);
-        }
-        auto poses_vector = builder.CreateVector(vision_pose_offsets);
-        auto vision_pose_array = Messages::CreateVisionPoseArray(builder, poses_vector);
-
-        builder.Finish(vision_pose_array);
-        zmq_manager_->get_publisher("BackZed").publish_prebuilt(
-                "Objects",
-                builder.GetBufferPointer(),
-                builder.GetSize()  
-        );
-    } 
 #endif /* WITH_CUDA */
 /*
  *

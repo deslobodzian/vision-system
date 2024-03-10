@@ -17,7 +17,7 @@ VisionContainer::VisionContainer()
       task_manager_(std::make_shared<TaskManager>()),
       zmq_manager_(std::make_shared<ZmqManager>()) {
 //  zmq_manager_->create_publisher("FrontZed", "tcp://*:5556");
-  zmq_manager_->create_publisher("BackZed", "ipc:///tmp/vision/0");
+  zmq_manager_->create_publisher("BackZed", "ipc:///home/orin/tmp/vision/0");
 //  zmq_manager_->create_subscriber("UseDetection", "tcp://localhost:5558");
 }
 

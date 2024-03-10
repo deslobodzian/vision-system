@@ -18,6 +18,7 @@ AprilTagRunner::AprilTagRunner(std::shared_ptr<TaskManager> manager,
 #ifdef WITH_CUDA
         // Dennis's camera: 47502321
         // Outliers's camera: 41535987
+        //cfg_.serial_number = 41535987;
         cfg_.serial_number = 47502321;
         cfg_.res = sl::RESOLUTION::SVGA;
         // cfg_.res = sl::RESOLUTION::VGA;

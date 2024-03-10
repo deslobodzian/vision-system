@@ -15,6 +15,7 @@ void zmq_objects_subscriber_thread(ZmqManager& zmqManager, const std::string& to
             auto message = subscriber.receive();
             if (message) {
                 const auto& [topic, data] = *message;
+                LOG_DEBUG("Topic got: ", topic);
                 const Messages::VisionPoseArray* vision_pose_array = Messages::GetVisionPoseArray(data.data());
                 int numPoses = vision_pose_array->poses()->size();
                 vision_table->GetEntry("num_objects").SetDouble(numPoses);
@@ -40,7 +41,7 @@ int main() {
     auto vision_table = inst.GetTable("VisionProcessor");
 
     ZmqManager zmq_manager;
-    zmq_manager.create_subscriber("Objects", "ipc:///tmp/vision/0");
+    zmq_manager.create_subscriber("Objects", "ipc:///home/orin/tmp/vision/0");
 
     bool running = true;
     std::thread subscriber_thread(zmq_objects_subscriber_thread, std::ref(zmq_manager), "Objects", vision_table, std::ref(running));
