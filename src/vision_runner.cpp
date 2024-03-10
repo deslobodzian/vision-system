@@ -43,12 +43,14 @@ VisionRunner::VisionRunner(
     cfg_.res = sl::RESOLUTION::SVGA;
     //cfg_.res = sl::RESOLUTION::VGA;
     cfg_.sdk_verbose = false;
-    cfg_.enable_tracking = false;
+    cfg_.enable_tracking = false; // object detection
     cfg_.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
     cfg_.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
     cfg_.max_depth = 20;
     cfg_.min_depth = 0.3f;
+
     cfg_.async_grab = true;
+
     cfg_.prediction_timeout_s = 0.2f;
     cfg_.batch_latency = 0.2f;
     cfg_.id_retention_time = 0.f;
@@ -77,7 +79,7 @@ VisionRunner::VisionRunner(
 void VisionRunner::init() {
     LOG_INFO("Initializing [VisionRunner]");
 #ifdef WITH_CUDA
-    //camera_.enable_tracking();
+    camera_.enable_tracking();
     camera_.enable_object_detection();
     detection_config det_cfg;
     det_cfg.nms_thres = 0.5;
@@ -88,23 +90,14 @@ void VisionRunner::init() {
 
 void VisionRunner::run() {
     using namespace std::chrono;
-
-    if (const auto received = zmq_manager_->get_subscriber("UseDetection").receive()) {
-        const auto& [topic, msg] = *received;
-        if (topic == "UseDetection") { 
-            use_detection_ = process_use_detection(msg);
-        }
-    }
-
 #ifdef WITH_CUDA 
     const auto start_time = high_resolution_clock::now();
     auto& builder = zmq_manager_->get_publisher("BackZed").get_builder(); 
-    const char* topic_name = use_detection_ ? "Objects" : "AprilTags";
 
     if (use_detection_) {
-        camera_.fetch_measurements(MeasurementType::IMAGE);
+        camera_.fetch_measurements(MeasurementType::IMAGE_AND_OBJECTS); // use for async grab
         detector_.detect_objects(camera_);
-        camera_.fetch_measurements(MeasurementType::OBJECTS);
+//        camera_.fetch_measurements(MeasurementType::OBJECTS);
         const sl::Objects& objects = camera_.retrieve_objects();
 
         const auto object_detection_time = high_resolution_clock::now();
@@ -129,49 +122,12 @@ void VisionRunner::run() {
 
         builder.Finish(vision_pose_array);
         zmq_manager_->get_publisher("BackZed").publish_prebuilt(
-                topic_name,
+                "Objects",
                 builder.GetBufferPointer(),
                 builder.GetSize()  
         );
-    } else {
-        camera_.fetch_measurements(MeasurementType::IMAGE_AND_POINT_CLOUD);
-        auto zed_tags = AprilTagUtils::calculate_zed_apriltags(camera_, tag_detector_);
-
-        const auto apriltag_detection_time = high_resolution_clock::now();
-        const auto apriltag_detection_ms = duration_cast<milliseconds>(apriltag_detection_time - start_time).count();
-        LOG_DEBUG("April tag detection with positioning took: ", apriltag_detection_ms, " ms");
-
-
-        std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
-        april_tag_offsets.reserve(zed_tags.size());
-
-        for (const auto& tag : zed_tags) {
-            auto april_tag = Messages::CreateAprilTag(
-                    builder,
-                    tag.tag_id,
-                    tag.center.x,
-                    tag.center.y,
-                    tag.center.z,
-                    tag.orientation.ow,
-                    tag.orientation.ox,
-                    tag.orientation.oy,
-                    tag.orientation.oz,
-                    apriltag_detection_ms
-            );
-            april_tag_offsets.push_back(april_tag);
-        }
-
-        auto tags_vector = builder.CreateVector(april_tag_offsets);
-        auto april_tags_array = Messages::CreateAprilTagArray(builder, tags_vector);
-
-        builder.Finish(april_tags_array);
-        zmq_manager_->get_publisher("BackZed").publish_prebuilt(
-                topic_name,
-                builder.GetBufferPointer(),
-                builder.GetSize()  
-        );
-    }
-#endif
+    } 
+#endif /* WITH_CUDA */
 /*
  *
     std::vector<flatbuffers::Offset<Messages::VisionPose>> visionPoseOffsets;

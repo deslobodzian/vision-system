@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(Vision_System)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -21,10 +21,10 @@ endif()
 message(STATUS "Using Log level ${LOG_LEVEL}")
 
 set(FLATBUFFERS_FLATC_EXECUTABLE flatc)
-set(FBS_SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/fb_schemas) 
-set(FBS_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated_fbs) 
+set(FBS_SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/fb_schemas)
+set(FBS_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated_fbs)
 
-file(GLOB_RECURSE FBS_FILES ${FBS_SCHEMA_DIR}/*.fbs) 
+file(GLOB_RECURSE FBS_FILES ${FBS_SCHEMA_DIR}/*.fbs)
 file(MAKE_DIRECTORY ${FBS_GENERATED_DIR})
 
 foreach(FBS_FILE ${FBS_FILES})
@@ -47,7 +47,6 @@ add_custom_target(GenerateFlatBuffers DEPENDS ${GENERATED_FBS_SRCS})
 
 find_package(OpenCV REQUIRED)
 message(STATUS "OpenCV include dir: ${OpenCV_INCLUDE_DIRS}")
-# Defualt to ONNXRuntime CPU and use CUDA later if available
 find_package(onnxruntime CONFIG REQUIRED)
 find_package(flatbuffers REQUIRED)
 find_package(ZeroMQ REQUIRED)
@@ -57,7 +56,7 @@ if(APPLE)
     add_definitions(-DAPPLE)
 elseif(UNIX AND NOT APPLE)
     message(STATUS "Configuring for Linux")
-    
+
     find_package(CUDAToolkit)
     if(CUDAToolkit_FOUND)
         list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -67,8 +66,7 @@ elseif(UNIX AND NOT APPLE)
             set(CMAKE_CUDA_ARCHITECTURES 75)
         endif()
 
-
-        enable_language(CUDA) 
+        enable_language(CUDA)
         add_definitions(-DWITH_CUDA)
         message(STATUS "CUDA found: Compiling for Linux with GPU support")
 
@@ -93,7 +91,7 @@ elseif(UNIX AND NOT APPLE)
         endforeach()
 
         include(FindCUDA_Apriltags)
-        
+
         find_package(ZED 4 REQUIRED)
         include_directories(
             ${CUDAToolkit_INCLUDE_DIRS}
@@ -125,19 +123,21 @@ link_directories(
     ${OpenCV_LIBRARY_DIRS}
 )
 
-file(GLOB_RECURSE SRC_FILES src/*.cpp)
-file(GLOB_RECURSE HDR_FILES include/*.h include/*.hpp)
+# Main vision system program (C++17)
+file(GLOB_RECURSE VISION_SYSTEM_SRC_FILES src/*.cpp)
+file(GLOB_RECURSE VISION_SYSTEM_HDR_FILES include/*.h include/*.hpp)
 
 add_executable(
-    ${PROJECT_NAME} 
-    ${SRC_FILES} 
+    vision_system
+    ${VISION_SYSTEM_SRC_FILES}
+    ${VISION_SYSTEM_HDR_FILES}
     ${GENERATED_FBS_SRCS}
-    ${CUDA_SRC_FILES} 
+    ${CUDA_SRC_FILES}
     ${CUDA_HDR_FILES}
 )
-add_dependencies(${PROJECT_NAME} GenerateFlatBuffers)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
+add_dependencies(vision_system GenerateFlatBuffers)
+target_compile_features(vision_system PUBLIC cxx_std_17)
+target_link_libraries(vision_system PRIVATE
     ${OpenCV_LIBRARIES}
     ${ZeroMQ_LIBRARY}
     flatbuffers::flatbuffers
@@ -145,9 +145,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 if(UNIX AND NOT APPLE AND CUDA_FOUND)
-    add_dependencies(${PROJECT_NAME} cuapriltags)
+    add_dependencies(vision_system cuapriltags)
     SET(TRT_LIBS nvinfer nvonnxparser)
-    target_link_libraries(${PROJECT_NAME} PRIVATE
+    target_link_libraries(vision_system PRIVATE
         ${CUDA_LIBRARIES}
         ${CUDA_CUDART_LIBRARY}
         ${ZED_LIBRARIES}
@@ -155,3 +155,6 @@ if(UNIX AND NOT APPLE AND CUDA_FOUND)
         ${CUAPRILTAGS_LIBRARY}
     )
 endif()
+
+# ZMQ to NetworkTables program (C++20)
+add_subdirectory(zmq_to_networktables)

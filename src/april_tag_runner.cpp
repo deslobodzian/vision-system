@@ -50,7 +50,10 @@ AprilTagRunner::AprilTagRunner(std::shared_ptr<TaskManager> manager,
 #endif
     }
 
-void AprilTagRunner::init() { LOG_INFO("Initializing [AprilTagRunner]"); }
+void AprilTagRunner::init() { 
+    LOG_INFO("Initializing [AprilTagRunner]");
+    camera_.enable_tracking();
+}
 
 void AprilTagRunner::run() {
     Timer t;

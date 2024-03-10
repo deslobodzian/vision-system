@@ -16,9 +16,9 @@ VisionContainer::VisionContainer()
     : vision_runner_(nullptr), april_tag_runner_(nullptr),
       task_manager_(std::make_shared<TaskManager>()),
       zmq_manager_(std::make_shared<ZmqManager>()) {
-  zmq_manager_->create_publisher("FrontZed", "tcp://*:5556");
-  zmq_manager_->create_publisher("BackZed", "tcp://*:5557");
-  zmq_manager_->create_subscriber("UseDetection", "tcp://localhost:5558");
+//  zmq_manager_->create_publisher("FrontZed", "tcp://*:5556");
+  zmq_manager_->create_publisher("BackZed", "ipc:///tmp/vision/0");
+//  zmq_manager_->create_subscriber("UseDetection", "tcp://localhost:5558");
 }
 
 void drawBoundingBoxes(cv::Mat &image, const std::vector<BBoxInfo> &bboxes) {
@@ -42,7 +42,7 @@ void drawBoundingBoxes(cv::Mat &image, const std::vector<BBoxInfo> &bboxes) {
 }
 
 void VisionContainer::zmq_heart_beat() {
-  //using namespace std::chrono;
+  using namespace std::chrono;
   //auto now = duration_cast<microseconds>(system_clock::now().time_since_epoch())
   //               .count();
   //zmq_manager_->get_publisher("main").publish(
@@ -60,6 +60,7 @@ void VisionContainer::init() {
   int nb_detected_zed = dev_list_.size();
 
   while (retries <= 5) {
+    nb_detected_zed = dev_list_.size();
     if (nb_detected_zed <= 0) {
       LOG_ERROR("Zed camera not detected, retrying after a second!");
       retries++;
@@ -110,6 +111,7 @@ void VisionContainer::run() {
     april_tag_runner_->start();
   } else {
     LOG_ERROR("No April Tag Runner camera found, task not starting!");
+    return;
   }
 
   LOG_INFO("Starting Heart Beat task");
