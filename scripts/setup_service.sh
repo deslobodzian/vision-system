@@ -33,11 +33,11 @@ fi
 mkdir -p $VISION_SYSTEM_DIR
 cp $SOURCE_DIR/$VISION_SYSTEM_EXECUTABLE $VISION_SYSTEM_DIR
 cp $SOURCE_DIR/$VISION_SYSTEM_ENGINE_FILE $VISION_SYSTEM_DIR
-chown -R $USER:$USER $VISION_SYSTEM_DIR
 
 mkdir -p $ZMQ_TO_NETWORKTABLES_DIR
 cp $SOURCE_DIR/zmq_to_networktables/$ZMQ_TO_NETWORKTABLES_EXECUTABLE $ZMQ_TO_NETWORKTABLES_DIR
-chown -R $USER:$USER $ZMQ_TO_NETWORKTABLES_DIR
+
+#ExecStart=/usr/bin/taskset -c 0-5 $VISION_SYSTEM_DIR/$VISION_SYSTEM_EXECUTABLE
 
 cat > /lib/systemd/system/vision_system.service <<EOF
 [Unit]
@@ -45,10 +45,10 @@ Description=Service for VisionSystem
 
 [Service]
 WorkingDirectory=$VISION_SYSTEM_DIR
-ExecStart=/usr/bin/taskset -c 0-5 /usr/bin/sudo -u $USER $VISION_SYSTEM_DIR/$VISION_SYSTEM_EXECUTABLE
+ExecStart=/opt/vision_system/./run_vision.sh
 Type=simple
 Restart=on-failure
-RestartSec=5
+RestartSec=1
 
 [Install]
 WantedBy=multi-user.target
@@ -60,10 +60,10 @@ Description=Service for zmq_to_networktables
 
 [Service]
 WorkingDirectory=$ZMQ_TO_NETWORKTABLES_DIR
-ExecStart=/usr/bin/sudo -u $USER $ZMQ_TO_NETWORKTABLES_DIR/$ZMQ_TO_NETWORKTABLES_EXECUTABLE
+ExecStart=$ZMQ_TO_NETWORKTABLES_DIR/$ZMQ_TO_NETWORKTABLES_EXECUTABLE
 Type=simple
 Restart=on-failure
-RestartSec=5
+RestartSec=1
 
 [Install]
 WantedBy=multi-user.target

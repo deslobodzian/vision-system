@@ -37,21 +37,22 @@ VisionRunner::VisionRunner(
     // Dennis's camera: 47502321
     // Outliers's camera: 41535987
     cfg_.serial_number = 41535987;
-    //cfg_.serial_number = 47502321;
+   	// cfg_.serial_number = 47502321;
     cfg_.res = sl::RESOLUTION::SVGA;
     //cfg_.res = sl::RESOLUTION::VGA;
     cfg_.sdk_verbose = false;
     cfg_.enable_tracking = false; // object detection
-    cfg_.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
+    cfg_.depth_mode = sl::DEPTH_MODE::ULTRA; 
+    //cfg_.depth_mode = sl::DEPTH_MODE::PERFORMANCE; 
     cfg_.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
-    cfg_.max_depth = 20;
+    cfg_.max_depth = 5;
     cfg_.min_depth = 0.3f;
 
-    cfg_.async_grab = true;
+    cfg_.async_grab = false;
 
-    cfg_.prediction_timeout_s = 0.2f;
-    cfg_.batch_latency = 0.2f;
-    cfg_.id_retention_time = 0.f;
+    cfg_.prediction_timeout_s = 0.04f; // 40ms 
+    cfg_.batch_latency = 0.010f;  // 10ms
+    cfg_.id_retention_time = 0.04f; // 40ms
     cfg_.detection_confidence_threshold = 50;
     cfg_.default_memory = sl::MEM::GPU;
 
@@ -70,7 +71,7 @@ VisionRunner::VisionRunner(
     constexpr cuAprilTagsFamily tag_family = NVAT_TAG36H11; 
     constexpr float tag_dim = 0.16f;
     constexpr int decimate = 2;
-    tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim, decimate);
+    //tag_detector_.init_detector(img_width, img_height, tile_size, tag_family, tag_dim, decimate);
 #endif
 }
 
@@ -92,9 +93,12 @@ void VisionRunner::run() {
     const auto start_time = high_resolution_clock::now();
     auto& builder = zmq_manager_->get_publisher("BackZed").get_builder(); 
 
-    camera_.fetch_measurements(MeasurementType::IMAGE_AND_OBJECTS); // use for async grab
+    LOG_DEBUG("Fetching measurement IMAGE");
+    camera_.fetch_measurements(MeasurementType::IMAGE); // use for async grab
+    LOG_DEBUG("Detect objects");
     detector_.detect_objects(camera_);
     //        camera_.fetch_measurements(MeasurementType::OBJECTS);
+    camera_.fetch_objects();
     const sl::Objects& objects = camera_.retrieve_objects();
 
     const auto object_detection_time = high_resolution_clock::now();
@@ -105,25 +109,32 @@ void VisionRunner::run() {
     vision_pose_offsets.reserve(objects.object_list.size());
 
     for (const auto& obj : objects.object_list) {
-        auto vision_pose = Messages::CreateVisionPose(
-                builder, 
-                obj.id,
-                obj.position.x, 
-                obj.position.y, 
-                obj.position.z, 
-                object_detection_ms
-                );
-        vision_pose_offsets.push_back(vision_pose);
+	    LOG_DEBUG("Object: [", obj.id, ", ", obj.position.x, ", ", obj.position.y, ", ", obj.position.z, "]");
+//	    if (obj.tracking_state == sl::OBJECT_TRACKING_STATE::OK) {
+		    auto vision_pose = Messages::CreateVisionPose(
+				    builder, 
+				    obj.id,
+				    obj.position.x, 
+				    obj.position.y, 
+				    obj.position.z, 
+				    object_detection_ms
+				    );
+		    vision_pose_offsets.push_back(vision_pose);
+//	    }
     }
     auto poses_vector = builder.CreateVector(vision_pose_offsets);
     auto vision_pose_array = Messages::CreateVisionPoseArray(builder, poses_vector);
 
     builder.Finish(vision_pose_array);
+    LOG_DEBUG("Builder size: ", builder.GetSize());
     zmq_manager_->get_publisher("BackZed").publish_prebuilt(
             "Objects",
             builder.GetBufferPointer(),
             builder.GetSize()  
             );
+    const auto pipeline = high_resolution_clock::now();
+    const auto pipeline_ms= duration_cast<milliseconds>(pipeline - start_time).count();
+    LOG_DEBUG("Zed Pipeline took: ", pipeline_ms, " ms");
 #endif /* WITH_CUDA */
 /*
  *
@@ -189,5 +200,5 @@ void VisionRunner::run() {
 }
 
 VisionRunner::~VisionRunner() {
-
+	camera_.close();
 }

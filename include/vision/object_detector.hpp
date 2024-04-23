@@ -64,8 +64,8 @@ private:
       objects_in.push_back(tmp);
     }
     camera.ingest_custom_objects(objects_in);
-    const sl::Objects &obj = camera.retrieve_objects();
-    LOG_DEBUG("Zed objects detected: ", obj.object_list.size());
+    //const sl::Objects &obj = camera.retrieve_objects();
+    //LOG_DEBUG("Zed objects detected: ", obj.object_list.size());
   }
 #endif
   void detect_objects_impl(MonocularCamera &camera) {

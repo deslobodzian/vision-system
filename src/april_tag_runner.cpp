@@ -18,8 +18,8 @@ AprilTagRunner::AprilTagRunner(std::shared_ptr<TaskManager> manager,
 #ifdef WITH_CUDA
         // Dennis's camera: 47502321
         // Outliers's camera: 41535987
-        //cfg_.serial_number = 41535987;
-        cfg_.serial_number = 47502321;
+        cfg_.serial_number = 41535987;
+        //cfg_.serial_number = 47502321;
         cfg_.res = sl::RESOLUTION::SVGA;
         // cfg_.res = sl::RESOLUTION::VGA;
         cfg_.sdk_verbose = false;
@@ -60,14 +60,8 @@ void AprilTagRunner::run() {
     Timer t;
     t.start();
 
-    if (auto received = zmq_manager_->get_subscriber("UseDetection").receive()) {
-        const auto &[topic, msg] = *received;
-        if (topic == "UseDetection") {
-            use_detection_ = process_use_detection(msg);
-        }
-    }
     // Use this to bypass message
-    // use_detectinons = false;
+    use_detection_= false;
 
 #ifdef WITH_CUDA
     if (!use_detection_) {
@@ -104,4 +98,6 @@ void AprilTagRunner::run() {
 #endif
 }
 
-AprilTagRunner::~AprilTagRunner() {}
+AprilTagRunner::~AprilTagRunner() {
+	camera_.close();
+}

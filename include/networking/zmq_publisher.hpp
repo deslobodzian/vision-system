@@ -31,6 +31,7 @@ public:
     void publish_prebuilt(const std::string& topic, const uint8_t* data, size_t size) {
         std::lock_guard<std::mutex> lock(mtx_);
         send_message(topic, data, size);
+	builder_.Clear();
     }
 
     flatbuffers::FlatBufferBuilder& get_builder() {

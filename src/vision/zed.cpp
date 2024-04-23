@@ -49,6 +49,7 @@ void ZedCamera::configure(const zed_config &config) {
 
 bool ZedCamera::successful_grab() {
     grab_state_ = zed_.grab();
+    LOG_DEBUG("Grab state: ", grab_state_);
     return (grab_state_ == sl::ERROR_CODE::SUCCESS);
 }
 
@@ -86,6 +87,7 @@ int ZedCamera::enable_object_detection() {
 void ZedCamera::fetch_measurements(const MeasurementType &type) {
     LOG_DEBUG("Using memory type: ", memory_type_);
     if (successful_grab()) {
+	LOG_DEBUG("Grab was successful");
         switch (type) {
             case MeasurementType::ALL:
                 zed_.retrieveImage(measurements_.left_image, sl::VIEW::LEFT,
@@ -172,6 +174,10 @@ void ZedCamera::ingest_custom_objects(
     zed_.ingestCustomBoxObjects(objs);
 }
 
+void ZedCamera::fetch_objects() {
+    zed_.retrieveObjects(detected_objects_, obj_rt_params_);
+}
+
 const sl::Objects &ZedCamera::retrieve_objects() const {
     return detected_objects_;
 }
@@ -188,6 +194,7 @@ const sl::Resolution ZedCamera::get_resolution() const {
 sl::ERROR_CODE ZedCamera::get_plane(const sl::uint2& point, sl::Plane& plane) {
     return zed_.findPlaneAtHit(point, plane);
 }
+
 
 // requires camera to already be open
 const sl::Resolution ZedCamera::get_svo_resolution() {

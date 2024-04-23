@@ -168,6 +168,7 @@ public:
   sl::Timestamp get_measurement_timestamp() const;
   sl::SensorsData::IMUData get_imu_data() const;
   void ingest_custom_objects(std::vector<sl::CustomBoxObjectData> &objs);
+  void fetch_objects();
   const sl::Objects &retrieve_objects() const;
   void set_memory_type(const sl::MEM &memory);
   const sl::ERROR_CODE get_grab_state();
