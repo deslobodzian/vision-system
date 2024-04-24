@@ -9,6 +9,7 @@ public:
     MonocularCamera();
     ~MonocularCamera();
     int open_camera() override;
+    void close() override;
     void fetch_measurements() override;
     const cv::Mat get_frame() const;
     const CAMERA_TYPE get_camera_type() const override;

@@ -2,12 +2,8 @@
 // Created by deslobodzian on 11/23/22.
 //
 #include "april_tag_runner.hpp"
-#include "april_tag_array_generated.h"
-#include "april_tag_generated.h"
-#include "networking/zmq_subscriber.hpp"
 #include "utils/logger.hpp"
 #include "utils/timer.h"
-#include "utils/zmq_flatbuffers_utils.hpp"
 #include "utils/april_tag_utils.hpp"
 
 AprilTagRunner::AprilTagRunner(std::shared_ptr<TaskManager> manager,
@@ -53,7 +49,9 @@ AprilTagRunner::AprilTagRunner(std::shared_ptr<TaskManager> manager,
 
 void AprilTagRunner::init() { 
     LOG_INFO("Initializing [AprilTagRunner]");
+#ifdef WITH_CUDA
     camera_.enable_tracking();
+#endif /* WITH_CUDA */
 }
 
 void AprilTagRunner::run() {
@@ -99,5 +97,7 @@ void AprilTagRunner::run() {
 }
 
 AprilTagRunner::~AprilTagRunner() {
+#ifdef WITH_CUDA
 	camera_.close();
+#endif /* WITH_CUDA */
 }

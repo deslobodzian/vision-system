@@ -3,26 +3,7 @@
 //
 #include "vision_runner.hpp"
 #include "utils/logger.hpp"
-#include "vision_pose_generated.h"
-#include "vision_pose_array_generated.h"
 #include "utils/april_tag_utils.hpp"
-#include <random>
-
-//namespace {
-//float randomFloat(float min, float max) {
-//    static std::mt19937 rng(std::random_device{}());
-//    std::uniform_real_distribution<float> dist(min, max);
-//    return dist(rng);
-//}
-
-// Simulate object with random position
-//struct SimulatedObject {
-//    int id;
-//    struct Position {
-//        float x, y, z;
-//    } position;
-//};
-//}
 
 VisionRunner::VisionRunner(
         std::shared_ptr<TaskManager> manager,
@@ -136,67 +117,7 @@ void VisionRunner::run() {
     const auto pipeline_ms= duration_cast<milliseconds>(pipeline - start_time).count();
     LOG_DEBUG("Zed Pipeline took: ", pipeline_ms, " ms");
 #endif /* WITH_CUDA */
-/*
- *
-    std::vector<flatbuffers::Offset<Messages::VisionPose>> visionPoseOffsets;
-    auto now = std::chrono::high_resolution_clock::now();
-    auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-
-    // Access the FlatBufferBuilder from your ZMQ manager's publisher
-    auto& builder = zmq_manager_->get_publisher("main").get_builder();
-
-    std::vector<SimulatedObject> objects;
-    const int numberOfObjects = 10;
-    for (int i = 0; i < numberOfObjects; ++i) {
-        SimulatedObject obj;
-        obj.id = i;
-        obj.position.x = randomFloat(-10.0f, 10.0f);
-        obj.position.y = randomFloat(-10.0f, 10.0f);
-        obj.position.z = randomFloat(-10.0f, 10.0f);
-        objects.push_back(obj);
-    }
-
-    for (const auto& obj : objects) {
-        auto visionPose = Messages::CreateVisionPose(
-                builder,
-                obj.id,
-                obj.position.x,
-                obj.position.y,
-                obj.position.z,
-                now_ms
-                );
-        visionPoseOffsets.push_back(visionPose);
-    }
-
-    auto posesVector = builder.CreateVector(visionPoseOffsets);
-    auto visionPoseArray = Messages::CreateVisionPoseArray(builder, posesVector);
-
-<<<<<<< HEAD
-    zmq_manager_->get_publisher("main").publish(
-        "VisionPoseArray", 
-        Messages::CreateVisionPoseArray,
-        posesVector 
-    );
-    LOG_DEBUG("Zed end to end took: ", t.get_ms(), " ms");
-#endif
-=======
-    // Finish the FlatBuffer
-    builder.Finish(visionPoseArray);
-
-    // Use the publish_prebuilt method to send the constructed message
-    zmq_manager_->get_publisher("main").publish_prebuilt(
-            "Objects", // Topic name
-            builder.GetBufferPointer(), // The buffer containing the serialized data
-            builder.GetSize() // The size of the serialized data
-            );
->>>>>>> 124603d (new zmq changes)
-    zmq_manager_->get_publisher("main").publish(
-            "VisionPose",
-            Messages::CreateVisionPose,
-            123,     1.0f, 2.0f, 3.0f, 0.0
-    );
-
-*/
+    LOG_DEBUG("Not using CUDA");
 }
 
 VisionRunner::~VisionRunner() {
