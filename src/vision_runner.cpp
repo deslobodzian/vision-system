@@ -4,6 +4,7 @@
 #include "vision_runner.hpp"
 #include "utils/logger.hpp"
 #include "utils/april_tag_utils.hpp"
+#include "vision_pose_array_generated.h"
 
 VisionRunner::VisionRunner(
         std::shared_ptr<TaskManager> manager,

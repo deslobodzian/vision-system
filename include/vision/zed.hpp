@@ -177,7 +177,7 @@ public:
   const sl::Resolution get_svo_resolution();
   CUstream_st *get_cuda_stream();
   void synchronize_cuda_stream();
-  void close() override;
+  void close();
 
 private:
   sl::ERROR_CODE grab_state_;

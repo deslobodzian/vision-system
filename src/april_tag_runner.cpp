@@ -5,6 +5,7 @@
 #include "utils/logger.hpp"
 #include "utils/timer.h"
 #include "utils/april_tag_utils.hpp"
+#include "april_tag_array_generated.h"
 
 AprilTagRunner::AprilTagRunner(std::shared_ptr<TaskManager> manager,
         double period, const std::string &name,
