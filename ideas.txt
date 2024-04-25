@@ -5,5 +5,7 @@ Improve Logger:
 
 Need frontend for configuration and viewing of camera input and output
     * find a framework that will work well, websocket preferred
+    * this should display the measurement type of the zed camera, if depth is used show it
+    * if 3d object detection draw the bboxes to the image
 
 
