@@ -10,15 +10,16 @@ struct detection_config {
   detection_config() = default;
 };
 
-template <typename MatType> class IModel {
-public:
+template <typename MatType>
+class IModel {
+ public:
   virtual ~IModel() {}
-  virtual void configure(const detection_config &cfg) = 0;
-  virtual void preprocess(const MatType &image) = 0;
-  virtual std::vector<BBoxInfo>
-  postprocess(const Tensor<float> &prediction_tensor, const MatType &image) = 0;
-  virtual std::vector<BBoxInfo> predict(const MatType &image) = 0;
+  virtual void configure(const detection_config& cfg) = 0;
+  virtual void preprocess(const MatType& image) = 0;
+  virtual std::vector<BBoxInfo> postprocess(
+      const Tensor<float>& prediction_tensor, const MatType& image) = 0;
+  virtual std::vector<BBoxInfo> predict(const MatType& image) = 0;
 
-private:
+ private:
 };
 #endif /* VISION_SYSTEM_I_MODEL_HPP */

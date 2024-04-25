@@ -22,7 +22,7 @@ constexpr LogLevel CURRENT_LOG_LEVEL = LogLevel::ERROR;
 constexpr LogLevel CURRENT_LOG_LEVEL = LogLevel::INFO;
 #endif
 
-inline std::string log_seperator(const std::string &text) {
+inline std::string log_seperator(const std::string& text) {
   const std::string line = "---------------------------------------------";
   const size_t line_width = line.length();
 
@@ -36,12 +36,12 @@ inline std::string log_seperator(const std::string &text) {
          std::string(right_padding, '-');
 }
 
-constexpr std::string_view extract_class_name(const char *pretty_function) {
+constexpr std::string_view extract_class_name(const char* pretty_function) {
   std::string_view pf = pretty_function;
 
   size_t params_start = pf.find('(');
   if (params_start == std::string_view::npos)
-    return {}; // Not a valid function
+    return {};  // Not a valid function
 
   size_t colons = pf.rfind("::", params_start);
   if (colons == std::string_view::npos) {
@@ -60,27 +60,27 @@ constexpr std::string_view extract_class_name(const char *pretty_function) {
 }
 
 class Logger {
-public:
-  static Logger &instance() {
+ public:
+  static Logger& instance() {
     static Logger instance;
     return instance;
   }
 
   template <typename... Args>
-  void log(LogLevel level, const char *pretty_function, Args &&...args) {
+  void log(LogLevel level, const char* pretty_function, Args&&... args) {
     std::string_view class_name = extract_class_name(pretty_function);
     std::scoped_lock<std::mutex> lock(mutex_);
     std::ostringstream stream;
     switch (level) {
-    case LogLevel::INFO:
-      stream << "\033[1;37m[INFO]\033[0m";
-      break;
-    case LogLevel::DEBUG:
-      stream << "\033[1;33m[DEBUG]\033[0m";
-      break;
-    case LogLevel::ERROR:
-      stream << "\033[1;31m[ERROR]\033[0m";
-      break;
+      case LogLevel::INFO:
+        stream << "\033[1;37m[INFO]\033[0m";
+        break;
+      case LogLevel::DEBUG:
+        stream << "\033[1;33m[DEBUG]\033[0m";
+        break;
+      case LogLevel::ERROR:
+        stream << "\033[1;31m[ERROR]\033[0m";
+        break;
     }
     // Continue with class name and message in default formatting
     stream << "[" << class_name << "]: ";
@@ -88,7 +88,7 @@ public:
     std::cout << stream.str() << std::endl;
   }
 
-private:
+ private:
   std::mutex mutex_;
 };
 
@@ -103,6 +103,6 @@ private:
 #define LOG_DEBUG(...) LOG(logger::LogLevel::DEBUG, __VA_ARGS__)
 #define LOG_ERROR(...) LOG(logger::LogLevel::ERROR, __VA_ARGS__)
 
-} // namespace logger
+}  // namespace logger
 
-#endif // VISION_SYSTEM_LOGGER_HPP
+#endif  // VISION_SYSTEM_LOGGER_HPP

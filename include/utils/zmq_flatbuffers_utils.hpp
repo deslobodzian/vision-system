@@ -6,14 +6,14 @@
 #include <flatbuffers/flatbuffers.h>
 #include <zmq.hpp>
 
-inline bool process_use_detection(const zmq::message_t &msg) {
-  auto verifier = flatbuffers::Verifier(
-      static_cast<const uint8_t *>(msg.data()), msg.size());
+inline bool process_use_detection(const zmq::message_t& msg) {
+  auto verifier = flatbuffers::Verifier(static_cast<const uint8_t*>(msg.data()),
+                                        msg.size());
   if (!Messages::VerifyUseDetectionBuffer(verifier)) {
     LOG_ERROR("Invalid UseDetection message received");
     return false;
   }
-  const auto *use_detection = Messages::GetUseDetection(msg.data());
+  const auto* use_detection = Messages::GetUseDetection(msg.data());
   if (!use_detection) {
     LOG_ERROR("Failed to get UseDetection data");
     return false;

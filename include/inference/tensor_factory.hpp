@@ -5,10 +5,11 @@
 #include <onnxruntime_cxx_api.h>
 #include <opencv2/opencv.hpp>
 
-template <typename T> class TensorFactory {
-public:
+template <typename T>
+class TensorFactory {
+ public:
   /* Create a tensor from OpenCV Mat */
-  static Tensor<T> from_cv_mat(const cv::Mat &mat,
+  static Tensor<T> from_cv_mat(const cv::Mat& mat,
                                Device device = Device::CPU) {
     if (device != Device::CPU) {
       throw std::runtime_error(
@@ -20,11 +21,11 @@ public:
     }
 
     Shape shape = {mat.rows, mat.cols, mat.channels()};
-    return Tensor<T>(reinterpret_cast<T *>(mat.data), shape, Device::CPU);
+    return Tensor<T>(reinterpret_cast<T*>(mat.data), shape, Device::CPU);
   }
 
   /* Create a tensor from Ort::Value */
-  static Tensor<T> from_ort_value(Ort::Value &ort_value,
+  static Tensor<T> from_ort_value(Ort::Value& ort_value,
                                   Device device = Device::CPU) {
     if (!ort_value.IsTensor()) {
       throw std::runtime_error("The provided Ort::Value is not a tensor.");
@@ -41,12 +42,12 @@ public:
     auto shape = tensor_info.GetShape();
     Shape tensor_shape(shape.begin(), shape.end());
 
-    T *data_ptr = ort_value.GetTensorMutableData<T>();
+    T* data_ptr = ort_value.GetTensorMutableData<T>();
     return Tensor<T>(data_ptr, tensor_shape, device);
   }
 
-  static Ort::Value to_ort_value(const Tensor<T> &tensor,
-                                 Ort::MemoryInfo &memory_info) {
+  static Ort::Value to_ort_value(const Tensor<T>& tensor,
+                                 Ort::MemoryInfo& memory_info) {
     if (tensor.device() != Device::CPU) {
       throw std::runtime_error(
           "ONNX Runtime tensor currently only supported on CPU");

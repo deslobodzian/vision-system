@@ -10,7 +10,7 @@
 #include "vision_runner.hpp"
 
 class VisionContainer {
-public:
+ public:
   VisionContainer();
 
   void init();
@@ -18,7 +18,7 @@ public:
 
   virtual ~VisionContainer();
 
-protected:
+ protected:
   void zmq_heart_beat();
 
   std::shared_ptr<TaskManager> task_manager_;
@@ -32,4 +32,4 @@ protected:
   std::vector<unsigned int> serial_numbers_;
 };
 
-#endif // VISION_SYSTEM_VISION_CONTAINER_HPP
+#endif  // VISION_SYSTEM_VISION_CONTAINER_HPP

@@ -12,12 +12,14 @@
 
 namespace fs = std::filesystem;
 
-inline bool doesFileExist(const std::string &path) { return fs::exists(path); }
+inline bool doesFileExist(const std::string& path) {
+  return fs::exists(path);
+}
 
-inline std::vector<std::string>
-getFilesInDirectory(const std::string &directoryPath) {
+inline std::vector<std::string> getFilesInDirectory(
+    const std::string& directoryPath) {
   std::vector<std::string> files;
-  for (const auto &entry : fs::directory_iterator(directoryPath)) {
+  for (const auto& entry : fs::directory_iterator(directoryPath)) {
     if (entry.is_regular_file()) {
       files.push_back(entry.path().string());
     }
@@ -26,14 +28,16 @@ getFilesInDirectory(const std::string &directoryPath) {
 }
 
 class Int8EntropyCalibrator2 : public nvinfer1::IInt8EntropyCalibrator2 {
-public:
+ public:
   Int8EntropyCalibrator2(int batch_size,
-                         const std::string &calibration_data_path,
-                         const std::string &calibration_table_name,
-                         const std::string &input_blob_name, const Shape &shape)
-      : batch_size_(batch_size), calibration_data_path_(calibration_data_path),
+                         const std::string& calibration_data_path,
+                         const std::string& calibration_table_name,
+                         const std::string& input_blob_name, const Shape& shape)
+      : batch_size_(batch_size),
+        calibration_data_path_(calibration_data_path),
         calibration_table_name_(calibration_table_name),
-        input_blob_name_(input_blob_name), current_image_index_(0),
+        input_blob_name_(input_blob_name),
+        current_image_index_(0),
         data_tensor_(shape, Device::CPU) {
     // gpu allocation
     data_tensor_.to_gpu();
@@ -48,10 +52,10 @@ public:
 
   int getBatchSize() const noexcept override { return batch_size_; }
 
-  bool getBatch(void *bindings[], const char *names[],
+  bool getBatch(void* bindings[], const char* names[],
                 int nbBindings) noexcept override {
     if (current_image_index_ >= image_paths_.size()) {
-      return false; // No more data to process
+      return false;  // No more data to process
     }
 
     // Assuming batch size is 1 for now
@@ -72,7 +76,7 @@ public:
     return true;
   }
 
-  const void *readCalibrationCache(size_t &length) noexcept override {
+  const void* readCalibrationCache(size_t& length) noexcept override {
     std::cout << "Searching for calibration cache: " << calibration_table_name_
               << std::endl;
     calibration_cache_.clear();
@@ -89,15 +93,15 @@ public:
     return length ? calibration_cache_.data() : nullptr;
   }
 
-  void writeCalibrationCache(const void *cache,
+  void writeCalibrationCache(const void* cache,
                              size_t length) noexcept override {
     std::cout << "Writing calib cache: " << calibration_table_name_
               << " Size: " << length << " bytes" << std::endl;
     std::ofstream output(calibration_table_name_, std::ios::binary);
-    output.write(reinterpret_cast<const char *>(cache), length);
+    output.write(reinterpret_cast<const char*>(cache), length);
   }
 
-private:
+ private:
   int batch_size_;
   std::string calibration_data_path_;
   std::string calibration_table_name_;
@@ -111,7 +115,7 @@ private:
 
   bool read_cache_ = false;
 
-  void loadCalibrationData(const std::string &calibDataDirPath) {
+  void loadCalibrationData(const std::string& calibDataDirPath) {
     // Check if the calibration data directory exists
     if (!doesFileExist(calibDataDirPath)) {
       throw std::runtime_error("Error, directory does not exist: " +

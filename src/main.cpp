@@ -18,7 +18,7 @@ void signal_callback_handler(int signum) {
   exit(signum);
 }
 
-MODE args_interpreter(int argc, char **argv) {
+MODE args_interpreter(int argc, char** argv) {
   if (argc < 2) {
     return REALTIME;
   }
@@ -35,15 +35,16 @@ MODE args_interpreter(int argc, char **argv) {
     cfg.onnx_path = onnx_path;
     cfg.engine_path = engine_path;
     cfg.max_threads = 4;
-    cfg.optimization_level = 5; // max
+    cfg.optimization_level = 5;  // max
     if (argc == 5) {
       std::string optim_profile = argv[4];
       if (dyn_dim_profile.setFromString(optim_profile)) {
         TensorRTEngine::build_engine(cfg, dyn_dim_profile);
         return BUILD_ENGINE;
       } else {
-        LOG_ERROR("Invalid dynamic dimension argument, expecting something "
-                  "like 'images:1x3x512x512'");
+        LOG_ERROR(
+            "Invalid dynamic dimension argument, expecting something "
+            "like 'images:1x3x512x512'");
         return INVALID;
       }
       return INVALID;
@@ -89,7 +90,7 @@ MODE args_interpreter(int argc, char **argv) {
       cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
     }
 
-    for (const auto &tag : detectedTags) {
+    for (const auto& tag : detectedTags) {
       // Draw tag outlines and IDs
       LOG_INFO("Tag ID: ", tag.id);
       for (int i = 0; i < 4; ++i) {
@@ -117,27 +118,27 @@ MODE args_interpreter(int argc, char **argv) {
   return REALTIME;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   MODE mode = args_interpreter(argc, argv);
 
   switch (mode) {
-  case BUILD_ENGINE:
-    LOG_INFO("Engine built, exiting program");
-    return EXIT_SUCCESS;
-  case PLAYBACK:
-    LOG_INFO("Playback mode, exiting program");
-    return EXIT_SUCCESS;
-  case REALTIME:
-    LOG_INFO("Real-time mode, continuing program");
-    break;
-  case TAG_DETECTION:
-    LOG_INFO("AprilTag Detection mode, exiting program");
-    return EXIT_SUCCESS;
-  case INVALID:
-    break;
-  default:
-    LOG_ERROR("Invalid arguments or unsupported mode, exiting program");
-    return EXIT_FAILURE;
+    case BUILD_ENGINE:
+      LOG_INFO("Engine built, exiting program");
+      return EXIT_SUCCESS;
+    case PLAYBACK:
+      LOG_INFO("Playback mode, exiting program");
+      return EXIT_SUCCESS;
+    case REALTIME:
+      LOG_INFO("Real-time mode, continuing program");
+      break;
+    case TAG_DETECTION:
+      LOG_INFO("AprilTag Detection mode, exiting program");
+      return EXIT_SUCCESS;
+    case INVALID:
+      break;
+    default:
+      LOG_ERROR("Invalid arguments or unsupported mode, exiting program");
+      return EXIT_FAILURE;
   }
 
   VisionContainer container;

@@ -7,29 +7,29 @@
 #include <string>
 
 class ZmqManager {
-public:
+ public:
   ZmqManager() = default;
 
   ~ZmqManager() {}
 
-  void create_publisher(const std::string &name, const std::string &endpoint) {
+  void create_publisher(const std::string& name, const std::string& endpoint) {
     publishers_[name] = std::make_unique<ZmqPublisher>(endpoint);
   }
 
-  void create_subscriber(const std::string &topic,
-                         const std::string &endpoint) {
+  void create_subscriber(const std::string& topic,
+                         const std::string& endpoint) {
     subscribers_[topic] = std::make_unique<ZmqSubscriber>(topic, endpoint);
   }
 
-  ZmqPublisher &get_publisher(const std::string &name) {
+  ZmqPublisher& get_publisher(const std::string& name) {
     return *publishers_.at(name);
   }
 
-  ZmqSubscriber &get_subscriber(const std::string &topic) {
+  ZmqSubscriber& get_subscriber(const std::string& topic) {
     return *subscribers_.at(topic);
   }
 
-private:
+ private:
   std::map<std::string, std::unique_ptr<ZmqPublisher>> publishers_;
   std::map<std::string, std::unique_ptr<ZmqSubscriber>> subscribers_;
 };

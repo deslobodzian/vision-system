@@ -6,7 +6,7 @@
 #include <iostream>
 
 bool convert_mat_to_cu_april_tags_image_input(
-    const cv::Mat &image, cuAprilTagsImageInput_t &img_input) {
+    const cv::Mat& image, cuAprilTagsImageInput_t& img_input) {
   if (image.type() != CV_8UC3) {
     std::cerr
         << "Image format is not compatible. Expected 8-bit, 3-channel BGR."
@@ -14,7 +14,7 @@ bool convert_mat_to_cu_april_tags_image_input(
     return false;
   }
 
-  uchar3 *dev_image = nullptr;
+  uchar3* dev_image = nullptr;
   size_t pitch = 0;
   cudaError_t cuda_status = cudaMallocPitch(
       &dev_image, &pitch, image.cols * sizeof(uchar3), image.rows);
@@ -66,8 +66,8 @@ ApriltagDetector::~ApriltagDetector() {
   cudaStreamDestroy(cuda_stream_);
 }
 
-std::vector<cuAprilTagsID_t>
-ApriltagDetector::detect_tags(const cuAprilTagsImageInput_t &img_input) {
+std::vector<cuAprilTagsID_t> ApriltagDetector::detect_tags(
+    const cuAprilTagsImageInput_t& img_input) {
   std::vector<cuAprilTagsID_t> detected_tags;
   detected_tags.resize(max_tags);
 
@@ -82,8 +82,8 @@ ApriltagDetector::detect_tags(const cuAprilTagsImageInput_t &img_input) {
   return detected_tags;
 }
 
-std::vector<cuAprilTagsID_t>
-ApriltagDetector::detect_april_tags_in_cv_image(const cv::Mat &cv_image) {
+std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_cv_image(
+    const cv::Mat& cv_image) {
   timer_.start();
   if (!convert_mat_to_cu_april_tags_image_input(cv_image, input_image_)) {
     throw std::runtime_error(
@@ -98,8 +98,8 @@ ApriltagDetector::detect_april_tags_in_cv_image(const cv::Mat &cv_image) {
   return detected_tags;
 }
 
-std::vector<cuAprilTagsID_t>
-ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat &sl_image) {
+std::vector<cuAprilTagsID_t> ApriltagDetector::detect_april_tags_in_sl_image(
+    const sl::Mat& sl_image) {
   timer_.start();
   original_res_ = sl_image.getResolution();
   convert_sl_mat_to_april_tag_input(sl_image, input_image_, decimate_,
@@ -111,7 +111,7 @@ ApriltagDetector::detect_april_tags_in_sl_image(const sl::Mat &sl_image) {
   cudaStreamSynchronize(cuda_stream_);
   LOG_DEBUG("Tag detection took: ", timer_.get_ms(), " ms");
 
-  for (auto &tag : detected_tags) {
+  for (auto& tag : detected_tags) {
     for (int i = 0; i < 4; ++i) {
       tag.corners[i].x *= decimate_;
       tag.corners[i].y *= decimate_;

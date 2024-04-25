@@ -11,15 +11,15 @@
 #include "vision/object_detector.hpp"
 
 class VisionRunner : public Task {
-public:
-  VisionRunner(std::shared_ptr<TaskManager>, double period, const std::string &,
+ public:
+  VisionRunner(std::shared_ptr<TaskManager>, double period, const std::string&,
                const std::shared_ptr<ZmqManager> zmq_manager);
   using Task::Task;
   void init() override;
   void run() override;
   virtual ~VisionRunner();
 
-private:
+ private:
 #ifdef WITH_CUDA
   zed_config cfg_;
   ZedCamera camera_;
@@ -33,4 +33,4 @@ private:
   bool use_detection_;
 };
 
-#endif // VISION_SYSTEM_VISION_RUNNER_HPP
+#endif  // VISION_SYSTEM_VISION_RUNNER_HPP

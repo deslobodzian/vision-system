@@ -19,18 +19,19 @@
 #include <sl/Camera.hpp>
 #endif
 
-template <typename MatType> class Yolo : public IModel<MatType> {
-public:
-  Yolo<MatType>(const std::string &model);
+template <typename MatType>
+class Yolo : public IModel<MatType> {
+ public:
+  Yolo<MatType>(const std::string& model);
   ~Yolo() = default;
 
-  void configure(const detection_config &cfg) override;
-  void preprocess(const MatType &image) override;
-  std::vector<BBoxInfo> predict(const MatType &image) override;
-  std::vector<BBoxInfo> postprocess(const Tensor<float> &prediction_tensor,
-                                    const MatType &image) override;
+  void configure(const detection_config& cfg) override;
+  void preprocess(const MatType& image) override;
+  std::vector<BBoxInfo> predict(const MatType& image) override;
+  std::vector<BBoxInfo> postprocess(const Tensor<float>& prediction_tensor,
+                                    const MatType& image) override;
 
-private:
+ private:
   std::unique_ptr<IInferenceEngine> inference_engine_;
   std::string model_;
   detection_config cfg_;
@@ -48,7 +49,7 @@ private:
 };
 
 template <typename MatType>
-Yolo<MatType>::Yolo(const std::string &model) : model_(model) {
+Yolo<MatType>::Yolo(const std::string& model) : model_(model) {
   inference_engine_ = InferenceEngineFactory::create_inference_engine();
   LOG_INFO("Loading Model: ", model_);
   inference_engine_->load_model(model_);
@@ -70,11 +71,11 @@ Yolo<MatType>::Yolo(const std::string &model) : model_(model) {
 }
 
 template <typename MatType>
-void Yolo<MatType>::configure(const detection_config &cfg) {
+void Yolo<MatType>::configure(const detection_config& cfg) {
   cfg_ = cfg;
 }
 template <typename MatType>
-void Yolo<MatType>::preprocess(const MatType &image) {
+void Yolo<MatType>::preprocess(const MatType& image) {
   auto start = std::chrono::high_resolution_clock::now();
 
   if constexpr (std::is_same_v<MatType, cv::Mat>) {
@@ -97,9 +98,8 @@ void Yolo<MatType>::preprocess(const MatType &image) {
 }
 
 template <typename MatType>
-std::vector<BBoxInfo>
-Yolo<MatType>::postprocess(const Tensor<float> &prediction_tensor,
-                           const MatType &image) {
+std::vector<BBoxInfo> Yolo<MatType>::postprocess(
+    const Tensor<float>& prediction_tensor, const MatType& image) {
   int image_w;
   int image_h;
   if constexpr (std::is_same_v<MatType, cv::Mat>) {
@@ -125,14 +125,14 @@ Yolo<MatType>::postprocess(const Tensor<float> &prediction_tensor,
   auto num_channels = num_classes_ + bbox_values_;
   auto num_labels = num_classes_;
 
-  auto &dw = xOffset;
-  auto &dh = yOffset;
+  auto& dw = xOffset;
+  auto& dh = yOffset;
 
-  auto &width = image_w;
-  auto &height = image_h;
+  auto& width = image_w;
+  auto& height = image_h;
   LOG_INFO(prediction_tensor.print_shape());
   cv::Mat output = cv::Mat(num_channels, num_anchors_, CV_32F,
-                           static_cast<float *>(prediction_tensor.data()));
+                           static_cast<float*>(prediction_tensor.data()));
 
   output = output.t();
   for (int i = 0; i < num_anchors_; i++) {
@@ -185,7 +185,7 @@ Yolo<MatType>::postprocess(const Tensor<float> &prediction_tensor,
 }
 
 template <typename MatType>
-std::vector<BBoxInfo> Yolo<MatType>::predict(const MatType &image) {
+std::vector<BBoxInfo> Yolo<MatType>::predict(const MatType& image) {
   preprocess(image);
   inference_engine_->run_inference();
   return postprocess(inference_engine_->get_output_tensor(), image);

@@ -19,7 +19,8 @@
 #include <cuda_runtime.h>
 #endif
 
-template <typename T> void cpu_deleter(T *p) {
+template <typename T>
+void cpu_deleter(T* p) {
 #ifdef WITH_CUDA
   LOG_DEBUG("Pinned CPU memory free called");
   cudaFreeHost(p);
@@ -30,37 +31,43 @@ template <typename T> void cpu_deleter(T *p) {
 }
 
 #ifdef WITH_CUDA
-template <typename T> void gpu_deleter(T *p) {
+template <typename T>
+void gpu_deleter(T* p) {
   LOG_DEBUG("GPU Free called");
   cudaFree(p);
 }
 
 #else
-template <typename T> void gpu_deleter(T *p) { /* CUDA not available */ }
+template <typename T>
+void gpu_deleter(T* p) { /* CUDA not available */ }
 #endif
 
 enum class Device { CPU, GPU };
 using Shape = std::vector<int64_t>;
 
-template <typename T> class Tensor {
-public:
+template <typename T>
+class Tensor {
+ public:
   Tensor()
-      : shape_(), device_(Device::CPU), is_gpu_data_valid_(false),
-        cpu_data_(nullptr, cpu_deleter<T>), gpu_data_(nullptr, gpu_deleter<T>) {
-  }
+      : shape_(),
+        device_(Device::CPU),
+        is_gpu_data_valid_(false),
+        cpu_data_(nullptr, cpu_deleter<T>),
+        gpu_data_(nullptr, gpu_deleter<T>) {}
 
   Tensor(std::initializer_list<int64_t> shape, Device device);
   Tensor(Shape shape, Device device);
-  Tensor(T *array, const Shape &shape, Device device);
-  template <typename U> Tensor(const Tensor<U> &other);
+  Tensor(T* array, const Shape& shape, Device device);
+  template <typename U>
+  Tensor(const Tensor<U>& other);
 
   ~Tensor();
 
-  Tensor(Tensor &&other) noexcept;
-  Tensor &operator=(Tensor &&other) noexcept;
+  Tensor(Tensor&& other) noexcept;
+  Tensor& operator=(Tensor&& other) noexcept;
 
-  Tensor(const Tensor &) = delete;
-  Tensor &operator=(const Tensor &) = delete;
+  Tensor(const Tensor&) = delete;
+  Tensor& operator=(const Tensor&) = delete;
 
   void allocate_memory();
   void free_memory();
@@ -68,40 +75,42 @@ public:
   void to_cpu();
   void to_gpu();
 
-  const Shape &shape() const;
+  const Shape& shape() const;
   size_t size() const;
 
-  T *gpu_data() const;
-  T *data() const;
+  T* gpu_data() const;
+  T* data() const;
 
   // Incase gpu data is manipulated elsewhere
   void update_cpu_from_gpu();
 
-  void reshape(const Shape &new_shape);
+  void reshape(const Shape& new_shape);
   void scale(T factor);
 
-  void permute(const Shape &order);
+  void permute(const Shape& order);
 
-  template <typename U> void copy(const Tensor<U> &other);
+  template <typename U>
+  void copy(const Tensor<U>& other);
 
-  template <typename U> void copy(const U *data, const Shape &source_shape);
-  std::vector<size_t> calculate_strides(const Shape &shape);
+  template <typename U>
+  void copy(const U* data, const Shape& source_shape);
+  std::vector<size_t> calculate_strides(const Shape& shape);
   // TODO: Add the function in python that addes a dimension to the
   // tensor(forgot the name)
   std::string print_shape() const;
   std::string to_string() const;
 
-  friend std::ostream &operator<<(std::ostream &os, const Tensor &tensor) {
+  friend std::ostream& operator<<(std::ostream& os, const Tensor& tensor) {
     return os << tensor.to_string();
   }
 
   Device device() const { return device_; }
 
-private:
+ private:
   Shape shape_;
   Device device_;
-  std::unique_ptr<T[], void (*)(T *)> cpu_data_;
-  std::unique_ptr<T[], void (*)(T *)> gpu_data_;
+  std::unique_ptr<T[], void (*)(T*)> cpu_data_;
+  std::unique_ptr<T[], void (*)(T*)> gpu_data_;
   bool is_gpu_data_valid_;
 
   size_t calculate_size() const {
@@ -112,8 +121,11 @@ private:
 
 template <typename T>
 Tensor<T>::Tensor(Shape shape, Device device)
-    : shape_(std::move(shape)), device_(device), is_gpu_data_valid_(false),
-      cpu_data_(nullptr, cpu_deleter<T>), gpu_data_(nullptr, gpu_deleter<T>) {
+    : shape_(std::move(shape)),
+      device_(device),
+      is_gpu_data_valid_(false),
+      cpu_data_(nullptr, cpu_deleter<T>),
+      gpu_data_(nullptr, gpu_deleter<T>) {
   allocate_memory();
 }
 
@@ -122,34 +134,43 @@ Tensor<T>::Tensor(std::initializer_list<int64_t> shape, Device device)
     : Tensor(Shape(shape), device) {}
 
 template <typename T>
-Tensor<T>::Tensor(T *array, const Shape &shape, Device device)
-    : shape_(shape), device_(device), is_gpu_data_valid_(false),
-      cpu_data_(nullptr, cpu_deleter<T>), gpu_data_(nullptr, gpu_deleter<T>) {
+Tensor<T>::Tensor(T* array, const Shape& shape, Device device)
+    : shape_(shape),
+      device_(device),
+      is_gpu_data_valid_(false),
+      cpu_data_(nullptr, cpu_deleter<T>),
+      gpu_data_(nullptr, gpu_deleter<T>) {
   allocate_memory();
   std::copy(array, array + calculate_size(), cpu_data_.get());
 }
 
 template <typename T>
 template <typename U>
-Tensor<T>::Tensor(const Tensor<U> &other)
-    : shape_(other.shape()), device_(other.device()), is_gpu_data_valid_(false),
-      cpu_data_(nullptr, cpu_deleter<T>), gpu_data_(nullptr, gpu_deleter<T>) {
-
+Tensor<T>::Tensor(const Tensor<U>& other)
+    : shape_(other.shape()),
+      device_(other.device()),
+      is_gpu_data_valid_(false),
+      cpu_data_(nullptr, cpu_deleter<T>),
+      gpu_data_(nullptr, gpu_deleter<T>) {
   allocate_memory();
   std::copy(other.data(), other.data() + calculate_size(), cpu_data_.get());
 }
 
-template <typename T> Tensor<T>::~Tensor() { free_memory(); }
+template <typename T>
+Tensor<T>::~Tensor() {
+  free_memory();
+}
 
 template <typename T>
-Tensor<T>::Tensor(Tensor<T> &&other) noexcept
-    : shape_(std::move(other.shape_)), device_(other.device_),
+Tensor<T>::Tensor(Tensor<T>&& other) noexcept
+    : shape_(std::move(other.shape_)),
+      device_(other.device_),
       cpu_data_(std::move(other.cpu_data_)),
       gpu_data_(std::move(other.gpu_data_)),
       is_gpu_data_valid_(other.is_gpu_data_valid_) {}
 
 template <typename T>
-Tensor<T> &Tensor<T>::operator=(Tensor<T> &&other) noexcept {
+Tensor<T>& Tensor<T>::operator=(Tensor<T>&& other) noexcept {
   if (this != &other) {
     shape_ = std::move(other.shape_);
     device_ = other.device_;
@@ -160,15 +181,16 @@ Tensor<T> &Tensor<T>::operator=(Tensor<T> &&other) noexcept {
   return *this;
 }
 
-template <typename T> void Tensor<T>::allocate_memory() {
+template <typename T>
+void Tensor<T>::allocate_memory() {
   size_t total_size = calculate_size();
 #ifdef WITH_CUDA
-  T *new_cpu_data;
+  T* new_cpu_data;
   // pinned memory for a bit more performance
   cudaMallocHost(&new_cpu_data, total_size * sizeof(T));
   cpu_data_.reset(new_cpu_data);
   if (device_ == Device::GPU) {
-    T *gpu_data;
+    T* gpu_data;
     cudaMalloc(&gpu_data, total_size * sizeof(T));
     gpu_data_.reset(gpu_data);
     is_gpu_data_valid_ = true;
@@ -178,17 +200,19 @@ template <typename T> void Tensor<T>::allocate_memory() {
 #endif
 }
 
-template <typename T> void Tensor<T>::free_memory() {
+template <typename T>
+void Tensor<T>::free_memory() {
   cpu_data_.reset();
   gpu_data_.reset();
 }
 
-template <typename T> void Tensor<T>::to_gpu() {
+template <typename T>
+void Tensor<T>::to_gpu() {
 #ifdef WITH_CUDA
   if (device_ != Device::GPU) {
     if (!gpu_data_) {
       LOG_DEBUG("Allocating GPU data");
-      T *gpu_data;
+      T* gpu_data;
       CUDA_CHECK(cudaMalloc(&gpu_data, calculate_size() * sizeof(T)));
       gpu_data_.reset(gpu_data);
     }
@@ -206,7 +230,8 @@ template <typename T> void Tensor<T>::to_gpu() {
 #endif
 }
 
-template <typename T> void Tensor<T>::to_cpu() {
+template <typename T>
+void Tensor<T>::to_cpu() {
 #ifdef WITH_CUDA
   if (device_ != Device::CPU) {
     if (!gpu_data_) {
@@ -223,7 +248,8 @@ template <typename T> void Tensor<T>::to_cpu() {
 }
 
 // force update cpu data from gpu
-template <typename T> void Tensor<T>::update_cpu_from_gpu() {
+template <typename T>
+void Tensor<T>::update_cpu_from_gpu() {
 #ifdef WITH_CUDA
   LOG_DEBUG("Force update cpu from gpu data");
   CUDA_CHECK(cudaMemcpyAsync(cpu_data_.get(), gpu_data_.get(),
@@ -234,12 +260,17 @@ template <typename T> void Tensor<T>::update_cpu_from_gpu() {
 #endif
 }
 
-template <typename T> const Shape &Tensor<T>::shape() const { return shape_; }
+template <typename T>
+const Shape& Tensor<T>::shape() const {
+  return shape_;
+}
 
-template <typename T> size_t Tensor<T>::size() const {
+template <typename T>
+size_t Tensor<T>::size() const {
   return calculate_size();
 }
-template <typename T> T *Tensor<T>::gpu_data() const {
+template <typename T>
+T* Tensor<T>::gpu_data() const {
 #ifdef WITH_CUDA
   return gpu_data_.get();
 #else
@@ -247,7 +278,8 @@ template <typename T> T *Tensor<T>::gpu_data() const {
   return nullptr;
 #endif
 }
-template <typename T> T *Tensor<T>::data() const {
+template <typename T>
+T* Tensor<T>::data() const {
 #ifdef WITH_CUDA
   if (device_ == Device::GPU) {
     LOG_DEBUG("Getting GPU data");
@@ -258,7 +290,8 @@ template <typename T> T *Tensor<T>::data() const {
   return cpu_data_.get();
 }
 
-template <typename T> void Tensor<T>::reshape(const Shape &new_shape) {
+template <typename T>
+void Tensor<T>::reshape(const Shape& new_shape) {
   if (calculate_size() != std::accumulate(new_shape.begin(), new_shape.end(), 1,
                                           std::multiplies<size_t>())) {
     throw std::invalid_argument(
@@ -267,12 +300,13 @@ template <typename T> void Tensor<T>::reshape(const Shape &new_shape) {
   shape_ = new_shape;
 }
 
-template <typename T> void Tensor<T>::scale(T factor) {
+template <typename T>
+void Tensor<T>::scale(T factor) {
   LOG_DEBUG("Scaling tensor by: ", factor);
   size_t total_size = calculate_size();
 
   if (device_ == Device::CPU) {
-    T *data_ptr = cpu_data_.get();
+    T* data_ptr = cpu_data_.get();
     for (size_t i = 0; i < total_size; ++i) {
       data_ptr[i] *= factor;
     }
@@ -282,7 +316,7 @@ template <typename T> void Tensor<T>::scale(T factor) {
 }
 
 template <typename T>
-std::vector<size_t> Tensor<T>::calculate_strides(const Shape &shape) {
+std::vector<size_t> Tensor<T>::calculate_strides(const Shape& shape) {
   std::vector<size_t> strides(shape.size(), 1);
   for (int i = shape.size() - 2; i >= 0; --i) {
     strides[i] = strides[i + 1] * shape[i + 1];
@@ -290,7 +324,8 @@ std::vector<size_t> Tensor<T>::calculate_strides(const Shape &shape) {
   return strides;
 }
 
-template <typename T> void Tensor<T>::permute(const Shape &order) {
+template <typename T>
+void Tensor<T>::permute(const Shape& order) {
   LOG_DEBUG("Permuting tensor");
   if (order.size() != shape_.size()) {
     throw std::invalid_argument(
@@ -314,7 +349,7 @@ template <typename T> void Tensor<T>::permute(const Shape &order) {
   std::unique_ptr<T[]> new_data(new T[total_size]);
 
   if (device_ == Device::CPU) {
-    T *old_data = cpu_data_.get();
+    T* old_data = cpu_data_.get();
     for (size_t i = 0; i < total_size; ++i) {
       size_t old_idx = 0;
       size_t tmp = i;
@@ -335,7 +370,7 @@ template <typename T> void Tensor<T>::permute(const Shape &order) {
 
 template <typename T>
 template <typename U>
-void Tensor<T>::copy(const Tensor<U> &other) {
+void Tensor<T>::copy(const Tensor<U>& other) {
   LOG_DEBUG("Shape check in copy");
   if (this->shape() != other.shape()) {
     throw std::runtime_error("Tensor shapes do not match");
@@ -345,8 +380,8 @@ void Tensor<T>::copy(const Tensor<U> &other) {
   size_t total_elements = this->calculate_size();
 
   LOG_DEBUG("Total elements: ", total_elements, " in copy");
-  T *this_data = this->data();
-  const U *other_data = other.data();
+  T* this_data = this->data();
+  const U* other_data = other.data();
 
   if (!this_data || !other_data) {
     throw std::runtime_error("Null data pointer detected");
@@ -360,7 +395,7 @@ void Tensor<T>::copy(const Tensor<U> &other) {
 }
 template <typename T>
 template <typename U>
-void Tensor<T>::copy(const U *data, const Shape &source_shape) {
+void Tensor<T>::copy(const U* data, const Shape& source_shape) {
   if (device_ == Device::GPU) {
     LOG_ERROR("GPU support for copy not implemented, use CPU");
   }
@@ -376,7 +411,7 @@ void Tensor<T>::copy(const U *data, const Shape &source_shape) {
         "Total number of elements mismatch between source and destination.");
   }
 
-  T *tensor_data = this->data();
+  T* tensor_data = this->data();
   const size_t height = source_shape[0];
   const size_t width = source_shape[1];
   const size_t channels = source_shape[2];
@@ -392,7 +427,8 @@ void Tensor<T>::copy(const U *data, const Shape &source_shape) {
   }
 }
 
-template <typename T> std::string Tensor<T>::print_shape() const {
+template <typename T>
+std::string Tensor<T>::print_shape() const {
   std::ostringstream oss;
   oss << "Tensor shape: (";
   for (size_t i = 0; i < shape_.size(); ++i) {
@@ -402,7 +438,8 @@ template <typename T> std::string Tensor<T>::print_shape() const {
   return oss.str();
 }
 
-template <typename T> std::string Tensor<T>::to_string() const {
+template <typename T>
+std::string Tensor<T>::to_string() const {
   if (device_ == Device::GPU) {
     LOG_ERROR("Data on GPU, transfer to CPU to access.");
   }
@@ -419,12 +456,12 @@ template <typename T> std::string Tensor<T>::to_string() const {
     strides[i] = strides[i + 1] * shape_[i + 1];
   }
 
-  std::function<void(std::ostringstream &, const T *, size_t, size_t,
-                     const std::vector<size_t> &)>
+  std::function<void(std::ostringstream&, const T*, size_t, size_t,
+                     const std::vector<size_t>&)>
       print_array;
-  print_array = [&](std::ostringstream &os, const T *data, size_t dim,
+  print_array = [&](std::ostringstream& os, const T* data, size_t dim,
                     size_t total_dims,
-                    const std::vector<size_t> &current_strides) {
+                    const std::vector<size_t>& current_strides) {
     if (dim == total_dims - 1) {
       os << "[";
       for (size_t i = 0; i < shape_[dim]; ++i) {
@@ -452,4 +489,4 @@ template <typename T> std::string Tensor<T>::to_string() const {
   return oss.str();
 }
 
-#endif // VISION_SYSTEM_TENSOR_HPP
+#endif  // VISION_SYSTEM_TENSOR_HPP

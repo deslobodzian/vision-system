@@ -7,9 +7,10 @@
 #include "vision_pose_array_generated.h"
 
 VisionRunner::VisionRunner(std::shared_ptr<TaskManager> manager, double period,
-                           const std::string &name,
+                           const std::string& name,
                            const std::shared_ptr<ZmqManager> zmq_manager)
-    : Task(manager, period, name), zmq_manager_(zmq_manager),
+    : Task(manager, period, name),
+      zmq_manager_(zmq_manager),
       use_detection_(false) {
 #ifdef WITH_CUDA
   // Dennis's camera: 47502321
@@ -19,7 +20,7 @@ VisionRunner::VisionRunner(std::shared_ptr<TaskManager> manager, double period,
   cfg_.res = sl::RESOLUTION::SVGA;
   // cfg_.res = sl::RESOLUTION::VGA;
   cfg_.sdk_verbose = false;
-  cfg_.enable_tracking = false; // object detection
+  cfg_.enable_tracking = false;  // object detection
   cfg_.depth_mode = sl::DEPTH_MODE::ULTRA;
   // cfg_.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
   cfg_.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
@@ -28,9 +29,9 @@ VisionRunner::VisionRunner(std::shared_ptr<TaskManager> manager, double period,
 
   cfg_.async_grab = false;
 
-  cfg_.prediction_timeout_s = 0.04f; // 40ms
-  cfg_.batch_latency = 0.010f;       // 10ms
-  cfg_.id_retention_time = 0.04f;    // 40ms
+  cfg_.prediction_timeout_s = 0.04f;  // 40ms
+  cfg_.batch_latency = 0.010f;        // 10ms
+  cfg_.id_retention_time = 0.04f;     // 40ms
   cfg_.detection_confidence_threshold = 50;
   cfg_.default_memory = sl::MEM::GPU;
 
@@ -70,15 +71,15 @@ void VisionRunner::run() {
   using namespace std::chrono;
 #ifdef WITH_CUDA
   const auto start_time = high_resolution_clock::now();
-  auto &builder = zmq_manager_->get_publisher("BackZed").get_builder();
+  auto& builder = zmq_manager_->get_publisher("BackZed").get_builder();
 
   LOG_DEBUG("Fetching measurement IMAGE");
-  camera_.fetch_measurements(MeasurementType::IMAGE); // use for async grab
+  camera_.fetch_measurements(MeasurementType::IMAGE);  // use for async grab
   LOG_DEBUG("Detect objects");
   detector_.detect_objects(camera_);
   //        camera_.fetch_measurements(MeasurementType::OBJECTS);
   camera_.fetch_objects();
-  const sl::Objects &objects = camera_.retrieve_objects();
+  const sl::Objects& objects = camera_.retrieve_objects();
 
   const auto object_detection_time = high_resolution_clock::now();
   const auto object_detection_ms =
@@ -88,7 +89,7 @@ void VisionRunner::run() {
   std::vector<flatbuffers::Offset<Messages::VisionPose>> vision_pose_offsets;
   vision_pose_offsets.reserve(objects.object_list.size());
 
-  for (const auto &obj : objects.object_list) {
+  for (const auto& obj : objects.object_list) {
     LOG_DEBUG("Object: [", obj.id, ", ", obj.position.x, ", ", obj.position.y,
               ", ", obj.position.z, "]");
     //	    if (obj.tracking_state == sl::OBJECT_TRACKING_STATE::OK) {
@@ -114,4 +115,6 @@ void VisionRunner::run() {
   LOG_DEBUG("Not using CUDA");
 }
 
-VisionRunner::~VisionRunner() { camera_.close(); }
+VisionRunner::~VisionRunner() {
+  camera_.close();
+}

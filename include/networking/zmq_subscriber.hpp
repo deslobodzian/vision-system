@@ -8,8 +8,8 @@
 #include <zmq.hpp>
 
 class ZmqSubscriber {
-public:
-  ZmqSubscriber(const std::string &topic, const std::string &endpoint)
+ public:
+  ZmqSubscriber(const std::string& topic, const std::string& endpoint)
       : topic_(topic), subscriber_(ZmqSubscriber::context_, ZMQ_SUB) {
     subscriber_.connect(endpoint);
     subscriber_.set(zmq::sockopt::subscribe, topic_);
@@ -30,14 +30,14 @@ public:
       return std::nullopt;
     }
 
-    std::string topic_received(static_cast<char *>(topic_msg.data()),
+    std::string topic_received(static_cast<char*>(topic_msg.data()),
                                topic_msg.size());
 
     return std::make_optional(
         std::make_pair(std::move(topic_received), std::move(data_msg)));
   }
 
-private:
+ private:
   static inline zmq::context_t context_{1};
   zmq::socket_t subscriber_;
   std::string topic_;

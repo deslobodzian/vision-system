@@ -13,7 +13,8 @@
 #include <flatbuffers/flatbuffer_builder.h>
 
 VisionContainer::VisionContainer()
-    : vision_runner_(nullptr), april_tag_runner_(nullptr),
+    : vision_runner_(nullptr),
+      april_tag_runner_(nullptr),
       task_manager_(std::make_shared<TaskManager>()),
       zmq_manager_(std::make_shared<ZmqManager>()) {
   //  zmq_manager_->create_publisher("FrontZed", "tcp://*:5556");
@@ -22,8 +23,8 @@ VisionContainer::VisionContainer()
   //   zmq_manager_->create_subscriber("UseDetection", "tcp://localhost:5558");
 }
 
-void drawBoundingBoxes(cv::Mat &image, const std::vector<BBoxInfo> &bboxes) {
-  for (const auto &bbox : bboxes) {
+void drawBoundingBoxes(cv::Mat& image, const std::vector<BBoxInfo>& bboxes) {
+  for (const auto& bbox : bboxes) {
     cv::rectangle(image, cv::Point(bbox.box.x1, bbox.box.y1),
                   cv::Point(bbox.box.x2, bbox.box.y2), cv::Scalar(0, 255, 0),
                   2);

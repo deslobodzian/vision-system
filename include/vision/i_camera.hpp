@@ -4,7 +4,7 @@
 enum CAMERA_TYPE { MONOCULAR, ZED };
 
 class ICamera {
-public:
+ public:
   virtual int open_camera() = 0;
   virtual void close() = 0;
   virtual void fetch_measurements() = 0;

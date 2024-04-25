@@ -10,11 +10,21 @@ int MonocularCamera::open_camera() {
   return cap_.isOpened();
 }
 
-void MonocularCamera::close() { cap_.release(); }
+void MonocularCamera::close() {
+  cap_.release();
+}
 
-void MonocularCamera::fetch_measurements() { cap_.read(frame_); }
+void MonocularCamera::fetch_measurements() {
+  cap_.read(frame_);
+}
 
-const cv::Mat MonocularCamera::get_frame() const { return frame_; }
-const CAMERA_TYPE MonocularCamera::get_camera_type() const { return MONOCULAR; }
+const cv::Mat MonocularCamera::get_frame() const {
+  return frame_;
+}
+const CAMERA_TYPE MonocularCamera::get_camera_type() const {
+  return MONOCULAR;
+}
 
-MonocularCamera::~MonocularCamera() { close(); }
+MonocularCamera::~MonocularCamera() {
+  close();
+}

@@ -28,7 +28,7 @@ struct OptimDim {
   nvinfer1::Dims4 size;
   std::string tensor_name;
 
-  bool setFromString(std::string &arg) {
+  bool setFromString(std::string& arg) {
     std::vector<std::string> v_ = split_str(arg, ":");
     if (v_.size() != 2)
       return true;
@@ -63,13 +63,13 @@ struct OptimDim {
 };
 
 class TensorRTEngine : public IInferenceEngine {
-public:
+ public:
   TensorRTEngine();
   ~TensorRTEngine();
 
-  void set_execution_data(void *execution_data) override;
-  static int build_engine(const EngineConfig &cfg, OptimDim dyn_dim_profile);
-  void load_model(const std::string &model_path) override;
+  void set_execution_data(void* execution_data) override;
+  static int build_engine(const EngineConfig& cfg, OptimDim dyn_dim_profile);
+  void load_model(const std::string& model_path) override;
   void run_inference() override;
 
   // cuda graph testing
@@ -78,13 +78,13 @@ public:
 
   const Shape get_input_shape() const override;
   const Shape get_output_shape() const override;
-  Tensor<float> &get_input_tensor() override;
-  Tensor<float> &get_output_tensor() override;
+  Tensor<float>& get_input_tensor() override;
+  Tensor<float>& get_output_tensor() override;
 
-private:
-  nvinfer1::IRuntime *runtime_;
-  nvinfer1::ICudaEngine *engine_;
-  nvinfer1::IExecutionContext *context_;
+ private:
+  nvinfer1::IRuntime* runtime_;
+  nvinfer1::ICudaEngine* engine_;
+  nvinfer1::IExecutionContext* context_;
   // std::unique_ptr<Int8EntropyCalibrator2> calibrator_ = nullptr;
 
   std::string input_name_;

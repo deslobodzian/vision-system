@@ -17,10 +17,10 @@
 class TaskManager;
 
 class Task : public std::enable_shared_from_this<Task> {
-public:
+ public:
   //    Task(TaskManager* manager, double period, std::string name);
   Task(std::shared_ptr<TaskManager> manager, float period,
-       const std::string &name);
+       const std::string& name);
   virtual ~Task();
 
   void start();
@@ -30,7 +30,7 @@ public:
 
   float get_period() const { return 1.0f / period_; }
 
-protected:
+ protected:
   std::shared_ptr<TaskManager> manager_;
   float period_;
   std::atomic<bool> running_{false};
@@ -41,13 +41,13 @@ protected:
 };
 
 class TaskManager : public std::enable_shared_from_this<TaskManager> {
-public:
+ public:
   TaskManager() = default;
   ~TaskManager();
 
   void add_task(std::shared_ptr<Task> task);
   template <typename T, typename... Args>
-  std::shared_ptr<T> create_task(Args &&...args) {
+  std::shared_ptr<T> create_task(Args&&... args) {
     static_assert(std::is_base_of<Task, T>::value,
                   "T must be a derivative of Task");
 
@@ -58,15 +58,15 @@ public:
   }
   void stop_tasks();
 
-private:
+ private:
   std::vector<std::shared_ptr<Task>> tasks_;
   std::mutex mtx_;
 };
 
 class PeriodicFunction : public Task {
-public:
+ public:
   PeriodicFunction(std::shared_ptr<TaskManager> taskManager, float period,
-                   const std::string &name, std::function<void()> function)
+                   const std::string& name, std::function<void()> function)
       : Task(taskManager, period, name), function_(std::move(function)) {}
 
   void init() override {}
@@ -77,14 +77,15 @@ public:
 
   ~PeriodicFunction() { stop(); }
 
-private:
+ private:
   std::function<void()> function_;
 };
 
-template <typename T> class PeriodicMemberFunction : public Task {
-public:
+template <typename T>
+class PeriodicMemberFunction : public Task {
+ public:
   PeriodicMemberFunction(std::shared_ptr<TaskManager> taskManager, float period,
-                         const std::string &name, T *obj, void (T::*function)())
+                         const std::string& name, T* obj, void (T::*function)())
       : Task(taskManager, period, name), function_(std::bind(function, obj)) {}
 
   void init() override {}
@@ -93,8 +94,8 @@ public:
       function_();
   }
 
-private:
+ private:
   std::function<void()> function_;
 };
 
-#endif // VISION_SYSTEM_TASK_HPP
+#endif  // VISION_SYSTEM_TASK_HPP

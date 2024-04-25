@@ -20,7 +20,7 @@ inline std::vector<std::string> split_str(std::string s,
   return res;
 }
 
-inline bool readFile(std::string filename, std::vector<uint8_t> &file_content) {
+inline bool readFile(std::string filename, std::vector<uint8_t>& file_content) {
   // open the file:
   std::ifstream instream(filename, std::ios::in | std::ios::binary);
   if (!instream.is_open())
@@ -31,7 +31,7 @@ inline bool readFile(std::string filename, std::vector<uint8_t> &file_content) {
   return false;
 }
 
-inline std::string remove_file_extension(const std::string &file) {
+inline std::string remove_file_extension(const std::string& file) {
   size_t last_period = file.find_last_of('.');
   if (last_period != std::string::npos) {
     return file.substr(0, last_period);

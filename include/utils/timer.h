@@ -4,7 +4,7 @@
 #include <chrono>
 
 class Timer {
-public:
+ public:
   using Clock = std::chrono::high_resolution_clock;
   using TimePoint = std::chrono::time_point<Clock>;
   using Duration = std::chrono::duration<float>;
@@ -21,10 +21,11 @@ public:
 
   float get_seconds() { return get_duration<std::chrono::seconds>().count(); }
 
-private:
+ private:
   TimePoint start_;
 
-  template <typename DurationType> DurationType get_duration() {
+  template <typename DurationType>
+  DurationType get_duration() {
     return std::chrono::duration_cast<DurationType>(Clock::now() - start_);
   }
 };

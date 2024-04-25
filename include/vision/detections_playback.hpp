@@ -9,14 +9,14 @@
 #include <string>
 
 class DetectionsPlayback {
-public:
-  DetectionsPlayback(const std::string &svo_file);
+ public:
+  DetectionsPlayback(const std::string& svo_file);
   ~DetectionsPlayback();
 
   void detect();
   void export_video();
 
-private:
+ private:
   zed_config cfg;
   detection_config det_cfg;
   ZedCamera zed_;

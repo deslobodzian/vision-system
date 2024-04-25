@@ -10,11 +10,11 @@
 #include <thread>
 
 void zmq_objects_subscriber_thread(
-    ZmqManager &zmqManager, const std::string &topic,
+    ZmqManager& zmqManager, const std::string& topic,
     std::shared_ptr<nt::NetworkTable> vision_table,
-    std::atomic<bool> &running) {
+    std::atomic<bool>& running) {
   using namespace std::chrono_literals;
-  ZmqSubscriber &subscriber = zmqManager.get_subscriber(topic);
+  ZmqSubscriber& subscriber = zmqManager.get_subscriber(topic);
   constexpr int VISION_TIMEOUT_MS = 500;
 
   auto last_message_time = std::chrono::steady_clock::now();
@@ -23,18 +23,18 @@ void zmq_objects_subscriber_thread(
     try {
       auto message = subscriber.receive();
       if (message) {
-        const auto &[topic, data] = *message;
+        const auto& [topic, data] = *message;
         LOG_DEBUG("Topic got: ", topic);
-        const Messages::VisionPoseArray *vision_pose_array =
+        const Messages::VisionPoseArray* vision_pose_array =
             Messages::GetVisionPoseArray(data.data());
         int numPoses = vision_pose_array->poses()->size();
         last_message_time = std::chrono::steady_clock::now();
         vision_table->GetEntry("num_objects").SetDouble(numPoses);
         vision_table->GetEntry("vision_poses_raw")
             .SetRaw(std::span(
-                reinterpret_cast<const uint8_t *>(
+                reinterpret_cast<const uint8_t*>(
                     std::as_bytes(
-                        std::span(static_cast<const char *>(data.data()),
+                        std::span(static_cast<const char*>(data.data()),
                                   data.size()))
                         .data()),
                 data.size()));
@@ -50,7 +50,7 @@ void zmq_objects_subscriber_thread(
               .SetRaw(std::vector<uint8_t>());
         }
       }
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       std::cerr << "Error in zmqObjectsSubscriberThread: " << e.what()
                 << std::endl;
     }
@@ -79,7 +79,7 @@ int main() {
 
     zmq_manager.reset();
     inst.StopClient();
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     std::cerr << "Error in main: " << e.what() << std::endl;
     return 1;
   }

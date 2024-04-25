@@ -7,18 +7,18 @@
 #include <string>
 
 class ONNXRuntimeInferenceEngine : public IInferenceEngine {
-public:
+ public:
   ONNXRuntimeInferenceEngine();
   ~ONNXRuntimeInferenceEngine() = default;
-  void load_model(const std::string &model_path) override;
+  void load_model(const std::string& model_path) override;
   void run_inference() override;
 
-  Tensor<float> &get_output_tensor() override;
-  Tensor<float> &get_input_tensor() override;
+  Tensor<float>& get_output_tensor() override;
+  Tensor<float>& get_input_tensor() override;
   const Shape get_input_shape() const override;
   const Shape get_output_shape() const override;
 
-private:
+ private:
   Ort::Env env_;
   Ort::Session session_{nullptr};
   Ort::AllocatorWithDefaultOptions allocator_;

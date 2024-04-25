@@ -21,12 +21,12 @@ TensorRTEngine::~TensorRTEngine() {
   }
 }
 
-void TensorRTEngine::set_execution_data(void *execution_data) {
+void TensorRTEngine::set_execution_data(void* execution_data) {
   LOG_INFO("Setting cuda stream externally");
   stream_ = static_cast<cudaStream_t>(execution_data);
 }
 
-int TensorRTEngine::build_engine(const EngineConfig &cfg,
+int TensorRTEngine::build_engine(const EngineConfig& cfg,
                                  OptimDim dyn_dim_profile) {
   std::vector<uint8_t> onnx_file_content;
   if (readFile(cfg.onnx_path, onnx_file_content))
@@ -37,7 +37,7 @@ int TensorRTEngine::build_engine(const EngineConfig &cfg,
   LOG_INFO("Creating engine from onnx model");
 
   gLogger.setReportableSeverity(Severity::kINFO);
-  IBuilder *builder = createInferBuilder(gLogger);
+  IBuilder* builder = createInferBuilder(gLogger);
   if (!builder) {
     LOG_ERROR("createInferBuilder failed");
     return -1;
@@ -45,7 +45,7 @@ int TensorRTEngine::build_engine(const EngineConfig &cfg,
 
   uint32_t flag = 1U << static_cast<uint32_t>(
                       NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
-  INetworkDefinition *network = builder->createNetworkV2(flag);
+  INetworkDefinition* network = builder->createNetworkV2(flag);
 
   if (!network) {
     LOG_ERROR("createNetwork failed");
@@ -53,7 +53,7 @@ int TensorRTEngine::build_engine(const EngineConfig &cfg,
     return -1;
   }
 
-  IBuilderConfig *config = builder->createBuilderConfig();
+  IBuilderConfig* config = builder->createBuilderConfig();
   if (!config) {
     LOG_ERROR("createBuidlerConfig failed");
     delete network;
@@ -62,8 +62,7 @@ int TensorRTEngine::build_engine(const EngineConfig &cfg,
   }
 
   if (!dyn_dim_profile.tensor_name.empty()) {
-
-    IOptimizationProfile *profile = builder->createOptimizationProfile();
+    IOptimizationProfile* profile = builder->createOptimizationProfile();
 
     profile->setDimensions(dyn_dim_profile.tensor_name.c_str(),
                            OptProfileSelector::kMIN, dyn_dim_profile.size);
@@ -101,40 +100,40 @@ int TensorRTEngine::build_engine(const EngineConfig &cfg,
 
   std::unique_ptr<Int8EntropyCalibrator2> calibrator_ = nullptr;
   switch (cfg.presicion) {
-  case ModelPrecision::FP_32:
-    LOG_INFO("Using FP_32");
-    break;
-  case ModelPrecision::FP_16:
-    if (builder->platformHasFastFp16()) {
-      LOG_INFO("Using FP_16");
-      config->setFlag(BuilderFlag::kFP16);
-    }
-    break;
-  case ModelPrecision::INT_8:
-    std::string data = cfg.int8_data_path; //"/home/odin/Data/val2017";
-    if (builder->platformHasFastInt8()) {
-      LOG_INFO("Using INT_8");
-      if (data.empty()) {
-        throw std::runtime_error(
-            "Error: If INT8 precision is selected, must provide path to "
-            "calibration data directory to Engine::build method");
+    case ModelPrecision::FP_32:
+      LOG_INFO("Using FP_32");
+      break;
+    case ModelPrecision::FP_16:
+      if (builder->platformHasFastFp16()) {
+        LOG_INFO("Using FP_16");
+        config->setFlag(BuilderFlag::kFP16);
       }
-      config->setFlag((BuilderFlag::kINT8));
+      break;
+    case ModelPrecision::INT_8:
+      std::string data = cfg.int8_data_path;  //"/home/odin/Data/val2017";
+      if (builder->platformHasFastInt8()) {
+        LOG_INFO("Using INT_8");
+        if (data.empty()) {
+          throw std::runtime_error(
+              "Error: If INT8 precision is selected, must provide path to "
+              "calibration data directory to Engine::build method");
+        }
+        config->setFlag((BuilderFlag::kINT8));
 
-      const auto input = network->getInput(0);
-      const auto input_name = input->getName();
-      const auto bind_dim = input->getDimensions();
-      Shape input_shape(
-          {bind_dim.d[0], bind_dim.d[1], bind_dim.d[2], bind_dim.d[3]});
-      const auto calibration_file_name =
-          remove_file_extension(cfg.engine_path) + ".calibration";
-      LOG_DEBUG(calibration_file_name);
-      calibrator_ = std::make_unique<Int8EntropyCalibrator2>(
-          1, data, calibration_file_name, input_name, input_shape);
+        const auto input = network->getInput(0);
+        const auto input_name = input->getName();
+        const auto bind_dim = input->getDimensions();
+        Shape input_shape(
+            {bind_dim.d[0], bind_dim.d[1], bind_dim.d[2], bind_dim.d[3]});
+        const auto calibration_file_name =
+            remove_file_extension(cfg.engine_path) + ".calibration";
+        LOG_DEBUG(calibration_file_name);
+        calibrator_ = std::make_unique<Int8EntropyCalibrator2>(
+            1, data, calibration_file_name, input_name, input_shape);
 
-      config->setInt8Calibrator(calibrator_.get());
-    }
-    break;
+        config->setInt8Calibrator(calibrator_.get());
+      }
+      break;
   }
 
   int dla_cores_available = builder->getNbDLACores();
@@ -155,7 +154,7 @@ int TensorRTEngine::build_engine(const EngineConfig &cfg,
   LOG_INFO("Setting max threads: ", cfg.max_threads);
   builder->setMaxThreads(cfg.max_threads);
 
-  IHostMemory *serialized_model =
+  IHostMemory* serialized_model =
       builder->buildSerializedNetwork(*network, *config);
   if (!serialized_model) {
     LOG_ERROR("buildSerializedNetwork failed");
@@ -167,7 +166,7 @@ int TensorRTEngine::build_engine(const EngineConfig &cfg,
   }
 
   std::ofstream engine_file(cfg.engine_path, std::ios::binary);
-  engine_file.write(reinterpret_cast<const char *>(serialized_model->data()),
+  engine_file.write(reinterpret_cast<const char*>(serialized_model->data()),
                     serialized_model->size());
   engine_file.close();
   delete serialized_model;
@@ -178,7 +177,7 @@ int TensorRTEngine::build_engine(const EngineConfig &cfg,
   return 0;
 }
 
-void TensorRTEngine::load_model(const std::string &model_path) {
+void TensorRTEngine::load_model(const std::string& model_path) {
   // I should do a check to make sure the engine exists later.
   std::string engine_model = remove_file_extension(model_path) + ".engine";
 
@@ -209,7 +208,7 @@ void TensorRTEngine::load_model(const std::string &model_path) {
 
   const int num_tensors = engine_->getNbIOTensors();
   for (int i = 0; i < num_tensors; i++) {
-    const char *tensor_name = engine_->getIOTensorName(i);
+    const char* tensor_name = engine_->getIOTensorName(i);
     TensorIOMode io_mode = engine_->getTensorIOMode(tensor_name);
 
     if (io_mode == TensorIOMode::kINPUT) {
@@ -250,7 +249,7 @@ void TensorRTEngine::load_model(const std::string &model_path) {
   output_ = Tensor<float>(output_shape_, Device::CPU);
   LOG_INFO(output_.print_shape());
   LOG_INFO("CPU output addr: ", output_.data());
-  output_.to_gpu(); // make sure gpu buffer is created before hand
+  output_.to_gpu();  // make sure gpu buffer is created before hand
   if (context_->setTensorAddress(output_name_.c_str(), output_.data())) {
     LOG_INFO("Set output tensor data successfully");
     LOG_INFO("GPU output addr: ", output_.data());
@@ -258,8 +257,8 @@ void TensorRTEngine::load_model(const std::string &model_path) {
     LOG_ERROR("Output setTensorAddress failed");
   }
 
-  output_.to_cpu(); // since TensorRT has the gpu ptr I can keep this on cpu and
-                    // just force update cpu
+  output_.to_cpu();  // since TensorRT has the gpu ptr I can keep this on cpu
+                     // and just force update cpu
 
   if (stream_ == nullptr) {
     LOG_INFO("Cuda stream was not set externally, setting personal stream");
@@ -284,11 +283,19 @@ void TensorRTEngine::run_inference() {
   LOG_INFO("Inference took: " + std::to_string(elapsed.count()));
 }
 
-Tensor<float> &TensorRTEngine::get_output_tensor() { return output_; }
+Tensor<float>& TensorRTEngine::get_output_tensor() {
+  return output_;
+}
 
-Tensor<float> &TensorRTEngine::get_input_tensor() { return input_; }
+Tensor<float>& TensorRTEngine::get_input_tensor() {
+  return input_;
+}
 
-const Shape TensorRTEngine::get_input_shape() const { return input_shape_; }
-const Shape TensorRTEngine::get_output_shape() const { return output_shape_; }
+const Shape TensorRTEngine::get_input_shape() const {
+  return input_shape_;
+}
+const Shape TensorRTEngine::get_output_shape() const {
+  return output_shape_;
+}
 
 #endif

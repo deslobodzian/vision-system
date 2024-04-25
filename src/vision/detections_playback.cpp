@@ -5,10 +5,9 @@
 #include "vision/detection_utils.hpp"
 #include <chrono>
 
-DetectionsPlayback::DetectionsPlayback(const std::string &svo_file)
-    : //    yolo_("yolov8s.engine", det_cfg) {
+DetectionsPlayback::DetectionsPlayback(const std::string& svo_file)
+    :  //    yolo_("yolov8s.engine", det_cfg) {
       zed_(svo_file) {
-
   det_cfg.nms_thres = 0.3;
   det_cfg.obj_thres = 0.3;
   detector_.configure(det_cfg);
@@ -44,7 +43,9 @@ DetectionsPlayback::DetectionsPlayback(const std::string &svo_file)
       cv::Size(display_resolution.width, display_resolution.height), true);
 }
 
-DetectionsPlayback::~DetectionsPlayback() { zed_.close(); }
+DetectionsPlayback::~DetectionsPlayback() {
+  zed_.close();
+}
 
 void DetectionsPlayback::detect() {
   bool running_ = true;
@@ -76,7 +77,7 @@ void DetectionsPlayback::detect() {
     }
     cv::imwrite("left_cv.png", left_cv);
 
-    const sl::Objects &objects = zed_.retrieve_objects();
+    const sl::Objects& objects = zed_.retrieve_objects();
     LOG_DEBUG("Zed objects detected: ", objects.object_list.size());
 
     for (size_t j = 0; j < objects.object_list.size(); j++) {
@@ -87,17 +88,18 @@ void DetectionsPlayback::detect() {
                   cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2,
                   cv::Scalar(0xFF, 0xFF, 0xFF), 2);
       sl::float3 position =
-          objects.object_list[j].position; // Access the XYZ coordinates
+          objects.object_list[j].position;  // Access the XYZ coordinates
       std::string xyz_text = "XYZ: " + std::to_string(position.x) + ", " +
                              std::to_string(position.y) + ", " +
                              std::to_string(position.z);
       cv::putText(
           left_cv, xyz_text,
-          cv::Point(r.x, r.y + r.height +
-                             15), // Positioning the text below the bounding box
+          cv::Point(r.x,
+                    r.y + r.height +
+                        15),  // Positioning the text below the bounding box
           cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0x00, 0xFF, 0xFF), 2);
     }
-    for (const auto &tag : detectedTags) {
+    for (const auto& tag : detectedTags) {
       LOG_INFO("Tag ID: ", tag.id);
       for (int i = 0; i < 4; ++i) {
         LOG_INFO("Corner ", i, ",: {", tag.corners[i].x, ", ", tag.corners[i].y,

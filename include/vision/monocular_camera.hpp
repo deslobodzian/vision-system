@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 
 class MonocularCamera : public ICamera {
-public:
+ public:
   MonocularCamera();
   ~MonocularCamera();
   int open_camera() override;
@@ -14,7 +14,7 @@ public:
   const cv::Mat get_frame() const;
   const CAMERA_TYPE get_camera_type() const override;
 
-private:
+ private:
   cv::VideoCapture cap_;
   cv::Mat frame_;
 };

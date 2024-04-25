@@ -8,7 +8,7 @@
 #include <vector>
 
 template <typename Container>
-auto vector_product(const Container &c) -> decltype(*std::begin(c)) {
+auto vector_product(const Container& c) -> decltype(*std::begin(c)) {
   using T = decltype(*std::begin(c));
   static_assert(std::is_arithmetic<T>::value,
                 "vectorProduct requires numeric container elements.");
@@ -17,7 +17,7 @@ auto vector_product(const Container &c) -> decltype(*std::begin(c)) {
 }
 
 template <typename Container>
-std::string tensor_shape_to_string(const Container &shape) {
+std::string tensor_shape_to_string(const Container& shape) {
   std::string tensor_shape = "Tensor shape is [";
   for (auto it = std::begin(shape); it != std::end(shape); ++it) {
     tensor_shape += std::to_string(*it);

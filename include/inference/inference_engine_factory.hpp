@@ -6,7 +6,7 @@
 #include "tensor_rt_engine.hpp"
 
 class InferenceEngineFactory {
-public:
+ public:
   static std::unique_ptr<IInferenceEngine> create_inference_engine() {
     // prioritize cuda over cpu onnx
 #ifdef WITH_CUDA
@@ -15,7 +15,7 @@ public:
     return std::make_unique<ONNXRuntimeInferenceEngine>();
   }
 
-private:
+ private:
 };
 
 #endif /* VISION_SYSTEM_INFERENCE_ENGINE_FACTORY_HPP */

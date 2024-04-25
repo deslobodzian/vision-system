@@ -14,7 +14,7 @@
 #include "utils/timer.h"
 
 Task::Task(std::shared_ptr<TaskManager> manager, float period,
-           const std::string &name)
+           const std::string& name)
     : manager_(manager), period_(period), name_(name) {
   LOG_DEBUG("Task created with name: ", name_, " and period: ", period_);
 }
@@ -37,8 +37,8 @@ void Task::stop() {
 
 void Task::loop() {
   Timer timer;
-  init(); // moving here such that in the case the thread restarts the
-          // initialization will occur again.
+  init();  // moving here such that in the case the thread restarts the
+           // initialization will occur again.
 #ifdef __linux__
   auto timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
   if (timer_fd == -1) {
@@ -92,9 +92,13 @@ void Task::loop() {
   }
 #endif
 }
-Task::~Task() { stop(); }
+Task::~Task() {
+  stop();
+}
 
-TaskManager::~TaskManager() { stop_tasks(); }
+TaskManager::~TaskManager() {
+  stop_tasks();
+}
 
 void TaskManager::add_task(std::shared_ptr<Task> task) {
   std::lock_guard<std::mutex> lock(mtx_);
@@ -103,7 +107,7 @@ void TaskManager::add_task(std::shared_ptr<Task> task) {
 
 void TaskManager::stop_tasks() {
   std::lock_guard<std::mutex> lock(mtx_);
-  for (auto &task : tasks_) {
+  for (auto& task : tasks_) {
     task->stop();
   }
 }

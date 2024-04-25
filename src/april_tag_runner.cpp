@@ -8,9 +8,10 @@
 #include "utils/timer.h"
 
 AprilTagRunner::AprilTagRunner(std::shared_ptr<TaskManager> manager,
-                               double period, const std::string &name,
+                               double period, const std::string& name,
                                const std::shared_ptr<ZmqManager> zmq_manager)
-    : Task(manager, period, name), zmq_manager_(zmq_manager),
+    : Task(manager, period, name),
+      zmq_manager_(zmq_manager),
       use_detection_(false) {
 #ifdef WITH_CUDA
   // Dennis's camera: 47502321
@@ -71,16 +72,16 @@ void AprilTagRunner::run() {
         AprilTagUtils::calculate_zed_apriltags(camera_, tag_detector_);
     std::vector<flatbuffers::Offset<Messages::AprilTag>> april_tag_offsets;
 
-    auto &builder = zmq_manager_->get_publisher("FrontZed").get_builder();
+    auto& builder = zmq_manager_->get_publisher("FrontZed").get_builder();
 
     auto current_ms = t.get_ms();
-    for (const auto &tag : zed_tags) {
+    for (const auto& tag : zed_tags) {
       auto april_tag = Messages::CreateAprilTag(
           builder, tag.tag_id, tag.center.x, tag.center.y, tag.center.z,
           tag.orientation.ow, tag.orientation.ox, tag.orientation.oy,
           tag.orientation.oz,
-          current_ms // now just how long processing takes for latency (will
-                     // roughly be 20ms)
+          current_ms  // now just how long processing takes for latency (will
+                      // roughly be 20ms)
       );
       april_tag_offsets.push_back(april_tag);
     }

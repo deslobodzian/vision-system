@@ -10,16 +10,16 @@
 #include "vision/apriltag_detector.hpp"
 
 class AprilTagRunner : public Task {
-public:
+ public:
   AprilTagRunner(std::shared_ptr<TaskManager>, double period,
-                 const std::string &,
+                 const std::string&,
                  const std::shared_ptr<ZmqManager> zmq_manager);
   using Task::Task;
   void init() override;
   void run() override;
   virtual ~AprilTagRunner();
 
-private:
+ private:
 #ifdef WITH_CUDA
   zed_config cfg_;
   ZedCamera camera_;

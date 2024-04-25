@@ -8,7 +8,7 @@
 #include <type_traits>
 
 template <typename MatType>
-inline void cpu_preprocess(const MatType &mat, Tensor<float> &input_tensor) {
+inline void cpu_preprocess(const MatType& mat, Tensor<float>& input_tensor) {
   Shape s = input_tensor.shape();
   int input_w = s.at(2);
   int input_h = s.at(3);
@@ -43,8 +43,8 @@ inline void cpu_preprocess(const MatType &mat, Tensor<float> &input_tensor) {
                     Shape{output.cols, output.rows, output.channels()});
 
   // CWH -> WHC
-  input_tensor.scale(1.f / 255.f); // remember to normalize!!! I should add this
-                                   // to Tensor such that its .normalize()
+  input_tensor.scale(1.f / 255.f);  // remember to normalize!!! I should add
+                                    // this to Tensor such that its .normalize()
   input_tensor.reshape({1, 3, input_h, input_w});
 }
 

@@ -8,16 +8,15 @@
 
 namespace AprilTagUtils {
 
-static std::vector<ZedAprilTag>
-calculate_zed_apriltags(ZedCamera &camera, ApriltagDetector &tag_detector) {
-
+static std::vector<ZedAprilTag> calculate_zed_apriltags(
+    ZedCamera& camera, ApriltagDetector& tag_detector) {
   auto tags =
       tag_detector.detect_april_tags_in_sl_image(camera.get_left_image());
   auto point_cloud = camera.get_point_cloud();
 
   std::vector<ZedAprilTag> zed_tags;
 
-  for (const auto &tag : tags) {
+  for (const auto& tag : tags) {
     ZedAprilTag z_tag;
     sl::float3 average_normal = {0, 0, 0};
     sl::uint2 center_px = {0, 0};
@@ -55,7 +54,7 @@ calculate_zed_apriltags(ZedCamera &camera, ApriltagDetector &tag_detector) {
   return zed_tags;
 }
 
-} // namespace AprilTagUtils
+}  // namespace AprilTagUtils
 
 #endif /* VISION_SYSTEM_APRIL_TAG_UTILS_HPP */
 #endif /* WITH_CUDA */
