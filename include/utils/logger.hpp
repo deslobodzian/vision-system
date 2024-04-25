@@ -40,8 +40,9 @@ constexpr std::string_view extract_class_name(const char* pretty_function) {
   std::string_view pf = pretty_function;
 
   size_t params_start = pf.find('(');
-  if (params_start == std::string_view::npos)
+  if (params_start == std::string_view::npos) {
     return {};  // Not a valid function
+  }
 
   size_t colons = pf.rfind("::", params_start);
   if (colons == std::string_view::npos) {

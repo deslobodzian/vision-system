@@ -4,6 +4,8 @@
 
 #include "utils/task.hpp"
 
+#include <utility>
+
 #ifdef __linux__
 #include <cmath>
 #include <sys/timerfd.h>
@@ -13,9 +15,8 @@
 #include "utils/logger.hpp"
 #include "utils/timer.h"
 
-Task::Task(std::shared_ptr<TaskManager> manager, float period,
-           const std::string& name)
-    : manager_(manager), period_(period), name_(name) {
+Task::Task(std::shared_ptr<TaskManager> manager, float period, std::string name)
+    : manager_(std::move(manager)), period_(period), name_(std::move(name)) {
   LOG_DEBUG("Task created with name: ", name_, " and period: ", period_);
 }
 

@@ -11,6 +11,7 @@
 #include "yolo_processing.hpp"
 #include <chrono>
 #include <opencv2/opencv.hpp>
+#include <utility>
 #include <vector>
 
 #ifdef WITH_CUDA
@@ -22,7 +23,7 @@
 template <typename MatType>
 class Yolo : public IModel<MatType> {
  public:
-  Yolo<MatType>(const std::string& model);
+  explicit Yolo<MatType>(std::string model);
   ~Yolo() = default;
 
   void configure(const detection_config& cfg) override;
@@ -49,7 +50,7 @@ class Yolo : public IModel<MatType> {
 };
 
 template <typename MatType>
-Yolo<MatType>::Yolo(const std::string& model) : model_(model) {
+Yolo<MatType>::Yolo(std::string model) : model_(std::move(model)) {
   inference_engine_ = InferenceEngineFactory::create_inference_engine();
   LOG_INFO("Loading Model: ", model_);
   inference_engine_->load_model(model_);
@@ -167,8 +168,9 @@ std::vector<BBoxInfo> Yolo<MatType>::postprocess(
       bbi.box.x2 = x1;
       bbi.box.y2 = y1;
 
-      if ((bbi.box.x1 > bbi.box.x2) || (bbi.box.y1 > bbi.box.y2))
+      if ((bbi.box.x1 > bbi.box.x2) || (bbi.box.y1 > bbi.box.y2)) {
         break;
+      }
 
       bbi.label = label;
       bbi.probability = score;

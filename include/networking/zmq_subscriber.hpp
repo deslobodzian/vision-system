@@ -5,12 +5,14 @@
 #include <flatbuffers/flatbuffers.h>
 #include <optional>
 #include <string>
+#include <utility>
 #include <zmq.hpp>
 
 class ZmqSubscriber {
  public:
-  ZmqSubscriber(const std::string& topic, const std::string& endpoint)
-      : topic_(topic), subscriber_(ZmqSubscriber::context_, ZMQ_SUB) {
+  ZmqSubscriber(std::string topic, const std::string& endpoint)
+      : topic_(std::move(topic)),
+        subscriber_(ZmqSubscriber::context_, ZMQ_SUB) {
     subscriber_.connect(endpoint);
     subscriber_.set(zmq::sockopt::subscribe, topic_);
     subscriber_.set(zmq::sockopt::rcvhwm, 100);

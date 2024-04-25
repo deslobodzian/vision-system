@@ -8,7 +8,7 @@
 
 class ZmqPublisher {
  public:
-  ZmqPublisher(const std::string& endpoint)
+  explicit ZmqPublisher(const std::string& endpoint)
       : context_(1), publisher_(context_, ZMQ_PUB) {
     publisher_.bind(endpoint);
     publisher_.set(zmq::sockopt::sndhwm, 1000);

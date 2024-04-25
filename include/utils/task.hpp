@@ -6,7 +6,6 @@
 #define VISION_SYSTEM_TASK_HPP
 
 #include <atomic>
-#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <string>
@@ -19,8 +18,7 @@ class TaskManager;
 class Task : public std::enable_shared_from_this<Task> {
  public:
   //    Task(TaskManager* manager, double period, std::string name);
-  Task(std::shared_ptr<TaskManager> manager, float period,
-       const std::string& name);
+  Task(std::shared_ptr<TaskManager> manager, float period, std::string name);
   virtual ~Task();
 
   void start();
@@ -71,8 +69,9 @@ class PeriodicFunction : public Task {
 
   void init() override {}
   void run() override {
-    if (function_)
+    if (function_) {
       function_();
+    }
   }
 
   ~PeriodicFunction() { stop(); }
@@ -90,8 +89,9 @@ class PeriodicMemberFunction : public Task {
 
   void init() override {}
   void run() override {
-    if (function_)
+    if (function_) {
       function_();
+    }
   }
 
  private:
