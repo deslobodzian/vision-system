@@ -13,23 +13,20 @@
 template <typename Camera> struct CameraTraits;
 
 #ifdef WITH_CUDA
-template <>
-struct CameraTraits<ZedCamera> {
+template <> struct CameraTraits<ZedCamera> {
   using MatType = sl::Mat;
 };
 #endif
 
-template <>
-struct CameraTraits<MonocularCamera> {
+template <> struct CameraTraits<MonocularCamera> {
   using MatType = cv::Mat;
 };
 
-template <typename Camera> 
-class ObjectDetector {
+template <typename Camera> class ObjectDetector {
 public:
   using MatType = typename CameraTraits<Camera>::MatType;
   ObjectDetector() {
-    //model_ = std::make_unique<Yolo<MatType>>("coco");
+    // model_ = std::make_unique<Yolo<MatType>>("coco");
     model_ = std::make_unique<Yolo<MatType>>("note");
     detections_.reserve(
         100); // There should never be more that 100 object detected at once
@@ -47,7 +44,7 @@ private:
 
 #ifdef WITH_CUDA
   void detect_objects_impl(ZedCamera &camera) {
-      camera.synchronize_cuda_stream();
+    camera.synchronize_cuda_stream();
     auto new_detections = model_->predict(camera.get_left_image());
     detections_.swap(new_detections);
     LOG_DEBUG("Model detections: ", detections_.size());
@@ -64,8 +61,8 @@ private:
       objects_in.push_back(tmp);
     }
     camera.ingest_custom_objects(objects_in);
-    //const sl::Objects &obj = camera.retrieve_objects();
-    //LOG_DEBUG("Zed objects detected: ", obj.object_list.size());
+    // const sl::Objects &obj = camera.retrieve_objects();
+    // LOG_DEBUG("Zed objects detected: ", obj.object_list.size());
   }
 #endif
   void detect_objects_impl(MonocularCamera &camera) {

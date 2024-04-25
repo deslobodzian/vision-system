@@ -6,17 +6,17 @@
 
 class MonocularCamera : public ICamera {
 public:
-    MonocularCamera();
-    ~MonocularCamera();
-    int open_camera() override;
-    void close() override;
-    void fetch_measurements() override;
-    const cv::Mat get_frame() const;
-    const CAMERA_TYPE get_camera_type() const override;
-    
+  MonocularCamera();
+  ~MonocularCamera();
+  int open_camera() override;
+  void close() override;
+  void fetch_measurements() override;
+  const cv::Mat get_frame() const;
+  const CAMERA_TYPE get_camera_type() const override;
+
 private:
-    cv::VideoCapture cap_;
-    cv::Mat frame_;
+  cv::VideoCapture cap_;
+  cv::Mat frame_;
 };
 
 #endif /* VISION_SYSTEM_MONOCULAR_CAMERA_HPP */

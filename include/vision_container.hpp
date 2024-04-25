@@ -28,7 +28,7 @@ protected:
 
 #ifdef WITH_CUDA
   std::vector<sl::DeviceProperties> dev_list_;
-#endif /* WITH_CUDA */ 
+#endif /* WITH_CUDA */
   std::vector<unsigned int> serial_numbers_;
 };
 
