@@ -19,10 +19,11 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+  DOWNLOAD_EXTRACT_TIMESTAMP true
 )
 
 set(FETCHCONTENT_QUIET TRUE)
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
-add_subdirectory(tests)
+add_subdirectory(common/tests)

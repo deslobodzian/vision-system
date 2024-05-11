@@ -8,8 +8,8 @@
 #include <atomic>
 #include <functional>
 #include <memory>
-#include <string>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -46,7 +46,7 @@ class TaskManager : public std::enable_shared_from_this<TaskManager> {
 
   void add_task(std::shared_ptr<Task> task);
   template <typename T, typename... Args>
-  std::shared_ptr<T> create_task(Args&&... args) {
+  std::shared_ptr<T> create_task(Args &&...args) {
     static_assert(std::is_base_of<Task, T>::value,
                   "T must be a derivative of Task");
 
@@ -65,7 +65,7 @@ class TaskManager : public std::enable_shared_from_this<TaskManager> {
 class PeriodicFunction : public Task {
  public:
   PeriodicFunction(std::shared_ptr<TaskManager> taskManager, float period,
-                   const std::string& name, std::function<void()> function)
+                   const std::string &name, std::function<void()> function)
       : Task(taskManager, period, name), function_(std::move(function)) {}
 
   void init() override {}
@@ -85,7 +85,7 @@ template <typename T>
 class PeriodicMemberFunction : public Task {
  public:
   PeriodicMemberFunction(std::shared_ptr<TaskManager> taskManager, float period,
-                         const std::string& name, T* obj, void (T::*function)())
+                         const std::string &name, T *obj, void (T::*function)())
       : Task(taskManager, period, name), function_(std::bind(function, obj)) {}
 
   void init() override {}
