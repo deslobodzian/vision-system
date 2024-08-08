@@ -13,6 +13,12 @@
 
 namespace logger {
 
+#ifdef _MSC_VER
+  #define PRETTY_FUNCTION __FUNCSIG__
+#else
+  #define PRETTY_FUNCTION __PRETTY_FUNCTION__
+#endif
+
 enum class LogLevel { ERROR, INFO, DEBUG };
 
 constexpr std::string_view extract_class_name(const char *pretty_function) {
@@ -178,7 +184,7 @@ class Logger {
 
 #define LOG(level, ...)                                                      \
   do {                                                                       \
-    logger::Logger::instance().log(level, __PRETTY_FUNCTION__, __VA_ARGS__); \
+    logger::Logger::instance().log(level, PRETTY_FUNCTION, __VA_ARGS__); \
   } while (0)
 
 #define LOG_INFO(...) LOG(logger::LogLevel::INFO, __VA_ARGS__)
