@@ -26,7 +26,7 @@ constexpr std::string_view extract_class_name(const char *pretty_function) {
 
   size_t params_start = pf.find('(');
   if (params_start == std::string_view::npos) {
-    return {};  // Not a valid function
+    return {};
   }
 
   size_t colons = pf.rfind("::", params_start);
@@ -36,7 +36,6 @@ constexpr std::string_view extract_class_name(const char *pretty_function) {
     return pf.substr(name_start, params_start - name_start);
   }
 
-  // Extract the class name from the substring before ::
   size_t class_name_end = colons;
   size_t class_name_start = pf.rfind(' ', colons);
   class_name_start =
