@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.14)
-
 include(FetchContent)
 
 FetchContent_Declare(
@@ -7,7 +5,16 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/zeromq/libzmq.git
   GIT_TAG v4.3.5
 )
+# Override libzmq cmake
+function(cmake_minimum_required)
+endfunction()
+
 FetchContent_MakeAvailable(libzmq)
+# Go back to default
+macro(cmake_minimum_required)
+  _cmake_minimum_required(${ARGN})
+endmacro()
+
 
 FetchContent_Declare(
   flatbuffers
@@ -29,11 +36,3 @@ target_include_directories(common_lib PUBLIC ${flatbuffers_SOURCE_DIR}/include)
 
 add_library(logger INTERFACE)
 target_include_directories(logger INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-if(WIN32)
-  add_custom_command(TARGET common_lib POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      $<TARGET_FILE:libzmq>
-      $<TARGET_FILE_DIR:common_lib>
-  )
-endif()
