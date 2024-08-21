@@ -1,0 +1,27 @@
+module(
+    name = "vision_project",
+    version = "0.1",
+)
+
+bazel_dep(name = "googletest", version = "1.15.2")
+bazel_dep(name = "flatbuffers", version = "24.3.25")
+
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
+    commit = "1e08f8e0507b6b6b1f4416a9a22cf5c28beaba93",
+)
+
+# For cmake libraries
+bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "libzmq",
+    build_file = "//third_party:libzmq.BUILD",
+    strip_prefix = "libzmq-4.3.4",
+    urls = ["https://github.com/zeromq/libzmq/archive/v4.3.4.tar.gz"],
+    sha256 = "0ff5a531c9ffaf0dfdc7dc78d13d1383088f454896d252934c429b2554d10559",
+)
