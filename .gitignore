@@ -13,6 +13,3 @@
 
 # Ignore all files that might appear in the .git directory
 /.git/
-
-# Ignore any hidden files (dotfiles)
-.*

@@ -1,6 +1,7 @@
 #ifndef VISION_SYSTEM_COMMON_LOGGER_HPP
 #define VISION_SYSTEM_COMMON_LOGGER_HPP
 
+#include <atomic>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -8,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <condition_variable>
 #include <thread>
 #include <vector>
 
