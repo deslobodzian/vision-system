@@ -1,3 +1,11 @@
 common --enable_bzlmod
 
-build --action_env=BAZEL_CXXOPTS="-std=c++17:-Werror"
+build:unix --cxxopt=-std=c++17
+build:unix --host_cxxopt=-std=c++17
+
+build:windows --cxxopt=/std:c++17
+build:windows --host_cxxopt=/std:c++17
+
+build --enable_platform_specific_config
+build --host_platform=@local_config_platform//:host
+
