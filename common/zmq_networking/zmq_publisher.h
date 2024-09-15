@@ -1,14 +1,12 @@
-#ifndef VISION_SYSTEM_ZMQ_PUBLISHER_HPP
-#define VISION_SYSTEM_ZMQ_PUBLISHER_HPP
+#ifndef VISION_SYSTEM_COMMON_ZMQ_PUBLISHER_HPP
+#define VISION_SYSTEM_COMMON_ZMQ_PUBLISHER_HPP
 
-#include <flatbuffers/flatbuffers.h>
 #include <zmq.h>
 
 #include <cstring>
 #include <mutex>
 #include <stdexcept>
 #include <string>
-#include <unordered_map>
 
 class ZmqPublisher {
 public:
@@ -35,37 +33,6 @@ public:
         zmq_ctx_destroy(context_);
     }
 
-    template <typename Func, typename... Args>
-    void publish(const std::string& topic, Func&& create_func, Args&&... args) {
-        std::lock_guard<std::mutex> lock(mtx_);
-        builder_.Clear();
-        auto offset = std::invoke(std::forward<Func>(create_func), builder_,
-                                  std::forward<Args>(args)...);
-        builder_.Finish(offset);
-        send_message(topic, builder_.GetBufferPointer(), builder_.GetSize());
-    }
-
-    void publish_prebuilt(const std::string& topic, const uint8_t* data,
-                          size_t size) {
-        std::lock_guard<std::mutex> lock(mtx_);
-        send_message(topic, data, size);
-        builder_.Clear();
-    }
-
-    void publish_string(const std::string& topic, const std::string& message) {
-        std::lock_guard<std::mutex> lock(mtx_);
-        send_message(topic, reinterpret_cast<const uint8_t*>(message.c_str()), message.size());
-    }
-
-    flatbuffers::FlatBufferBuilder& get_builder() { return builder_; }
-
-private:
-    void* context_;
-    void* publisher_;
-    flatbuffers::FlatBufferBuilder builder_;
-    std::mutex mtx_;
-    std::unordered_map<std::string, std::string> topic_cache_;
-
     void send_message(const std::string& topic, const uint8_t* data,
                       size_t size) {
         zmq_msg_t topic_msg;
@@ -83,7 +50,12 @@ private:
         zmq_msg_close(&topic_msg);
         zmq_msg_close(&data_msg);
     }
+
+private:
+    void* context_;
+    void* publisher_;
+    std::mutex mtx_;
 };
 
-#endif /* VISION_SYSTEM_ZMQ_PUBLISHER_HPP */
+#endif /* VISION_SYSTEM_COMMON_ZMQ_PUBLISHER_HPP */
 
