@@ -2,14 +2,16 @@ cmake_minimum_required(VERSION 3.14...3.21)
 
 project(vision-system VERSION 1.0 DESCRIPTION "Vision System Project" LANGUAGES CXX)
 
+function(set_target_warnings target_name)
+    if(MSVC)
+        target_compile_options(${target_name} PRIVATE /W4 /WX)
+    else()
+        target_compile_options(${target_name} PRIVATE -Wall -Wextra -pedantic -Werror)
+    endif()
+endfunction()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if(MSVC)
-  add_compile_options(/W4 /WX)
-else()
-  add_compile_options(-Wall -Wextra -pedantic -Werror)
-endif()
 
 # Set the defualt to release with debug info (relase mode with optimization but still have debug info)
 if (NOT CMAKE_BUILD_TYPE)
@@ -28,11 +30,10 @@ include(FetchContent)
 set(FETCHCONTENT_QUIET FALSE)
 set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 
-# Fetch Google Test
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-  DOWNLOAD_EXTRACT_TIMESTAMP true
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG v1.15.2
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
