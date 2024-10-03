@@ -2,6 +2,7 @@
 #define VISION_SYSTEM_COMMON_LOGGER_HPP
 
 #include <chrono>
+#include <atomic>
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -11,6 +12,7 @@
 #include <thread>
 #include <vector>
 #include <time.h>
+#include <condition_variable>
 
 namespace logger {
 
