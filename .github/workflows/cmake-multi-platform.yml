@@ -51,9 +51,10 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ${{ steps.strings.outputs.deps-cache-dir }}
-        key: deps-cache-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
+        key: ${{ runner.os }}-${{ matrix.c_compiler }}-${{ hashFiles('**/CMakeLists.txt') }}
         restore-keys: |
-          deps-cache-${{ runner.os }}-
+          ${{ runner.os }}-${{ matrix.c_compiler }}-
+          ${{ runner.os }}-
 
     - name: Configure CMake
       run: >
