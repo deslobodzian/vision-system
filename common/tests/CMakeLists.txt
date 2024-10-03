@@ -4,9 +4,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(common_tests
-  logger_test.cpp
-  task_test.cpp
-  zmq_publisher_test.cpp
+  logger_test.cc
+  task_test.cc
+  zmq_tests.cc
 )
 
 target_link_libraries(common_tests

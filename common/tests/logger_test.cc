@@ -1,4 +1,4 @@
-#include "logger.hpp"
+#include "logger.h"
 
 #include <gtest/gtest.h>
 
@@ -79,8 +79,8 @@ TEST(LoggerTest, MultiThreadedLogging) {
   std::this_thread::sleep_for(
       std::chrono::milliseconds(100));  // Wait for async logging
 
-  std::ifstream file(log_file);
   std::stringstream ss;
+  std::ifstream file(log_file);
   ss << file.rdbuf();
   std::string log_output = ss.str();
 

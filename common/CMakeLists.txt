@@ -25,7 +25,7 @@ set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(FLATBUFFERS_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(flatbuffers)
 
-add_library(common_lib STATIC src/task.cpp)
+add_library(common_lib STATIC src/task.cc)
 target_include_directories(common_lib PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

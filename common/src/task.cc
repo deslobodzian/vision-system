@@ -2,7 +2,7 @@
 // Created by deslobodzian on 11/21/22.
 //
 
-#include "task.hpp"
+#include "task.h"
 
 #include <utility>
 
@@ -13,7 +13,7 @@
 #include <cmath>
 #endif
 
-#include "logger.hpp"
+#include "logger.h"
 
 Task::Task(std::shared_ptr<TaskManager> manager, float period, std::string name)
     : manager_(std::move(manager)), period_(period), name_(std::move(name)) {
@@ -75,7 +75,6 @@ void Task::loop() {
     if (current_time < next_run) {
       std::this_thread::sleep_until(next_run);
     }
-    auto actual_start = std::chrono::high_resolution_clock::now();
     if (run_duration > ns_period) {
       LOG_ERROR("Overrun in task ", name_, ": ",
                 run_duration.count() - ns_period.count(), " ns");
