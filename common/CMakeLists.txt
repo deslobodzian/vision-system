@@ -1,10 +1,25 @@
 include(FetchContent)
 
+function(set_target_warnings target_name)
+    if(MSVC)
+        target_compile_options(${target_name} PRIVATE /W4 /WX)
+    else()
+        target_compile_options(${target_name} PRIVATE -Wall -Wextra -pedantic -Werror)
+    endif()
+endfunction()
+
 FetchContent_Declare(
   libzmq
   GIT_REPOSITORY https://github.com/zeromq/libzmq.git
   GIT_TAG v4.3.5
 )
+
+set(ZMQ_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(WITH_PERF_TOOL OFF CACHE BOOL "" FORCE)
+set(ENABLE_CPACK OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(BUILD_STATIC ON CACHE BOOL "" FORCE)
+
 # Override libzmq cmake
 function(cmake_minimum_required)
 endfunction()
@@ -15,6 +30,16 @@ macro(cmake_minimum_required)
   _cmake_minimum_required(${ARGN})
 endmacro()
 
+if(TARGET libzmq-static)
+    if(MSVC)
+        target_compile_options(libzmq-static PRIVATE /W0)
+    else()
+        target_compile_options(libzmq-static PRIVATE -w)
+    endif()
+    set_target_properties(libzmq-static PROPERTIES COMPILE_DEFINITIONS "ZMQ_STATIC")
+    # Create an alias target named 'libzmq' for compatibility
+    add_library(libzmq ALIAS libzmq-static)
+endif()
 
 FetchContent_Declare(
   flatbuffers
@@ -23,6 +48,8 @@ FetchContent_Declare(
 )
 set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(FLATBUFFERS_INSTALL OFF CACHE BOOL "" FORCE)
+set(FLATBUFFERS_STRICT_MODE ON CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(flatbuffers)
 
 add_library(common_lib STATIC src/task.cc)
@@ -31,6 +58,7 @@ target_include_directories(common_lib PUBLIC
 )
 
 target_link_libraries(common_lib PUBLIC libzmq)
+target_compile_definitions(common_lib PRIVATE ZMQ_STATIC)
 
 target_include_directories(common_lib PUBLIC ${flatbuffers_SOURCE_DIR}/include)
 

@@ -23,10 +23,10 @@ target_include_directories(common_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
-if(WIN32)
+if(MSVC)
   add_custom_command(TARGET common_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      $<TARGET_FILE:libzmq>
+      $<TARGET_FILE:libzmq-static>
       $<TARGET_FILE_DIR:common_tests>
   )
 endif()

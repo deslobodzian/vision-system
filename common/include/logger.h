@@ -10,6 +10,7 @@
 #include <string_view>
 #include <thread>
 #include <vector>
+#include <time.h>
 
 namespace logger {
 
@@ -83,9 +84,16 @@ class Logger {
 
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
-    auto tm = std::localtime(&time_t);
+    std::tm tm {};
+#if defined(__unix__)
+    localtime_r(&time_t, &tm);
+#elif defined(_MSC_VER)
+    localtime_s(&tm, &time_t);
+#else
+    tm = *std::localtime(&time_t);
+#endif
     char date_time[20];
-    std::strftime(date_time, sizeof(date_time), "%Y-%m-%d %H:%M:%S", tm);
+    std::strftime(date_time, sizeof(date_time), "%Y-%m-%d %H:%M:%S", &tm);
 
     stream << date_time << " ";
 
