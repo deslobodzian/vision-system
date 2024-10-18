@@ -1,5 +1,8 @@
 include(FetchContent)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+include(CUDAConfig)
+
 FetchContent_Declare(
   libzmq
   GIT_REPOSITORY https://github.com/zeromq/libzmq.git
@@ -58,3 +61,4 @@ add_library(logger INTERFACE)
 target_include_directories(logger INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set_target_warnings(common_lib)
+enable_cuda_for_target(common_lib)
