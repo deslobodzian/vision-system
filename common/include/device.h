@@ -7,51 +7,34 @@
 #include <vector>
 #include <logger.h>
 
-enum class SupportedDevice {
+enum class DeviceType {
     NV_CUDA,
     CPU,
 };
 
-const static std::vector<SupportedDevice> supported_devices {
-    SupportedDevice::NV_CUDA, SupportedDevice::CPU
+const static std::vector<DeviceType> supported_devices {
+    DeviceType::NV_CUDA, DeviceType::CPU
 };
 
-class Device {
-public:
-    static std::vector<SupportedDevice> get_available_devices() {
-        std::vector<SupportedDevice> devices;
-        for (SupportedDevice device : supported_devices) {
-            switch (device) {
-                case SupportedDevice::NV_CUDA:
-                    #ifdef CUDA
-                    LOG_DEBUG("Added CUDA to available devices");
-                    devices.push_back(device);
-                    #endif /* CUDA */
-                    continue;
-                case SupportedDevice::CPU:
-                    devices.push_back(device);
-                    continue;
-                default:
-                    assert("Using default something is wrong as you have a cpu?");
-            }
+const static std::vector<DeviceType> get_available_devices() {
+    std::vector<DeviceType> devices;
+    for (DeviceType device : supported_devices) {
+        switch (device) {
+            case DeviceType::NV_CUDA:
+#ifdef CUDA
+            LOG_DEBUG("Added CUDA to available devices");
+            devices.push_back(device);
+#endif /* CUDA */
+            continue;
+            case DeviceType::CPU:
+                devices.push_back(device);
+                continue;
+            default:
+                assert("Using default something is wrong as you have a cpu?");
         }
-        return devices;
     }
-};
-
-template <typename T>
-class Buffer {
-public:
-    Buffer(const Device& device, size_t count) :
-        device_(device), buffer_size_(sizeof(T) * count) {
-        LOG_DEBUG("Generating Buffer on device: ", device, " with datatype: ", typeid(T).name(), "with count: ", count);
-    };
-    Buffer* allocate();
-    size_t buffer_size() const { return buffer_size_; };
-private:
-    Device device_;
-    size_t buffer_size_;
-};
+    return devices;
+}
 
 /*
  * Allocator will handle all memory allocation for different devices
@@ -65,9 +48,97 @@ public:
 };
 
 
-// class MallocAllocator : Allocator {
-//     std::unique_ptr<void> alloc(size_t size) {
-//
-//     }
-// };
+class MallocAllocator : public Allocator {
+    void* alloc(size_t size) override {
+        void* data = ::operator new(size);
+        return data;
+    }
+
+    void free(void* ptr) override {
+        LOG_DEBUG("Freeing pointer: ", ptr);
+        ::operator delete(ptr);
+    }
+
+    void copy_in(void* dst, void* src, size_t size) override {
+        std::memcpy(dst, src, size);
+    }
+
+    void copy_out(void* src, void* dst, size_t size) override {
+        std::memcpy(src, dst, size);
+    }
+ };
+
+class Device {
+public:
+    explicit Device(Allocator* allocator) : allocator_(std::move(allocator)) {
+    }
+    virtual ~Device() = default;
+
+    virtual DeviceType type() const = 0;
+    virtual std::string name() const = 0;
+    virtual bool is_available() const  = 0;
+
+
+    Allocator* get_allocator() const { return allocator_; }
+private:
+    Allocator* allocator_;
+};
+
+class CPUDevice : public Device {
+public:
+    CPUDevice() : Device(new MallocAllocator) {
+        LOG_DEBUG("Created CPU Device");
+    }
+    DeviceType type() const override { return DeviceType::CPU; }
+    std::string name() const override { return "CPU"; }
+    bool is_available() const override { return true; }
+};
+
+template <typename T>
+class Buffer {
+public:
+    Buffer(const Device& device, size_t count) :
+        device_(device), count_(count), buffer_size_(sizeof(T) * count), data_(nullptr) {
+        LOG_DEBUG("Generating Buffer on device: ", device.name(), " with datatype: ", typeid(T).name(), " with count: ", count);
+    };
+    ~Buffer() {
+        if (data_) {
+            device_.get_allocator()->free(data_);
+        }
+    }
+    void allocate() {
+        if (data_) {
+            LOG_ERROR("Buffer already allocated!");
+            throw std::runtime_error("Buffer already allocated!");
+        }
+
+        data_ = static_cast<T*>(device_.get_allocator()->alloc(buffer_size_));
+    }
+
+    void copy_to_device(const T* host_data) {
+        if (!data_) {
+            LOG_ERROR("Buffer not allocated");
+            throw std::runtime_error("Buffer not allocated");
+        }
+        device_.get_allocator()->copy_in(data_, (static_cast<const void*>(host_data)), buffer_size_);
+    }
+
+    void copy_to_host(T* host_data) {
+        if (!data_) {
+            LOG_ERROR("Buffer not allocated");
+            throw std::runtime_error("Buffer not allocated");
+        }
+        device_.get_allocator()->copy_out(data_, host_data, buffer_size_);
+    }
+
+    size_t count() const { return count_; }
+    size_t buffer_size() const { return buffer_size_; };
+    T* data() const { return data_; }
+
+private:
+    const Device& device_;
+    size_t count_;
+    size_t buffer_size_;
+    T* data_;
+};
 #endif /* VISION_SYSTEM_COMMON_DEVICE_H */
