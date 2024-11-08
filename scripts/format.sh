@@ -1,6 +1,6 @@
 #!/bin/bash
 
-find . \( -name '*.cpp' -or -name '*.hpp' -or -name '*.cu' -or -name '*.h' \) -exec clang-format -i {} +
+find . \( -name '*.cc' -or -name '*.h' -or -name '*.cu' \) -exec clang-format -i {} +
 
 echo "All relevant files have been formatted!"
 

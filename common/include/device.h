@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <typeinfo>
 #include <vector>
 #include <logger.h>
@@ -76,7 +77,6 @@ public:
 
     virtual DeviceType type() const = 0;
     virtual std::string name() const = 0;
-    virtual bool is_available() const  = 0;
 
 
     Allocator* get_allocator() const { return allocator_; }
@@ -91,7 +91,6 @@ public:
     }
     DeviceType type() const override { return DeviceType::CPU; }
     std::string name() const override { return "CPU"; }
-    bool is_available() const override { return true; }
 };
 
 template <typename T>
@@ -103,16 +102,18 @@ public:
     };
     ~Buffer() {
         if (data_) {
+            LOG_DEBUG("Freeing ptr");
             device_.get_allocator()->free(data_);
         }
     }
     void allocate() {
+        LOG_DEBUG("Allocating buffer");
         if (data_) {
             LOG_ERROR("Buffer already allocated!");
             throw std::runtime_error("Buffer already allocated!");
         }
-
-        data_ = static_cast<T*>(device_.get_allocator()->alloc(buffer_size_));
+        data_ = device_.get_allocator()->alloc(buffer_size_);
+        LOG_DEBUG("Buffer allocated");
     }
 
     void copy_to_device(const T* host_data) {
@@ -120,7 +121,11 @@ public:
             LOG_ERROR("Buffer not allocated");
             throw std::runtime_error("Buffer not allocated");
         }
-        device_.get_allocator()->copy_in(data_, (static_cast<const void*>(host_data)), buffer_size_);
+        device_.get_allocator()->copy_in(
+            data_,
+            const_cast<void*>(static_cast<const void*>(host_data)),
+            buffer_size_
+        );
     }
 
     void copy_to_host(T* host_data) {
@@ -133,12 +138,14 @@ public:
 
     size_t count() const { return count_; }
     size_t buffer_size() const { return buffer_size_; };
-    T* data() const { return data_; }
+    void* ptr() const { return data_; }
+    // This is more for CPU access
+    T* data() const { return static_cast<T*>(data_); }
 
 private:
     const Device& device_;
     size_t count_;
     size_t buffer_size_;
-    T* data_;
+    void* data_;
 };
 #endif /* VISION_SYSTEM_COMMON_DEVICE_H */

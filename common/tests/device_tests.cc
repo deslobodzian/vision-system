@@ -3,11 +3,12 @@
 #include <algorithm>
 
 #include <gtest/gtest.h>
+#include <cuda_ops.h>
 
 TEST(DevicesTest, Devices) {
     std::vector<DeviceType> devices = get_available_devices();
     #ifdef CUDA
-        EXPECT_TRUE(std::find(devices.begin(), devices.end(), SupportedDevice::NV_CUDA) != devices.end());
+        EXPECT_TRUE(std::find(devices.begin(), devices.end(), DeviceType::NV_CUDA) != devices.end());
     #endif /* CUDA */
 
     // This has to always be true
@@ -36,4 +37,29 @@ TEST(CPUBufferTest, BufferTests) {
 }
 
 TEST(CudaBufferTest, BufferTests) {
+    auto dev = new CudaDevice();
+    auto cpu_dev = new CPUDevice();
+    LOG_INFO(dev->name());
+
+    Buffer<int> buff_int = Buffer<int>(*dev, 10);
+    Buffer<float> buff_float = Buffer<float>(*dev, 10);
+
+    buff_int.allocate();
+    buff_float.allocate();
+
+    int int_test[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    float float_test[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
+
+    buff_float.copy_to_device(float_test);
+    buff_int.copy_to_device(int_test);
+
+
+    Buffer<int> buff_int_cpu = Buffer<int>(*cpu_dev, 10);
+    buff_int_cpu.allocate();
+
+    buff_int.copy_to_host(buff_int_cpu.data());
+//
+    for (int i = 0; i < buff_int_cpu.count(); i++) {
+        LOG_DEBUG(buff_int_cpu.data()[i]);
+    }
 }

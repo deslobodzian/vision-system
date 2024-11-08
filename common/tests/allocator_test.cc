@@ -5,8 +5,6 @@
 
 #ifdef CUDA
 TEST(AllocatorTests, CUDAAllocator) {
-    CudaAllocator allocator;
-    void* test = allocator.alloc(10);
 }
 #endif /* CUDA */
 
