@@ -1,6 +1,7 @@
 import re
-from formatter import FileBase, FormatterBase
 import subprocess
+from formatter import FileBase, FormatterBase
+from pathlib import Path
 
 class CPPFormatter(FormatterBase):
     def __init__(self, root_dir):
@@ -52,7 +53,6 @@ class CPPFiles(FileBase):
                 capture_output=True,
                 text=True
             )
-
             with open(self.file_path, "r") as file:
                 self.lines = file.readlines()
             return True
@@ -60,11 +60,9 @@ class CPPFiles(FileBase):
             print(f"Failed to format: {self.file_path}: {e.stderr}")
             return False
 
-
 if __name__ == "__main__":
-    cpp_formatter = CPPFormatter("../../common")
-    success = cpp_formatter.format()
-
-    if success:
-        print("Files formatted")
-
+    cpp_formatter = CPPFormatter("./common")
+    
+    # Format files
+    if cpp_formatter.format():
+        print("Files formatted successfully")

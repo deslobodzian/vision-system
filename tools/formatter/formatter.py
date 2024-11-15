@@ -24,6 +24,7 @@ class FormatterBase(ABC):
     def format(self):
         pass
 
+
 class FileBase:
     def __init__(self, file_path: str):
         self.file_path = file_path

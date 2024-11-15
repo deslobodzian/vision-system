@@ -2,6 +2,7 @@
 #define VISION_SYSTEM_COMMON_LOGGER_HPP
 
 #include <atomic>
+#include <array>
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
@@ -15,41 +16,41 @@
 
 namespace logger {
 
-#define test1 1
 #ifdef _MSC_VER
 #define PRETTY_FUNCTION __FUNCSIG__
 #else
 #define PRETTY_FUNCTION __PRETTY_FUNCTION__
 #endif
 
-enum class LogLevel { ERROR, INFO, DEBUG };
+enum class LogLevel : std::uint8_t { ERROR, INFO, DEBUG };
 
-constexpr std::string_view extract_class_name(const char* pretty_function) {
-  std::string_view pf = pretty_function;
+constexpr auto extract_class_name(const char* pretty_function)
+    -> std::string_view {
+  std::string_view pretty_fn = pretty_function;
 
-  size_t params_start = pf.find('(');
+  size_t params_start = pretty_fn.find('(');
   if (params_start == std::string_view::npos) {
     return {};
   }
 
-  size_t colons = pf.rfind("::", params_start);
+  size_t colons = pretty_fn.rfind("::", params_start);
   if (colons == std::string_view::npos) {
-    size_t name_start = pf.rfind(' ', params_start);
+    size_t name_start = pretty_fn.rfind(' ', params_start);
     name_start = (name_start == std::string_view::npos) ? 0 : name_start + 1;
-    return pf.substr(name_start, params_start - name_start);
+    return pretty_fn.substr(name_start, params_start - name_start);
   }
 
   size_t class_name_end = colons;
-  size_t class_name_start = pf.rfind(' ', colons);
+  size_t class_name_start = pretty_fn.rfind(' ', colons);
   class_name_start =
       (class_name_start == std::string_view::npos) ? 0 : class_name_start + 1;
 
-  return pf.substr(class_name_start, class_name_end - class_name_start);
+  return pretty_fn.substr(class_name_start, class_name_end - class_name_start);
 }
 
 class Logger {
  public:
-  static Logger& instance() {
+  static auto instance() -> Logger& {
     static Logger instance;
     return instance;
   }
@@ -81,16 +82,18 @@ class Logger {
       return;
     }
 
+    constexpr int char_buffer_size = 20;
     std::string_view class_name = extract_class_name(pretty_function);
     std::ostringstream stream;
 
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
-    auto tm = std::localtime(&time_t);
-    char date_time[20];
-    std::strftime(date_time, sizeof(date_time), "%Y-%m-%d %H:%M:%S", tm);
+    auto* local_time = std::localtime(&time_t);
+    std::array<char, char_buffer_size> date_time{};
+    std::strftime(date_time.data(), sizeof(date_time), "%Y-%m-%d %H:%M:%S",
+                  local_time);
 
-    stream << date_time << " ";
+    stream << date_time.data() << " ";
 
     switch (level) {
       case LogLevel::INFO:
@@ -152,7 +155,7 @@ class Logger {
       }
 
       for (const auto& message : local_queue) {
-        std::cout << message << std::endl;
+        std::cout << message << +"\n";
       }
 
       if (!local_file_queue.empty()) {
@@ -165,7 +168,7 @@ class Logger {
 
         if (log_file_.is_open()) {
           for (const auto& message : local_file_queue) {
-            log_file_ << message << std::endl;
+            log_file_ << message << +"\n";
           }
           log_file_.flush();
         }
@@ -184,10 +187,8 @@ class Logger {
   LogLevel current_log_level_ = LogLevel::DEBUG;
 };
 
-#define LOG(level, ...)                                                  \
-  do {                                                                   \
-    logger::Logger::instance().log(level, PRETTY_FUNCTION, __VA_ARGS__); \
-  } while (0)
+#define LOG(level, ...) \
+  logger::Logger::instance().log(level, PRETTY_FUNCTION, __VA_ARGS__);
 
 #define LOG_INFO(...) LOG(logger::LogLevel::INFO, __VA_ARGS__)
 #define LOG_DEBUG(...) LOG(logger::LogLevel::DEBUG, __VA_ARGS__)

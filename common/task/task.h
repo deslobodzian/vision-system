@@ -11,6 +11,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 /* task that will run at a specific period in hz. */
@@ -18,6 +19,10 @@ class TaskManager;
 
 class Task : public std::enable_shared_from_this<Task> {
  public:
+  Task(const Task&) = delete;
+  Task(Task&&) = delete;
+  auto operator=(const Task&) -> Task& = delete;
+  auto operator=(Task&&) -> Task& = delete;
   //    Task(TaskManager* manager, double period, std::string name);
   Task(std::shared_ptr<TaskManager> manager, float period, std::string name);
   virtual ~Task();
@@ -27,9 +32,9 @@ class Task : public std::enable_shared_from_this<Task> {
   virtual void init() = 0;
   virtual void run() = 0;
 
-  float get_period() const { return 1.0f / period_; }
+  auto get_period() const -> float { return 1.0F / period_; }
 
- protected:
+ private:
   std::shared_ptr<TaskManager> manager_;
   float period_;
   std::atomic<bool> running_{false};
@@ -46,9 +51,8 @@ class TaskManager : public std::enable_shared_from_this<TaskManager> {
 
   void add_task(std::shared_ptr<Task> task);
   template <typename T, typename... Args>
-  std::shared_ptr<T> create_task(Args&&... args) {
-    static_assert(std::is_base_of<Task, T>::value,
-                  "T must be a derivative of Task");
+  auto create_task(Args&&... args) -> std::shared_ptr<T> {
+    static_assert(std::is_base_of_v<Task, T>, "T must be a derivative of Task");
 
     auto task = std::make_shared<T>(this->shared_from_this(),
                                     std::forward<Args>(args)...);
@@ -64,9 +68,14 @@ class TaskManager : public std::enable_shared_from_this<TaskManager> {
 
 class PeriodicFunction : public Task {
  public:
+  PeriodicFunction(const PeriodicFunction&) = delete;
+  PeriodicFunction(PeriodicFunction&&) = delete;
+  auto operator=(const PeriodicFunction&) -> PeriodicFunction& = delete;
+  auto operator=(PeriodicFunction&&) -> PeriodicFunction& = delete;
   PeriodicFunction(std::shared_ptr<TaskManager> taskManager, float period,
                    const std::string& name, std::function<void()> function)
-      : Task(taskManager, period, name), function_(std::move(function)) {}
+      : Task(std::move(taskManager), period, name),
+        function_(std::move(function)) {}
 
   void init() override {}
   void run() override {
@@ -75,7 +84,7 @@ class PeriodicFunction : public Task {
     }
   }
 
-  ~PeriodicFunction() { stop(); }
+  ~PeriodicFunction() override { stop(); }
 
  private:
   std::function<void()> function_;

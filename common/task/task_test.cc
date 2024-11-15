@@ -8,13 +8,13 @@
 class TestTask : public Task {
  public:
   TestTask(std::shared_ptr<TaskManager> manager, float period, std::string name)
-      : Task(manager, period, name), run_count(0) {}
+      : Task(manager, period, name) {}
 
   void init() override {}
 
   void run() override { ++run_count; }
 
-  int run_count;
+  int run_count = 0;
 };
 
 TEST(TaskTest, Periodicity) {
