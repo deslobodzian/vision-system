@@ -4,6 +4,7 @@
 #include "allocator.h"
 #include <logger.h>
 #include <cstdlib>
+#include <cstring>
 
 class MallocAllocator : public Allocator {
 public:
