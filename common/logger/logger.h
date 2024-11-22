@@ -21,11 +21,9 @@ namespace logger {
 #else
 #define PRETTY_FUNCTION __PRETTY_FUNCTION__
 #endif
-
 enum class LogLevel : std::uint8_t { ERROR, INFO, DEBUG };
 
-constexpr auto extract_class_name(const char* pretty_function)
-    -> std::string_view {
+constexpr std::string_view extract_class_name(const char* pretty_function) {
   std::string_view pretty_fn = pretty_function;
 
   size_t params_start = pretty_fn.find('(');
@@ -50,7 +48,7 @@ constexpr auto extract_class_name(const char* pretty_function)
 
 class Logger {
  public:
-  static auto instance() -> Logger& {
+  static Logger& instance() {
     static Logger instance;
     return instance;
   }

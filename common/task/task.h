@@ -21,8 +21,8 @@ class Task : public std::enable_shared_from_this<Task> {
  public:
   Task(const Task&) = delete;
   Task(Task&&) = delete;
-  auto operator=(const Task&) -> Task& = delete;
-  auto operator=(Task&&) -> Task& = delete;
+  Task& operator=(const Task&) = delete;
+  Task& operator=(Task&&) = delete;
   //    Task(TaskManager* manager, double period, std::string name);
   Task(std::shared_ptr<TaskManager> manager, float period, std::string name);
   virtual ~Task();
@@ -32,7 +32,7 @@ class Task : public std::enable_shared_from_this<Task> {
   virtual void init() = 0;
   virtual void run() = 0;
 
-  auto get_period() const -> float { return 1.0F / period_; }
+  float get_period() const { return 1.0F / period_; }
 
  private:
   std::shared_ptr<TaskManager> manager_;
@@ -70,8 +70,8 @@ class PeriodicFunction : public Task {
  public:
   PeriodicFunction(const PeriodicFunction&) = delete;
   PeriodicFunction(PeriodicFunction&&) = delete;
-  auto operator=(const PeriodicFunction&) -> PeriodicFunction& = delete;
-  auto operator=(PeriodicFunction&&) -> PeriodicFunction& = delete;
+  PeriodicFunction& operator=(const PeriodicFunction&) = delete;
+  PeriodicFunction& operator=(PeriodicFunction&&) = delete;
   PeriodicFunction(std::shared_ptr<TaskManager> taskManager, float period,
                    const std::string& name, std::function<void()> function)
       : Task(std::move(taskManager), period, name),

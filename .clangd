@@ -1,0 +1,10 @@
+Diagnostics:
+  Suppress:
+    - modernize-use-trailing-return-type
+    - gnu-zero-variadic-macro-arguments
+    - cppcoreguidelines-no-malloc
+    - cppcoreguidelines-owning-memory
+
+Index:
+  Background: Build
+  StandardLibrary: Yes
