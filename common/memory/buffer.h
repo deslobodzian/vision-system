@@ -3,10 +3,10 @@
 
 template <typename T>
 class Buffer {
-    Buffer() = default;
-    T* data() { return data_; }
+  Buffer() = default;
+  T* data() { return data_; }
 
-private:
-    T* data_;
+ private:
+  T* data_;
 };
 #endif /* VISION_SYSTEM_COMMON_BUFFER_H */

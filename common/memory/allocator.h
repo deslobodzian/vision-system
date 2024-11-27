@@ -6,7 +6,7 @@
 #include <cstddef>
 
 class Allocator {
-public:
+ public:
   virtual ~Allocator() = default;
   virtual void* alloc(size_t size) = 0;
   virtual void free(void* ptr) = 0;
