@@ -23,12 +23,19 @@ class DeviceManager {
   }
   
   std::shared_ptr<Device> get_device(const std::string& device) {
+    auto iterator = devices_.find(device);
+    if (iterator == devices_.end()) {
+      std::string err_str = "Device {" + device + "} is not supported";
+      LOG_ERROR(err_str);
+      throw std::runtime_error(err_str);
+    }
+
     if (devices_[device] == nullptr) {
       bool ret = create_device(device);
       LOG_DEBUG("Created ", device, " returned ", ret);
     } else {
       LOG_DEBUG("Device ", device, " already created");
-    } 
+    }
     return devices_[device];
   }
 
@@ -39,14 +46,17 @@ class DeviceManager {
   };
 
   bool create_device(const std::string& dev) {
-    if (devices_.count(dev) == 0) {
+    auto iterator = devices_.find(dev);
+    if (iterator == devices_.end()) {
       LOG_ERROR("Device {", dev, "} is not supported");
       return false;
     }
+
     if (devices_[dev] != nullptr) {
       LOG_ERROR("Device {", dev, "} is already created");
       return false;
     }
+
     if (dev == "CPU") {
       devices_[dev] = std::make_shared<CPUDevice>();
     } else if (dev == "CUDA") {
