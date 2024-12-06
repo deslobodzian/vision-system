@@ -7,23 +7,25 @@
 #include <sstream>
 #include <thread>
 
+#define TIMEOUT 100
+
 TEST(LoggerTest, LogLevels) {
   logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
 
-  std::stringstream ss;
+  std::stringstream stream;
   std::streambuf* old_cout_buffer = std::cout.rdbuf();
-  std::cout.rdbuf(ss.rdbuf());
+  std::cout.rdbuf(stream.rdbuf());
 
   LOG_DEBUG("Debug message");
   LOG_INFO("Info message");
   LOG_ERROR("Error message");
 
   std::this_thread::sleep_for(
-      std::chrono::milliseconds(100));  // Wait for async logging
+      std::chrono::milliseconds(TIMEOUT));  // Wait for async logging
 
   std::cout.rdbuf(old_cout_buffer);
 
-  std::string log_output = ss.str();
+  std::string log_output = stream.str();
   EXPECT_TRUE(log_output.find("Debug message") != std::string::npos);
   EXPECT_TRUE(log_output.find("Info message") != std::string::npos);
   EXPECT_TRUE(log_output.find("Error message") != std::string::npos);
@@ -39,12 +41,12 @@ TEST(LoggerTest, LogFile) {
   LOG_ERROR("Error message");
 
   std::this_thread::sleep_for(
-      std::chrono::milliseconds(100));  // Wait for async logging
+      std::chrono::milliseconds(TIMEOUT));  // Wait for async logging
 
   std::ifstream file(log_file);
-  std::stringstream ss;
-  ss << file.rdbuf();
-  std::string log_output = ss.str();
+  std::stringstream stream;
+  stream << file.rdbuf();
+  std::string log_output = stream.str();
 
   EXPECT_TRUE(log_output.find("Debug message") != std::string::npos);
   EXPECT_TRUE(log_output.find("Info message") != std::string::npos);
@@ -77,12 +79,12 @@ TEST(LoggerTest, MultiThreadedLogging) {
   }
 
   std::this_thread::sleep_for(
-      std::chrono::milliseconds(100));  // Wait for async logging
+      std::chrono::milliseconds(TIMEOUT));  // Wait for async logging
 
   std::ifstream file(log_file);
-  std::stringstream ss;
-  ss << file.rdbuf();
-  std::string log_output = ss.str();
+  std::stringstream stream;
+  stream << file.rdbuf();
+  std::string log_output = stream.str();
 
   for (int i = 0; i < num_threads; ++i) {
     std::string debug_message =

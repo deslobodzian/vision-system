@@ -1,3 +1,5 @@
+load("@rules_cuda//cuda:defs.bzl", "cuda_library", "requires_cuda")
+
 package(default_visibility= ["//visibility:public"])
 
 cc_library(
@@ -18,11 +20,18 @@ cc_library(
         "device_manager.h",
     ],
     includes = ["."],
+    defines = [] + select({
+        "@rules_cuda//cuda:is_enabled": ["CUDA_ENABLED"],
+        "//conditions:default": ["CUDA_DISABLED"],
+    }),
     visibility = ["//visibility:public"],
     deps = [
         ":allocator",
         "//common/logger:logger"
-    ]
+    ] + select({
+        "@rules_cuda//cuda:is_enabled": ["@local_cuda//:cuda_runtime"],
+        "//conditions:default": [],
+    }),
 )
 
 cc_test(
@@ -34,6 +43,7 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
 cc_test(
     name = "device_tests",
     srcs = ["device_tests.cc"],

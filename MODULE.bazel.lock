@@ -90,6 +90,8 @@
     "https://bcr.bazel.build/modules/rules_cc/0.0.8/MODULE.bazel": "964c85c82cfeb6f3855e6a07054fdb159aced38e99a5eecf7bce9d53990afa3e",
     "https://bcr.bazel.build/modules/rules_cc/0.0.9/MODULE.bazel": "836e76439f354b89afe6a911a7adf59a6b2518fafb174483ad78a2a2fde7b1c5",
     "https://bcr.bazel.build/modules/rules_cc/0.0.9/source.json": "1f1ba6fea244b616de4a554a0f4983c91a9301640c8fe0dd1d410254115c8430",
+    "https://bcr.bazel.build/modules/rules_cuda/0.2.3/MODULE.bazel": "34f74fba6882781153461e62aded821ed3e5197f15e0f2b9b3eef76c9be0f44c",
+    "https://bcr.bazel.build/modules/rules_cuda/0.2.3/source.json": "a2e128ec4699c65db24d9305215090d95bbd0cbb98e98058f82328f194a8ec68",
     "https://bcr.bazel.build/modules/rules_foreign_cc/0.9.0/MODULE.bazel": "c9e8c682bf75b0e7c704166d79b599f93b72cfca5ad7477df596947891feeef6",
     "https://bcr.bazel.build/modules/rules_go/0.33.0/MODULE.bazel": "a2b11b64cd24bf94f57454f53288a5dacfe6cb86453eee7761b7637728c1910c",
     "https://bcr.bazel.build/modules/rules_go/0.34.0/MODULE.bazel": "20240361d6ff5cb752121af8c64aa41adc5a72ade59c90040606070e1690be09",
@@ -11673,6 +11675,31 @@
           }
         },
         "recordedRepoMappingEntries": []
+      }
+    },
+    "@@rules_cuda~//cuda:extensions.bzl%toolchain": {
+      "general": {
+        "bzlTransitiveDigest": "BnYM6/SSxkN/7InBOUBKIuviq2l1hk6LC7EDB59vI80=",
+        "usagesDigest": "VHJiaga4kVjtlwy276AvHd1/fJMz2BjTiDl0CxnKCrU=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "local_cuda": {
+            "bzlFile": "@@rules_cuda~//cuda/private:repositories.bzl",
+            "ruleClassName": "local_cuda",
+            "attributes": {
+              "toolkit_path": ""
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "rules_cuda~",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
       }
     },
     "@@rules_go~//go:extensions.bzl%go_sdk": {
