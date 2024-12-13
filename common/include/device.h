@@ -5,37 +5,13 @@
 #include <cstddef>
 #include <cstring>
 #include <typeinfo>
-#include <vector>
-#include <logger.h>
+
+#include "logger.h"
 
 enum class DeviceType {
     NV_CUDA,
     CPU,
 };
-
-const static std::vector<DeviceType> supported_devices {
-    DeviceType::NV_CUDA, DeviceType::CPU
-};
-
-const static std::vector<DeviceType> get_available_devices() {
-    std::vector<DeviceType> devices;
-    for (DeviceType device : supported_devices) {
-        switch (device) {
-            case DeviceType::NV_CUDA:
-#ifdef CUDA
-            LOG_DEBUG("Added CUDA to available devices");
-            devices.push_back(device);
-#endif /* CUDA */
-            continue;
-            case DeviceType::CPU:
-                devices.push_back(device);
-                continue;
-            default:
-                assert("Using default something is wrong as you have a cpu?");
-        }
-    }
-    return devices;
-}
 
 /*
  * Allocator will handle all memory allocation for different devices
@@ -48,26 +24,6 @@ public:
     virtual void copy_out(void* src, void* dst, size_t size) = 0;
 };
 
-
-class MallocAllocator : public Allocator {
-    void* alloc(size_t size) override {
-        void* data = ::operator new(size);
-        return data;
-    }
-
-    void free(void* ptr) override {
-        LOG_DEBUG("Freeing pointer: ", ptr);
-        ::operator delete(ptr);
-    }
-
-    void copy_in(void* dst, void* src, size_t size) override {
-        std::memcpy(dst, src, size);
-    }
-
-    void copy_out(void* src, void* dst, size_t size) override {
-        std::memcpy(src, dst, size);
-    }
- };
 
 class Device {
 public:
@@ -84,14 +40,6 @@ private:
     Allocator* allocator_;
 };
 
-class CPUDevice : public Device {
-public:
-    CPUDevice() : Device(new MallocAllocator) {
-        LOG_DEBUG("Created CPU Device");
-    }
-    DeviceType type() const override { return DeviceType::CPU; }
-    std::string name() const override { return "CPU"; }
-};
 
 template <typename T>
 class Buffer {

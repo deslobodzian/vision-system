@@ -3,21 +3,24 @@
 #include <algorithm>
 
 #include <gtest/gtest.h>
-#include <cuda_ops.h>
+#include "device_manager.h"
 
 TEST(DevicesTest, Devices) {
-    std::vector<DeviceType> devices = get_available_devices();
-    #ifdef CUDA
-        EXPECT_TRUE(std::find(devices.begin(), devices.end(), DeviceType::NV_CUDA) != devices.end());
-    #endif /* CUDA */
-
-    // This has to always be true
-    EXPECT_TRUE(std::find(devices.begin(), devices.end(), DeviceType::CPU) != devices.end());
+  auto cpu_dev = DeviceManager::instance().get_device("CPU");
+  auto type = cpu_dev->type();
+  LOG_INFO("CPU Ptr: ", cpu_dev);
+  EXPECT_TRUE(type == DeviceType::CPU);
 }
 
-TEST(CPUBufferTest, BufferTests) {
+TEST(SingletonDeviceTest, Devices) {
+  auto dev = DeviceManager::instance().get_device("CPU");
+  auto dev_other = DeviceManager::instance().get_device("CPU");
+  EXPECT_TRUE(dev == dev_other);
+}
 
-    auto cpu_device = new CPUDevice();
+
+TEST(CPUBufferTest, BufferTests) {
+    auto cpu_device = DeviceManager::instance().get_device("CPU");
     LOG_INFO(cpu_device->name());
 
     Buffer<int> buff_int = Buffer<int>(*cpu_device, 10);
@@ -35,7 +38,7 @@ TEST(CPUBufferTest, BufferTests) {
     EXPECT_TRUE(std::equal(buff_int.data(), buff_int.data() + buff_int.count(), int_test));
     EXPECT_TRUE(std::equal(buff_float.data(), buff_float.data() + buff_float.count(), float_test));
 }
-
+#ifdef CUDA
 TEST(CudaBufferTest, BufferTests) {
     auto dev = new CudaDevice();
     auto cpu_dev = new CPUDevice();
@@ -63,3 +66,4 @@ TEST(CudaBufferTest, BufferTests) {
         LOG_DEBUG(buff_int_cpu.data()[i]);
     }
 }
+#endif /* CUDA */
