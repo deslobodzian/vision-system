@@ -18,7 +18,6 @@ TEST(SingletonDeviceTest, Devices) {
   EXPECT_TRUE(dev == dev_other);
 }
 
-
 TEST(CPUBufferTest, BufferTests) {
     auto cpu_device = DeviceManager::instance().get_device("CPU");
     LOG_INFO(cpu_device->name());
@@ -38,7 +37,22 @@ TEST(CPUBufferTest, BufferTests) {
     EXPECT_TRUE(std::equal(buff_int.data(), buff_int.data() + buff_int.count(), int_test));
     EXPECT_TRUE(std::equal(buff_float.data(), buff_float.data() + buff_float.count(), float_test));
 }
+
 #ifdef CUDA
+TEST(CudaDeviceInfoTest, Devices) {
+  int device_count = 0;
+  cudaGetDeviceCount(&device_count);
+  LOG_INFO("Found ", device_count, " CUDA device(s)");
+
+  for (int i = 0; i < device_count; i++) {
+    cudaDeviceProp props;
+    cudaGetDeviceProperties(&props, i);
+    LOG_INFO("Device ", i, ":", props.name);
+    LOG_INFO("Compute Capability ", props.major, props.minor);
+    LOG_INFO("Memory (MB) ", props.totalGlobalMem / (1024 * 1024));
+  }
+}
+
 TEST(CudaBufferTest, BufferTests) {
     auto dev = new CudaDevice();
     auto cpu_dev = new CPUDevice();
@@ -56,12 +70,10 @@ TEST(CudaBufferTest, BufferTests) {
     buff_float.copy_to_device(float_test);
     buff_int.copy_to_device(int_test);
 
-
     Buffer<int> buff_int_cpu = Buffer<int>(*cpu_dev, 10);
     buff_int_cpu.allocate();
 
     buff_int.copy_to_host(buff_int_cpu.data());
-//
     for (int i = 0; i < buff_int_cpu.count(); i++) {
         LOG_DEBUG(buff_int_cpu.data()[i]);
     }

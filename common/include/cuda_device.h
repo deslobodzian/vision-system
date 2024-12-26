@@ -1,6 +1,6 @@
 #ifdef CUDA
-#ifndef VISION_SYSTEM_COMMON_CUDA_OPS_H
-#define VISION_SYSTEM_COMMON_CUDA_OPS_H
+#ifndef VISION_SYSTEM_COMMON_CUDA_DEVICE_H
+#define VISION_SYSTEM_COMMON_CUDA_DEVICE_H
 
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
@@ -65,5 +65,5 @@ public:
     std::string name() const override { return "CUDA"; }
 };
 
-#endif /* VISION_SYSTEM_COMMON_CUDA_OPS_H */
+#endif /* VISION_SYSTEM_COMMON_CUDA_DEVICE_H */
 #endif /* CUDA */

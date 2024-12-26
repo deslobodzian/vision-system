@@ -12,6 +12,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <sstream>
 
 /* task that will run at a specific period in hz. */
 class TaskManager;
@@ -28,6 +29,11 @@ class Task : public std::enable_shared_from_this<Task> {
   virtual void run() = 0;
 
   float get_period() const { return 1.0f / period_; }
+  std::string status_string() {
+    std::stringstream ss;
+    ss << "Task: " << name_ << " | Thread ID: " << thread_.get_id() << " | Period: " << period_ << "s";
+    return ss.str();
+  }
 
  protected:
   std::shared_ptr<TaskManager> manager_;
@@ -55,6 +61,10 @@ class TaskManager : public std::enable_shared_from_this<TaskManager> {
     add_task(task);
     return task;
   }
+  const std::vector<std::shared_ptr<Task>>& get_current_tasks() {
+    return tasks_;
+  }
+
   void stop_tasks();
 
  private:

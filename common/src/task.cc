@@ -17,7 +17,7 @@
 
 Task::Task(std::shared_ptr<TaskManager> manager, float period, std::string name)
     : manager_(std::move(manager)), period_(period), name_(std::move(name)) {
-  LOG_DEBUG("Task created with name: ", name_, " and period: ", period_);
+  LOG_DEBUG("Task created with name: ", name_, " and period: ", period_, "(s)");
 }
 
 void Task::start() {
@@ -63,7 +63,9 @@ void Task::loop() {
     (void)ret;
   }
 #else
-  auto ns_period = std::chrono::nanoseconds(static_cast<int>(period_ * 1e9));
+  int64_t nano_seconds = static_cast<int64_t>(1e9 * period_);
+  auto ns_period = std::chrono::nanoseconds(nano_seconds);
+  // LOG_DEBUG(ns_period);
   auto next_run = std::chrono::high_resolution_clock::now() + ns_period;
   while (running_) {
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -78,6 +80,7 @@ void Task::loop() {
     if (run_duration > ns_period) {
       LOG_ERROR("Overrun in task ", name_, ": ",
                 run_duration.count() - ns_period.count(), " ns");
+      throw std::runtime_error("Overrun");
     }
   }
 #endif
