@@ -1,3 +1,4 @@
+#ifdef CUDA
 #ifndef VISION_SYSTEM_VISION_SYSTEM_ZED_H
 #define VISION_SYSTEM_VISION_SYSTEM_ZED_H
 
@@ -16,7 +17,7 @@ typedef struct {
     SensorsData sensors_data;
 } ZedMeasurements;
 
-// Bit identification for types 
+// Bit identification for types
 enum class MeasurementType {
     NONE = 0,
     IMAGE = 1 << 0,
@@ -42,7 +43,7 @@ public:
     ZedCamera();
     std::string camera_status_string();
     int open(const InitParameters& init_params);
-    bool sucessfull_grab(); 
+    bool sucessfull_grab();
     int fetch_measurements(const MeasurementType& types, const sl::MEM& memory_type = sl::MEM::CPU);
 
 private:
@@ -53,3 +54,4 @@ private:
     InitParameters init_params_;
 };
 #endif /* VISION_SYSTEM_VISION_SYSTEM_ZED_H */
+#endif /* CUDA */

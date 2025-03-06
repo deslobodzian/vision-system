@@ -1,3 +1,4 @@
+#ifdef CUDA
 #include "zed.h"
 #include "logger.h"
 
@@ -51,10 +52,10 @@ std::string ZedCamera::camera_status_string() {
     auto init_params = zed_.getInitParameters();
     auto tracking_state = zed_.getPositionalTrackingStatus();
     std::stringstream ss;
-    ss << "CAMERA STATUS: " << "\n" 
+    ss << "CAMERA STATUS: " << "\n"
     << "[SDK VERSION]: " << zed_.getSDKVersion() << "\n"
     << "[OPENED STATE]: " << zed_.isOpened() << "\n"
-    << "[LAST GRAB STATE]" << grab_state_ << "\n" 
+    << "[LAST GRAB STATE]" << grab_state_ << "\n"
     << "[INIT PARAMETERS]" << "\n"
     << "----[RESOLUTION]: " << init_params.camera_resolution << "\n"
     << "----[FPS]: " << init_params.camera_fps << "\n"
@@ -64,13 +65,13 @@ std::string ZedCamera::camera_status_string() {
     << "----[DEPTH MAX]: " << init_params.depth_maximum_distance << "\n"
     << "----[COORDINATE SYSTEM]: " << init_params.coordinate_system << "\n"
     << "----[COORDINATE UNITS]: " << init_params.coordinate_units << "\n"
-    << "\n" 
+    << "\n"
 
     << "[RUNNING STATE]: " << "\n"
     << "----[CURRENT FPS]: " << zed_.getCurrentFPS() << "\n"
     << "----[DROPPED FRAMES COUNT]: " << zed_.getFrameDroppedCount() << "\n"
     << "----[SPATIAL MAPPING STATUS]: " << zed_.getSpatialMappingState() << "\n"
-    << "\n" 
+    << "\n"
 
     << "[POSITIONAL TRACKING STATUS]: " <<  "\n"
     << "----[ODOMETRY STATUS]: " << tracking_state.odometry_status << "\n"
@@ -81,3 +82,4 @@ std::string ZedCamera::camera_status_string() {
     return ss.str();
 }
 
+#endif /* CUDA */

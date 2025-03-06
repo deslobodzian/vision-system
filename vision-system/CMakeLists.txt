@@ -24,8 +24,8 @@ endif()
 target_include_directories(vision-system
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/src 
-        ${CMAKE_SOURCE_DIR}/common/include 
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/common/include
 )
 
 if(CUDA_AVAILABLE)
