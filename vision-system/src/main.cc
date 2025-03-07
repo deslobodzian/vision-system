@@ -1,8 +1,10 @@
 #include "logger.h"
-#include "zed.h"
+//#include "zed.h"
 #include "system_container.h"
 #include "image_generated.h"
+#ifdef CUDA
 #include "zed_publisher.h"
+#endif /* CUDA */
 #include <memory>
 
 int main() {
@@ -11,6 +13,7 @@ int main() {
     using namespace std::chrono_literals;
     LOG_INFO("Hello World!");
     auto container = std::make_unique<SystemContainer>();
+    #ifdef CUDA
     ZedPublisher pub("tcp://*:5555");
     //container->run();
     //container->list_current_tasks();
@@ -47,5 +50,6 @@ int main() {
 
     //cam->disable_streaming();
     cam->close();
+    #endif /* CUDA */
     return 0;
 }

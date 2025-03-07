@@ -15,7 +15,7 @@ typedef struct {
     sl::SensorsData sensors_data;
 } ZedMeasurements;
 
-// Bit identification for types 
+// Bit identification for types
 enum class MeasurementType {
     NONE = 0,
     IMAGE = 1 << 0,

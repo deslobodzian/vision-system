@@ -13,7 +13,7 @@ public:
     void run() override;
 };
 
-TestTask::TestTask(std::shared_ptr<TaskManager> task_manager, float period, const std::string& name) 
+TestTask::TestTask(std::shared_ptr<TaskManager> task_manager, float period, const std::string& name)
     : Task(task_manager, period, name) {
 }
 

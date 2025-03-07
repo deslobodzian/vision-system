@@ -113,7 +113,7 @@ std::string ZedCamera::camera_status_string() {
     auto init_params = zed_.getInitParameters();
     auto tracking_state = zed_.getPositionalTrackingStatus();
     std::stringstream ss;
-    ss << "CAMERA STATUS: " << "\n" 
+    ss << "CAMERA STATUS: " << "\n"
     << "[SDK VERSION]: " << zed_.getSDKVersion() << "\n"
     << "[OPENED STATE]: " << zed_.isOpened() << "\n"
     << "[LAST GRAB STATE]: " << grab_state_ << "\n" 
@@ -126,7 +126,7 @@ std::string ZedCamera::camera_status_string() {
     << "----[DEPTH MAX]: " << init_params.depth_maximum_distance << "\n"
     << "----[COORDINATE SYSTEM]: " << init_params.coordinate_system << "\n"
     << "----[COORDINATE UNITS]: " << init_params.coordinate_units << "\n"
-    << "\n" 
+    << "\n"
 
     << "[RUNNING STATE]: " << "\n"
     << "----[CURRENT FPS]: " << zed_.getCurrentFPS() << "\n"
