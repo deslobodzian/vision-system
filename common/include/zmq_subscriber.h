@@ -1,6 +1,4 @@
-#ifndef VISION_SYSTEM_COMMON_ZMQ_SUBSCRIBER_H
-#define VISION_SYSTEM_COMMON_ZMQ_SUBSCRIBER_H
-
+#pragma once
 
 #include <zmq.h>
 #include <string>
@@ -83,6 +81,3 @@ private:
     std::vector<std::string> topics_;
 
 };
-#endif /* VISION_SYSTEM_COMMON_ZMQ_SUBSCRIBER_H */
-
-

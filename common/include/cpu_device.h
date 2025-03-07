@@ -1,5 +1,4 @@
-#ifndef VISION_SYSTEM_COMMON_CPU_DEVICE_H
-#define VISION_SYSTEM_COMMON_CPU_DEVICE_H
+#pragma once
 #include "device.h"
 
 class MallocAllocator : public Allocator {
@@ -30,4 +29,3 @@ public:
     DeviceType type() const override { return DeviceType::CPU; }
     std::string name() const override { return "CPU"; }
 };
-#endif /* VISION_SYSTEM_COMMON_CPU_DEVICE_H */

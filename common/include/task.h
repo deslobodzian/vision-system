@@ -2,8 +2,7 @@
 // Created by deslobodzian on 11/21/22.
 //
 
-#ifndef VISION_SYSTEM_TASK_HPP
-#define VISION_SYSTEM_TASK_HPP
+#pragma once
 
 #include <atomic>
 #include <functional>
@@ -108,5 +107,3 @@ class PeriodicMemberFunction : public Task {
  private:
   std::function<void()> function_;
 };
-
-#endif  // VISION_SYSTEM_TASK_HPP

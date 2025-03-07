@@ -1,5 +1,4 @@
-#ifndef VISION_SYSTEM_ZMQ_PUBLISHER_HPP
-#define VISION_SYSTEM_ZMQ_PUBLISHER_HPP
+#pragma once
 
 #include <flatbuffers/flatbuffers.h>
 #include <zmq.h>
@@ -61,6 +60,3 @@ private:
     std::mutex mtx_;
 
 };
-
-#endif /* VISION_SYSTEM_ZMQ_PUBLISHER_HPP */
-

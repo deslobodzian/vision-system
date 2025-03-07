@@ -14,24 +14,23 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set the defualt to release with debug info (relase mode with optimization but still have debug info)
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "" FORCE)
+if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build." FORCE)
 endif()
+
+if(MSVC)
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "" FORCE)
+    endif()
+    add_compile_options(/MD)  # Force the runtime library to match
+endif()
+
+# Set the allowed values for CMAKE_BUILD_TYPE (optional)
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "RelWithDebInfo" "Release" "MinSizeRel" "Debug")
 
 if (NOT CMAKE_EXPORT_COMPILE_COMMANDS)
   set(CMAKE_EXPORT_COMPILE_COMMANDS "YES" CACHE BOOL "" FORCE)
 endif()
-
-# function(enable_cuda_for_target target)
-#     if(CUDA_AVAILABLE)
-#         message("Setting up CUDA")
-#         set_target_properties(${target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-#         target_compile_definitions(${target} PRIVATE CUDA)
-#         set_target_properties(${target} PROPERTIES CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
-#     else()
-#         message(WARNING "CUDA not available, skipping CUDA setup for target ${target}")
-#     endif()
-# endfunction()
 
 if (WIN32)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
@@ -46,6 +45,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG v1.15.2
 )
+
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 

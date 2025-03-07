@@ -23,8 +23,11 @@ void subscriber_receive(ZmqSubscriber* sub, const std::vector<uint8_t>& sent_dat
         LOG_DEBUG("Message received is: ", rec.has_value());
         if (rec.has_value()) {
             LOG_DEBUG("Message received topic: ", rec->first);
-            auto rec_data = rec->second;
+            std::vector<uint8_t> rec_data = rec->second;
+            std::string msg(rec_data.begin(), rec_data.end());
+
             LOG_DEBUG("Data length: ", rec_data.size());
+            LOG_DEBUG("Data message: ", msg);
             bool same_data = rec_data == sent_data;
             EXPECT_TRUE(same_data);
         }

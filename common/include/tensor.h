@@ -1,5 +1,4 @@
-#ifndef VISION_SYSTEM_COMMMON_TENSOR_H
-#define VISION_SYSTEM_COMMMON_TENSOR_H
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -11,5 +10,3 @@ protected:
 public:
 
 };
-
-#endif /* VISION_SYSTEM_COMMMON_TENSOR_H */

@@ -1,19 +1,18 @@
-#ifndef VISION_SYSTEM_VISION_SYSTEM_ZED_H
-#define VISION_SYSTEM_VISION_SYSTEM_ZED_H
+#ifdef CUDA
+#pragma once
 
 #include <sl/Camera.hpp>
 #include <sstream>
-
-using namespace sl;
+#include "camera.h"
 
 /* Use for caching measurements */
 typedef struct {
-    Timestamp timestamp;
-    Mat left_image;
-    Pose camera_pose;
-    Mat depth_map;
-    Mat point_cloud;
-    SensorsData sensors_data;
+    sl::Timestamp timestamp;
+    sl::Mat left_image;
+    sl::Pose camera_pose;
+    sl::Mat depth_map;
+    sl::Mat point_cloud;
+    sl::SensorsData sensors_data;
 } ZedMeasurements;
 
 // Bit identification for types 
@@ -23,6 +22,7 @@ enum class MeasurementType {
     DEPTH = 1 << 1,
     SENSORS = 1 << 2,
     OBJECTS = 1 << 3,
+    POSE = 1 << 4,
 };
 
 inline MeasurementType operator|(MeasurementType a, MeasurementType b) {
@@ -37,19 +37,36 @@ inline bool has_measurement(MeasurementType flags, MeasurementType check) {
     return (static_cast<int>(flags) & static_cast<int>(check)) == static_cast<int>(check);
 }
 
-class ZedCamera {
+class ZedCamera : public Camera {
 public:
     ZedCamera();
+    ~ZedCamera() override;
+
+    int open() override;
+    void close() override;
+    bool is_open() override;
+    std::string get_name() const override { return name_; }
+    CameraType get_type() const override { return CameraType::ZED; }
+
     std::string camera_status_string();
-    int open(const InitParameters& init_params);
-    bool sucessfull_grab(); 
+    int open(const sl::InitParameters& init_params, const sl::RuntimeParameters& runtime_params);
+    int enable_tracking(const sl::PositionalTrackingParameters& tracking_params);
+    bool successful_grab(); 
     int fetch_measurements(const MeasurementType& types, const sl::MEM& memory_type = sl::MEM::CPU);
+    int enable_streaming();
+    void disable_streaming();
+    const ZedMeasurements& get_measurements();
 
 private:
-    ERROR_CODE grab_state_;
+    sl::ERROR_CODE grab_state_;
 
-    Camera zed_;
+    std::string name_;
+    sl::Camera zed_;
     ZedMeasurements measurements_;
-    InitParameters init_params_;
+    sl::InitParameters init_params_;
+    sl::RuntimeParameters runtime_params_;
+
+    bool tracking_enabled_;
 };
-#endif /* VISION_SYSTEM_VISION_SYSTEM_ZED_H */
+
+#endif /* CUDA */

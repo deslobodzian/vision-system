@@ -1,5 +1,4 @@
-#ifndef VISION_SYSTEM_COMMON_DEVICE_MANAGER_H
-#define VISION_SYSTEM_COMMON_DEVICE_MANAGER_H
+#pragma once 
 
 #include <string>
 #include <map>
@@ -74,4 +73,3 @@ class DeviceManager {
 };
 
 // } /* namespace common::device_tracker */
-#endif /* VISION_SYSTEM_COMMON_DEVICE_MANAGER_H */

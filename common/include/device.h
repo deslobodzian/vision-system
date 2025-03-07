@@ -1,5 +1,4 @@
-#ifndef VISION_SYSTEM_COMMON_DEVICE_H
-#define VISION_SYSTEM_COMMON_DEVICE_H
+#pragma once
 
 #include <cassert>
 #include <cstddef>
@@ -96,4 +95,3 @@ private:
     size_t buffer_size_;
     void* data_;
 };
-#endif /* VISION_SYSTEM_COMMON_DEVICE_H */

@@ -1,5 +1,4 @@
-#ifndef VISION_SYSTEM_COMMON_LOGGER_HPP
-#define VISION_SYSTEM_COMMON_LOGGER_HPP
+#pragma once
 
 #include <chrono>
 #include <atomic>
@@ -201,5 +200,3 @@ class Logger {
 #define LOG_ERROR(...) LOG(logger::LogLevel::ERROR, __VA_ARGS__)
 
 }  // namespace logger
-
-#endif  // VISION_SYSTEM_COMMON_LOGGER_HPP
