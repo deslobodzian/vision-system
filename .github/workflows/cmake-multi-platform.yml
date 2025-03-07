@@ -1,11 +1,8 @@
 name: CMake on multiple platforms
-
 on: [push, pull_request]
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -29,9 +26,13 @@ jobs:
             c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
-
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
 
     - name: Set reusable strings
       id: strings
@@ -39,6 +40,7 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
         echo "deps-cache-dir=${{ github.workspace }}/build/_deps" >> "$GITHUB_OUTPUT"
+        echo "opencv-cache-dir=${{ github.workspace }}/opencv_install" >> "$GITHUB_OUTPUT"
 
     - name: Cache CMake dependencies
       uses: actions/cache@v4
@@ -49,12 +51,28 @@ jobs:
           ${{ runner.os }}-${{ matrix.c_compiler }}-
           ${{ runner.os }}-
 
+    - name: Cache OpenCV dependencies
+      uses: actions/cache@v4
+      id: opencv-cache
+      with:
+        path: ${{ steps.strings.outputs.opencv-cache-dir }}
+        key: ${{ runner.os }}-opencv-${{ hashFiles('**/scripts/install_deps.py') }}
+        restore-keys: |
+          ${{ runner.os }}-opencv-
+
+    - name: Install OpenCV dependencies
+      if: steps.opencv-cache.outputs.cache-hit != 'true'
+      run: |
+        python scripts/install_deps.py --install-dir ${{ steps.strings.outputs.opencv-cache-dir }}
+      shell: bash
+
     - name: Configure CMake
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DOpenCV_DIR=${{ steps.strings.outputs.opencv-cache-dir }}/lib/cmake/opencv4
         -S ${{ github.workspace }}
 
     - name: Build
