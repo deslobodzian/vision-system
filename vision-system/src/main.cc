@@ -6,7 +6,6 @@
 #include "zed_publisher.h"
 #endif /* CUDA */
 #include <memory>
-#include "camera_spec.h"
 
 int main() {
     logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);

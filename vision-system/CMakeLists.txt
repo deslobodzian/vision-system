@@ -1,6 +1,5 @@
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(CUDAConfig)
-include(FFmpegConfig)
 include(RunFLATC)
 
 set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "" FORCE)
@@ -13,7 +12,6 @@ add_executable(vision-system
 )
 
 enable_cuda_for_target(vision-system)
-enable_ffmpeg_for_target(vision-system)
 compile_fbs_for_target(vision-system)
 
 find_package(OpenCV 4.10.0 REQUIRED)
