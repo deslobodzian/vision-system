@@ -3,7 +3,6 @@
 
 #include <sl/Camera.hpp>
 #include <sstream>
-#include "camera.h"
 
 /* Use for caching measurements */
 typedef struct {
@@ -37,16 +36,15 @@ inline bool has_measurement(MeasurementType flags, MeasurementType check) {
     return (static_cast<int>(flags) & static_cast<int>(check)) == static_cast<int>(check);
 }
 
-class ZedCamera : public Camera {
+class ZedCamera {
 public:
     ZedCamera();
-    ~ZedCamera() override;
+    ~ZedCamera();
 
-    int open() override;
-    void close() override;
-    bool is_open() override;
-    std::string get_name() const override { return name_; }
-    CameraType get_type() const override { return CameraType::ZED; }
+    int open();
+    void close();
+    bool is_open();
+    std::string get_name() const { return name_; }
 
     std::string camera_status_string();
     int open(const sl::InitParameters& init_params, const sl::RuntimeParameters& runtime_params);
