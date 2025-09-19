@@ -1,7 +1,7 @@
 #include "zmq_publisher.h"
 #include "zmq_subscriber.h"
 
-#include <gtest/gtest.h>
+#include <catch2/catch_test_macros.hpp>
 #include <string>
 #include <thread>
 
@@ -29,14 +29,14 @@ void subscriber_receive(ZmqSubscriber* sub, const std::vector<uint8_t>& sent_dat
             LOG_DEBUG("Data length: ", rec_data.size());
             LOG_DEBUG("Data message: ", msg);
             bool same_data = rec_data == sent_data;
-            EXPECT_TRUE(same_data);
+            REQUIRE(same_data);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
 
-TEST(ZmqTests, PubSubMessaging) {
+TEST_CASE("ZmqTests - PubSubMessaging", "[zmq][pub_sub_messaging]") {
     std::string endpoint = "tcp://localhost:5556";
 
     ZmqPublisher pub(endpoint);

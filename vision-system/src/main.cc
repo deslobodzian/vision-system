@@ -1,11 +1,11 @@
 #include "logger.h"
 //#include "zed.h"
 #include "system_container.h"
-#include "image_generated.h"
 #ifdef CUDA
 #include "zed_publisher.h"
 #endif /* CUDA */
 #include <memory>
+//#include <networktables/NetworkTableInstance.h>
 
 int main() {
     logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
@@ -13,6 +13,9 @@ int main() {
     using namespace std::chrono_literals;
     LOG_INFO("Hello World!");
 
+    //nt::NetworkTableInstance instance_ = nt::NetworkTableInstance::GetDefault();
+    //instance_.GetTable("test")->PutBoolean("nt_test", false);
+    //LOG_INFO(&instance_);
     auto container = std::make_unique<SystemContainer>();
 
     #ifdef CUDA

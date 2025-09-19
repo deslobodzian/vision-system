@@ -36,16 +36,6 @@ if(TARGET libzmq-static)
     add_library(libzmq ALIAS libzmq-static)
 endif()
 
-FetchContent_Declare(
-  flatbuffers
-  GIT_REPOSITORY https://github.com/google/flatbuffers.git
-  GIT_TAG v24.3.25
-)
-set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(FLATBUFFERS_INSTALL OFF CACHE BOOL "" FORCE)
-set(FLATBUFFERS_STRICT_MODE ON CACHE BOOL "" FORCE)
-
-FetchContent_MakeAvailable(flatbuffers)
 
 add_library(common_lib STATIC src/task.cc)
 target_include_directories(common_lib PUBLIC
@@ -54,8 +44,6 @@ target_include_directories(common_lib PUBLIC
 
 target_link_libraries(common_lib PUBLIC libzmq)
 target_compile_definitions(common_lib PRIVATE ZMQ_STATIC)
-
-target_include_directories(common_lib PUBLIC ${flatbuffers_SOURCE_DIR}/include)
 
 add_library(logger INTERFACE)
 target_include_directories(logger INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)

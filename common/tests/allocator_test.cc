@@ -1,5 +1,4 @@
 #include <device.h>
-#include <gtest/gtest.h>
 #include <logger.h>
 
 #ifdef CUDA

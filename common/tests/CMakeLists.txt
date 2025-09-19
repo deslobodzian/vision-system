@@ -6,6 +6,8 @@ include(CUDAConfig)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Catch2 (from FetchContent) — targets already defined, module path set by parent
+include(Catch)            # provides catch_discover_tests
 
 add_executable(common_tests
   logger_test.cc
@@ -19,9 +21,7 @@ target_link_libraries(common_tests
   PRIVATE
   logger
   common_lib
-  gtest
-  gmock
-  gtest_main
+  Catch2::Catch2WithMain   # supplies main()
 )
 
 target_include_directories(common_tests
@@ -37,6 +37,6 @@ if(MSVC)
   )
 endif()
 
-include(GoogleTest)
-gtest_discover_tests(common_tests)
 enable_cuda_for_target(common_tests)
+catch_discover_tests(common_tests)
+

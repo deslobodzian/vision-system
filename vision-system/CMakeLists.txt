@@ -1,6 +1,5 @@
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(CUDAConfig)
-include(RunFLATC)
 
 set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "" FORCE)
 
@@ -12,9 +11,10 @@ add_executable(vision-system
 )
 
 enable_cuda_for_target(vision-system)
-compile_fbs_for_target(vision-system)
 
-find_package(OpenCV 4.10.0 REQUIRED)
+#find_package(wpilib REQUIRED)
+
+find_package(OpenCV 4.8.0 REQUIRED)
 message(STATUS "OpenCV library status:")
 message(STATUS "    config: ${OpenCV_DIR}")
 message(STATUS "    version: ${OpenCV_VERSION}")
@@ -40,30 +40,20 @@ target_include_directories(vision-system
         ${CMAKE_SOURCE_DIR}/common/include
 )
 
-if(CUDA_AVAILABLE AND FFMPEG_AVAILABLE)
+
+if(CUDA_AVAILABLE)
     target_link_libraries(vision-system
         PRIVATE
             common_lib
+#            ntcore
             ${ZED_LIBS}
-            ${OpenCV_LIBS}
-    )
-elseif(CUDA_AVAILABLE)
-    target_link_libraries(vision-system
-        PRIVATE
-            common_lib
-            ${ZED_LIBS}
-            ${OpenCV_LIBS}
-    )
-elseif(FFMPEG_AVAILABLE)
-    target_link_libraries(vision-system
-        PRIVATE
-            common_lib
             ${OpenCV_LIBS}
     )
 else()
     target_link_libraries(vision-system
         PRIVATE
             common_lib
+#            ntcore
             ${OpenCV_LIBS}
     )
 endif()

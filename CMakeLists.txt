@@ -36,21 +36,18 @@ if (WIN32)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
 
-include(FetchContent)
-set(FETCHCONTENT_QUIET FALSE)
-set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+set_target_properties(
+    ${target_name}
+    PROPERTIES
+    INSTALL_RPATH
+    "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_SOURCE_DIR}/path/to/shared/lib")
 
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG v1.15.2
-)
-
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+add_subdirectory(third_party)
+list(APPEND CMAKE_MODULE_PATH "${CATCH2_EXTRAS_DIR}")
 
 add_subdirectory(common)
 add_subdirectory(vision-system)
+
 # add_subdirectory(vision-client)
 # add_subdirectory(vision-communication)
 

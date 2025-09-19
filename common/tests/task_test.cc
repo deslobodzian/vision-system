@@ -1,9 +1,8 @@
 #include "task.h"
 
-#include <gtest/gtest.h>
-
 #include <chrono>
 #include <memory>
+#include <catch2/catch_test_macros.hpp>
 
 class TestTask : public Task {
  public:
@@ -17,7 +16,7 @@ class TestTask : public Task {
   int run_count;
 };
 
-TEST(TaskTest, Periodicity) {
+TEST_CASE("TaskTest - Period", "[task][periodicity]") {
   auto manager = std::make_shared<TaskManager>();
   auto task = manager->create_task<TestTask>(0.1f, "TestTask");
 
@@ -25,11 +24,11 @@ TEST(TaskTest, Periodicity) {
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   task->stop();
 
-  EXPECT_GE(task->run_count, 4);
-  EXPECT_LE(task->run_count, 6);
+    REQUIRE(task->run_count >= 4);
+    REQUIRE(task->run_count <= 6);
 }
 
-TEST(TaskTest, MultipleTasksWithDifferentPeriods) {
+TEST_CASE("TaskTest - MultiplePeriods", "[task][multiple_periods]") {
   auto manager = std::make_shared<TaskManager>();
   auto task1 = manager->create_task<TestTask>(0.1f, "TestTask1");
   auto task2 = manager->create_task<TestTask>(0.2f, "TestTask2");
@@ -40,13 +39,13 @@ TEST(TaskTest, MultipleTasksWithDifferentPeriods) {
   task1->stop();
   task2->stop();
 
-  EXPECT_GE(task1->run_count, 9);
-  EXPECT_LE(task1->run_count, 11);
-  EXPECT_GE(task2->run_count, 4);
-  EXPECT_LE(task2->run_count, 6);
+    REQUIRE(task1->run_count >= 9);
+    REQUIRE(task1->run_count <= 11);
+    REQUIRE(task2->run_count >= 4);
+    REQUIRE(task2->run_count <= 6);
 }
 
-TEST(TaskTest, StartStop) {
+TEST_CASE("TaskTest - StartStop", "[task][start_stop]") {
   auto manager = std::make_shared<TaskManager>();
   auto task = manager->create_task<TestTask>(0.1f, "TestTask");
 
@@ -55,10 +54,10 @@ TEST(TaskTest, StartStop) {
   task->stop();
   int run_count_after_stop = task->run_count;
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  EXPECT_EQ(task->run_count, run_count_after_stop);
+    REQUIRE(task->run_count == run_count_after_stop);
 }
 
-TEST(TaskManagerTest, StopTasks) {
+TEST_CASE("TaskManagerTest - Stop", "[task_manager][stop]") {
   auto manager = std::make_shared<TaskManager>();
   auto task1 = manager->create_task<TestTask>(0.1f, "TestTask1");
   auto task2 = manager->create_task<TestTask>(0.2f, "TestTask2");
@@ -70,6 +69,6 @@ TEST(TaskManagerTest, StopTasks) {
   int run_count1_after_stop = task1->run_count;
   int run_count2_after_stop = task2->run_count;
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  EXPECT_EQ(task1->run_count, run_count1_after_stop);
-  EXPECT_EQ(task2->run_count, run_count2_after_stop);
+    REQUIRE(task1->run_count == run_count1_after_stop);
+    REQUIRE(task2->run_count == run_count2_after_stop);
 }

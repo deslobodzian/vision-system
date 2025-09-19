@@ -1,13 +1,13 @@
 #include "logger.h"
 
-#include <gtest/gtest.h>
 
+#include <catch2/catch_test_macros.hpp>
 #include <chrono>
 #include <fstream>
 #include <sstream>
 #include <thread>
 
-TEST(LoggerTest, LogLevels) {
+TEST_CASE("LoggerTest - Levels", "[logger][level]") {
   logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
 
   std::stringstream ss;
@@ -24,12 +24,12 @@ TEST(LoggerTest, LogLevels) {
   std::cout.rdbuf(old_cout_buffer);
 
   std::string log_output = ss.str();
-  EXPECT_TRUE(log_output.find("Debug message") != std::string::npos);
-  EXPECT_TRUE(log_output.find("Info message") != std::string::npos);
-  EXPECT_TRUE(log_output.find("Error message") != std::string::npos);
+  REQUIRE(log_output.find("Debug message") != std::string::npos);
+  REQUIRE(log_output.find("Info message") != std::string::npos);
+  REQUIRE(log_output.find("Error message") != std::string::npos);
 }
 
-TEST(LoggerTest, LogFile) {
+TEST_CASE("LoggerTest - LogFile", "[logger][file]") {
   logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
   std::string log_file = "test_log.txt";
   logger::Logger::instance().set_log_file(log_file);
@@ -46,9 +46,9 @@ TEST(LoggerTest, LogFile) {
   ss << file.rdbuf();
   std::string log_output = ss.str();
 
-  EXPECT_TRUE(log_output.find("Debug message") != std::string::npos);
-  EXPECT_TRUE(log_output.find("Info message") != std::string::npos);
-  EXPECT_TRUE(log_output.find("Error message") != std::string::npos);
+  REQUIRE(log_output.find("Debug message") != std::string::npos);
+  REQUIRE(log_output.find("Info message") != std::string::npos);
+  REQUIRE(log_output.find("Error message") != std::string::npos);
 
   std::remove(log_file.c_str());
 }
@@ -59,45 +59,67 @@ void log_from_thread(int thread_id) {
   LOG_ERROR("Error message from thread ", thread_id);
 }
 
-TEST(LoggerTest, MultiThreadedLogging) {
-  logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
+TEST_CASE("LoggerTest - MultiThreadedLogging", "[logger][multithread]") {
+    // Arrange
+    logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
 
-  std::string log_file = "test_log_multithread.txt";
-  logger::Logger::instance().set_log_file(log_file);
+    const std::string log_file = "test_log_multithread.txt";
+    logger::Logger::instance().set_log_file(log_file);
 
-  const int num_threads = 5;
-  std::vector<std::thread> threads;
+    constexpr int num_threads = 5;
+    std::vector<std::thread> threads;
+    threads.reserve(num_threads);
 
-  for (int i = 0; i < num_threads; ++i) {
-    threads.emplace_back(log_from_thread, i);
-  }
+    // Act: spawn workers that log
+    for (int i = 0; i < num_threads; ++i) {
+        threads.emplace_back(log_from_thread, i);
+    }
+    for (auto& t : threads) t.join();
 
-  for (auto &thread : threads) {
-    thread.join();
-  }
+    // If your logger is async and exposes a flush, call it here:
+    // logger::Logger::instance().flush();
 
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(100));  // Wait for async logging
+    // Deterministic wait: poll file until all messages are present or we time out.
+    auto all_expected_present = [&](const std::string& contents) {
+        for (int i = 0; i < num_threads; ++i) {
+            const std::string dbg = "Debug message from thread " + std::to_string(i);
+            const std::string inf = "Info message from thread " + std::to_string(i);
+            const std::string err = "Error message from thread " + std::to_string(i);
+            if (contents.find(dbg) == std::string::npos) return false;
+            if (contents.find(inf) == std::string::npos) return false;
+            if (contents.find(err) == std::string::npos) return false;
+        }
+        return true;
+    };
 
-  std::stringstream ss;
-  std::ifstream file(log_file);
-  ss << file.rdbuf();
-  std::string log_output = ss.str();
+    std::string log_output;
+    {
+        using namespace std::chrono_literals;
+        const auto deadline = std::chrono::steady_clock::now() + 2s; // max 2s
+        do {
+            std::ifstream file(log_file);
+            REQUIRE(file.is_open()); // Fail fast if we couldn't open
+            std::ostringstream ss;
+            ss << file.rdbuf();
+            log_output = std::move(ss).str();
 
-  for (int i = 0; i < num_threads; ++i) {
-    std::string debug_message =
-        "Debug message from thread " + std::to_string(i);
-    std::string info_message = "Info message from thread " + std::to_string(i);
-    std::string error_message =
-        "Error message from thread " + std::to_string(i);
+            if (all_expected_present(log_output)) break;
+            std::this_thread::sleep_for(50ms);
+        } while (std::chrono::steady_clock::now() < deadline);
+    }
 
-    EXPECT_TRUE(log_output.find(debug_message) != std::string::npos)
-        << "Thread " << i;
-    EXPECT_TRUE(log_output.find(info_message) != std::string::npos)
-        << "Thread " << i;
-    EXPECT_TRUE(log_output.find(error_message) != std::string::npos)
-        << "Thread " << i;
-  }
+    // Assert
+    for (int i = 0; i < num_threads; ++i) {
+        const std::string dbg = "Debug message from thread " + std::to_string(i);
+        const std::string inf = "Info message from thread " + std::to_string(i);
+        const std::string err = "Error message from thread " + std::to_string(i);
 
-  std::remove(log_file.c_str());
+        CAPTURE(i); // Will print i if any REQUIRE fails
+        REQUIRE(log_output.find(dbg) != std::string::npos);
+        REQUIRE(log_output.find(inf) != std::string::npos);
+        REQUIRE(log_output.find(err) != std::string::npos);
+    }
+
+    // Cleanup
+    std::remove(log_file.c_str());
 }

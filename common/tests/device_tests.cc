@@ -1,24 +1,24 @@
 #include <device.h>
 #include <logger.h>
 #include <algorithm>
+#include <catch2/catch_test_macros.hpp>
 
-#include <gtest/gtest.h>
 #include "device_manager.h"
 
-TEST(DevicesTest, Devices) {
+TEST_CASE("DevicesTest", "[devices]") {
   auto cpu_dev = DeviceManager::instance().get_device("CPU");
   auto type = cpu_dev->type();
   LOG_INFO("CPU Ptr: ", cpu_dev);
-  EXPECT_TRUE(type == DeviceType::CPU);
+    REQUIRE(type == DeviceType::CPU);
 }
 
-TEST(SingletonDeviceTest, Devices) {
+TEST_CASE("SingletonDeviceTest", "[devices][single]") {
   auto dev = DeviceManager::instance().get_device("CPU");
   auto dev_other = DeviceManager::instance().get_device("CPU");
-  EXPECT_TRUE(dev == dev_other);
+    REQUIRE(dev == dev_other);
 }
 
-TEST(CPUBufferTest, BufferTests) {
+TEST_CASE("CPUBufferTest", "[buffer_tests]") {
     auto cpu_device = DeviceManager::instance().get_device("CPU");
     LOG_INFO(cpu_device->name());
 
@@ -34,8 +34,8 @@ TEST(CPUBufferTest, BufferTests) {
     buff_float.copy_to_host(float_test);
     buff_int.copy_to_host(int_test);
 
-    EXPECT_TRUE(std::equal(buff_int.data(), buff_int.data() + buff_int.count(), int_test));
-    EXPECT_TRUE(std::equal(buff_float.data(), buff_float.data() + buff_float.count(), float_test));
+    REQUIRE(std::equal(buff_int.data(), buff_int.data() + buff_int.count(), int_test));
+    REQUIRE(std::equal(buff_float.data(), buff_float.data() + buff_float.count(), float_test));
 }
 
 #ifdef CUDA
