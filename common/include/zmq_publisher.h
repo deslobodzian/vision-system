@@ -1,6 +1,5 @@
 #pragma once
 
-#include <flatbuffers/flatbuffers.h>
 #include <zmq.h>
 
 #include <cstring>

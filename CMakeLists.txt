@@ -36,12 +36,6 @@ if (WIN32)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
 
-set_target_properties(
-    ${target_name}
-    PROPERTIES
-    INSTALL_RPATH
-    "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_SOURCE_DIR}/path/to/shared/lib")
-
 add_subdirectory(third_party)
 list(APPEND CMAKE_MODULE_PATH "${CATCH2_EXTRAS_DIR}")
 
