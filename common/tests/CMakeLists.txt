@@ -3,11 +3,13 @@ project(common_tests)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(CUDAConfig)
 
+find_package(Catch2 CONFIG REQUIRED)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Catch2 (from FetchContent) — targets already defined, module path set by parent
-include(Catch)            # provides catch_discover_tests
+list(APPEND CMAKE_MODULE_PATH "${CATCH2_EXTRAS_DIR}")
+include(Catch)
 
 add_executable(common_tests
   logger_test.cc

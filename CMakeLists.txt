@@ -1,4 +1,20 @@
-cmake_minimum_required(VERSION 3.14...3.21)
+# Disable in-source builds to prevent source tree corruption
+if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
+    message(
+        FATAL_ERROR
+        "
+FATAL: In-source builds are not allowed.
+       You should create a separate directory for build files.
+"
+    )
+endif()
+
+cmake_minimum_required(VERSION 3.21)
+
+set(CMAKE_MODULE_PATH
+    ${CMAKE_MODULE_PATH}
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
+)
 
 project(vision-system VERSION 1.0 DESCRIPTION "Vision System Project" LANGUAGES CXX)
 
@@ -37,8 +53,6 @@ if (WIN32)
 endif()
 
 add_subdirectory(third_party)
-list(APPEND CMAKE_MODULE_PATH "${CATCH2_EXTRAS_DIR}")
-
 add_subdirectory(common)
 add_subdirectory(vision-system)
 

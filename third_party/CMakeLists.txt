@@ -4,14 +4,19 @@ include(FetchContent)
 
 # Catch2
 FetchContent_Declare(
-    catch2
+    Catch2
     GIT_REPOSITORY https://github.com/catchorg/catch2.git
-    GIT_TAG v3.8.1
+    GIT_TAG v3.10.0
+    FIND_PACKAGE_ARGS
 )
-FetchContent_MakeAvailable(catch2)
+FetchContent_MakeAvailable(Catch2)
 
-# Make Catch2's CTest integration (extras/Catch.cmake) visible to siblings
-# by exporting its path via a cache var the parent can read.
-FetchContent_GetProperties(catch2)
 set(CATCH2_EXTRAS_DIR "${catch2_SOURCE_DIR}/extras" CACHE PATH "Catch2 extras")
+
+
+# FetchContent_Declare(
+#    wpilib
+#    GIT_REPOSITORY https://github.com/wpilibsuite/allwpilib.git
+#GIT_TAG v2025.3.2
+#modules)
 
