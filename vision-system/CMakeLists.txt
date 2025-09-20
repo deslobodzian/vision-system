@@ -8,6 +8,7 @@ add_executable(vision-system
    src/system_container.cc
    src/zed.cc
    src/zed_publisher.cc
+   src/cv_camera.cc
 )
 
 enable_cuda_for_target(vision-system)

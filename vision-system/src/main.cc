@@ -6,6 +6,7 @@
 #endif /* CUDA */
 #include <memory>
 #include <networktables/NetworkTableInstance.h>
+#include "cv_camera.h"
 
 int main() {
     logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
@@ -17,6 +18,17 @@ int main() {
     instance_.GetTable("test")->PutBoolean("nt_test", false);
     LOG_INFO(&instance_);
     auto container = std::make_unique<SystemContainer>();
+    CVCamera cam(0);
+
+    for (int i = 0; i < 10 / 0.01; i++) {
+        cam.fetch();
+        cv::Mat img = cam.get_image();
+        int h = img.rows;
+        int w = img.cols;
+        LOG_DEBUG("Image data {", w, "x", h, "}");
+        std::this_thread::sleep_for(0.01s);
+    }
+
 
     #ifdef CUDA
     LOG_INFO("CUDA enabled, initializing ZED camera...");
