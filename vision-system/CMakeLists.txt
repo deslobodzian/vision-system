@@ -14,8 +14,8 @@ add_executable(vision-system
 enable_cuda_for_target(vision-system)
 
 find_package(wpilib REQUIRED)
-
 find_package(OpenCV 4.12.0 REQUIRED)
+
 message(STATUS "OpenCV library status:")
 message(STATUS "    config: ${OpenCV_DIR}")
 message(STATUS "    version: ${OpenCV_VERSION}")
@@ -47,6 +47,7 @@ if(CUDA_AVAILABLE)
         PRIVATE
             common_lib
             ntcore
+            cscore
             ${ZED_LIBS}
             ${OpenCV_LIBS}
     )
@@ -55,6 +56,7 @@ else()
         PRIVATE
             common_lib
             ntcore
+            cscore
             ${OpenCV_LIBS}
     )
 endif()

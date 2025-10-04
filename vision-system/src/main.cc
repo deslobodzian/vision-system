@@ -1,12 +1,16 @@
 #include "logger.h"
 //#include "zed.h"
 #include "system_container.h"
+#include <cscore_oo.h>
 #ifdef CUDA
 #include "zed_publisher.h"
 #endif /* CUDA */
 #include <memory>
 #include <networktables/NetworkTableInstance.h>
 #include "cv_camera.h"
+
+#include <cscore.h>
+#include <cscore_cv.h>
 
 int main() {
     logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
@@ -20,9 +24,25 @@ int main() {
     auto container = std::make_unique<SystemContainer>();
     CVCamera cam(0);
 
+    cam.fetch();
+    cv::Mat img = cam.get_image();
+    int h = img.rows;
+    int w = img.cols;
+    LOG_DEBUG("Image data {", w, "x", h, "}");
+    std::this_thread::sleep_for(0.01s);
+
+    int rgb_port = 1181;
+    cs::CvSource rgb_source = cs::CvSource("ZED_RGB", cs::VideoMode::kMJPEG, h, w, 30);
+    cs::MjpegServer rgb_server = cs::MjpegServer("RGB_Server", rgb_port);
+    rgb_server.SetSource(rgb_source);
+    LOG_INFO("RGB stream: http://localhost:", rgb_port, "/?action=stream\n");
+
+
     for (int i = 0; i < 10 / 0.01; i++) {
         cam.fetch();
         cv::Mat img = cam.get_image();
+        rgb_source.PutFrame(img);
+
         int h = img.rows;
         int w = img.cols;
         LOG_DEBUG("Image data {", w, "x", h, "}");
