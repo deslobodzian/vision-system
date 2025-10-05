@@ -10,6 +10,7 @@ typedef struct {
     sl::Mat left_image;
     sl::Pose camera_pose;
     sl::Mat depth_map;
+    sl::Mat depth_color;
     sl::Mat point_cloud;
     sl::SensorsData sensors_data;
 } ZedMeasurements;
@@ -21,7 +22,8 @@ enum class MeasurementType {
     DEPTH = 1 << 1,
     SENSORS = 1 << 2,
     OBJECTS = 1 << 3,
-    POSE = 1 << 4,
+    POSE = 1 << 4, 
+    DEPTH_COLOR = 1 << 5,
 };
 
 inline MeasurementType operator|(MeasurementType a, MeasurementType b) {

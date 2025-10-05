@@ -58,6 +58,11 @@ int ZedCamera::fetch_measurements(const MeasurementType& types, const sl::MEM& m
                 LOG_ERROR("Pose tracking is not enabled!");
             }
         }
+
+        if (has_measurement(types, MeasurementType::DEPTH_COLOR)) {
+            LOG_DEBUG("Fetching Depth Color");
+            zed_.retrieveImage(measurements_.depth_color, sl::VIEW::DEPTH, memory_type);
+        }
         return 0;
     }
     return -1;  // Return error code on failed grab
