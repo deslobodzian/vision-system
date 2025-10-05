@@ -20,7 +20,7 @@ project(vision-system VERSION 1.0 DESCRIPTION "Vision System Project" LANGUAGES 
 
 function(set_target_warnings target_name)
     if(MSVC)
-        target_compile_options(${target_name} PRIVATE /W4 /WX)
+        target_compile_options(${target_name} PRIVATE /EHsc /W4 /WX)
     else()
         target_compile_options(${target_name} PRIVATE -Wall -Wextra -pedantic -Werror)
     endif()

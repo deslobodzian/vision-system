@@ -1,10 +1,7 @@
 #include "logger.h"
-//#include "zed.h"
+#include "zed.h"
 #include "system_container.h"
 #include <cscore_oo.h>
-#ifdef CUDA
-#include "zed_publisher.h"
-#endif /* CUDA */
 #include <memory>
 #include <networktables/NetworkTableInstance.h>
 #include "cv_camera.h"
@@ -22,12 +19,12 @@ int main() {
     instance_.GetTable("test")->PutBoolean("nt_test", false);
     LOG_INFO(&instance_);
     auto container = std::make_unique<SystemContainer>();
-    CVCamera cam(0);
+    CVCamera cv_cam(0);
 
-    cam.fetch();
-    cv::Mat img = cam.get_image();
-    int h = img.rows;
-    int w = img.cols;
+    cv_cam.fetch();
+    cv::Mat cv_img = cv_cam.get_image();
+    int h = cv_img.rows;
+    int w = cv_img.cols;
     LOG_DEBUG("Image data {", w, "x", h, "}");
     std::this_thread::sleep_for(0.01s);
 
@@ -39,12 +36,12 @@ int main() {
 
 
     for (int i = 0; i < 10 / 0.01; i++) {
-        cam.fetch();
-        cv::Mat img = cam.get_image();
-        rgb_source.PutFrame(img);
+        cv_cam.fetch();
+        cv_img = cv_cam.get_image();
+        rgb_source.PutFrame(cv_img);
 
-        int h = img.rows;
-        int w = img.cols;
+        h = cv_img.rows;
+        w = cv_img.cols;
         LOG_DEBUG("Image data {", w, "x", h, "}");
         std::this_thread::sleep_for(0.01s);
     }
@@ -52,7 +49,6 @@ int main() {
 
     #ifdef CUDA
     LOG_INFO("CUDA enabled, initializing ZED camera...");
-    ZedPublisher pub("tcp://*:5555");
     //container->run();
     //container->list_current_tasks();
     auto cam = std::make_unique<ZedCamera>();
@@ -77,7 +73,6 @@ int main() {
     for (int i = 0; i < 10 / 0.01; i++) {
         cam->fetch_measurements(MeasurementType::IMAGE | MeasurementType::DEPTH | MeasurementType::POSE, sl::MEM::CPU);
         LOG_DEBUG("Writing Measurements");
-        pub.write_measurements(cam->get_measurements());
         std::this_thread::sleep_for(0.01s);
     }
     //LOG_INFO(cam->camera_status_string());

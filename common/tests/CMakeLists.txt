@@ -15,7 +15,6 @@ add_executable(common_tests
   logger_test.cc
   task_test.cc
   zmq_tests.cc
-  allocator_test.cc
   device_tests.cc
 )
 

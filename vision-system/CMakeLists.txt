@@ -7,20 +7,19 @@ add_executable(vision-system
    src/main.cc
    src/system_container.cc
    src/zed.cc
-   src/zed_publisher.cc
    src/cv_camera.cc
 )
 
 enable_cuda_for_target(vision-system)
 
-find_package(wpilib REQUIRED)
 find_package(OpenCV 4.12.0 REQUIRED)
-
 message(STATUS "OpenCV library status:")
 message(STATUS "    config: ${OpenCV_DIR}")
 message(STATUS "    version: ${OpenCV_VERSION}")
 message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
+
+find_package(wpilib REQUIRED)
 
 if(CUDA_AVAILABLE)
     if(MSVC)

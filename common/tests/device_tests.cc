@@ -39,7 +39,7 @@ TEST_CASE("CPUBufferTest", "[buffer_tests]") {
 }
 
 #ifdef CUDA
-TEST(CudaDeviceInfoTest, Devices) {
+TEST_CASE("CudaDeviceInfoTest", "[devices]") {
   int device_count = 0;
   cudaGetDeviceCount(&device_count);
   LOG_INFO("Found ", device_count, " CUDA device(s)");
@@ -53,7 +53,7 @@ TEST(CudaDeviceInfoTest, Devices) {
   }
 }
 
-TEST(CudaBufferTest, BufferTests) {
+TEST_CASE("CudaBufferTest", "[buffer_tests]") {
     auto dev = new CudaDevice();
     auto cpu_dev = new CPUDevice();
     LOG_INFO(dev->name());
