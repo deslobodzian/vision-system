@@ -5,7 +5,7 @@ include(CUDAConfig)
 
 find_package(Catch2 CONFIG REQUIRED)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CATCH2_EXTRAS_DIR}")
@@ -16,6 +16,7 @@ add_executable(common_tests
   task_test.cc
   zmq_tests.cc
   device_tests.cc
+  image_tests.cc
 )
 
 target_link_libraries(common_tests
