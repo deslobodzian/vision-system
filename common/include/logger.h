@@ -54,7 +54,7 @@ class Logger {
   }
 
   void set_log_file(const std::string &filename) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     if (log_file_.is_open()) {
       log_file_.close();
     }
@@ -63,12 +63,12 @@ class Logger {
   }
 
   void set_log_level(LogLevel level) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     current_log_level_ = level;
   }
 
   void flush() {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     if (log_file_.is_open()) {
       log_file_.flush();
     }
@@ -114,7 +114,7 @@ class Logger {
     (stream << ... << std::forward<Args>(args));
 
     {
-      std::lock_guard<std::mutex> lock(mutex_);
+      std::scoped_lock lock(mutex_);
       std::string log_message = stream.str();
       log_queue_.push_back(log_message);
 
@@ -128,7 +128,7 @@ class Logger {
 
   ~Logger() {
     {
-      std::lock_guard<std::mutex> lock(mutex_);
+      std::scoped_lock lock(mutex_);
       stop_logging_ = true;
     }
     cv_.notify_one();
@@ -163,7 +163,7 @@ class Logger {
 
       if (!local_file_queue.empty()) {
         if (!log_file_.is_open()) {
-          std::lock_guard<std::mutex> lock(mutex_);
+          std::scoped_lock lock(mutex_);
           if (!log_file_.is_open()) {
             log_file_.open(log_file_name_, std::ios::out | std::ios::app);
           }
