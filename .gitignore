@@ -17,5 +17,4 @@ build
 /.cache/
 /.vscode/
 
-/opencv*
-
+compile_commands.json
