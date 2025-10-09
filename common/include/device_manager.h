@@ -66,7 +66,7 @@ class DeviceManager {
     if (dev == "CPU") {
       devices_[dev] = std::make_shared<CPUDevice>();
     } else if (dev == "CUDA") {
-      LOG_ERROR("NOT IMPLEMENTED");
+      devices_[dev] = std::make_shared<CudaDevice>();
     }
     return true;
   }

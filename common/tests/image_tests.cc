@@ -14,3 +14,17 @@ TEST_CASE("CpuImageTest", "[image]") {
     REQUIRE(image.stride() == 64 * 3 * sizeof(double));
     REQUIRE(image.size() == 32 * 64 * 3 * sizeof(double));
 }
+
+#ifdef CUDA
+TEST_CASE("CUDAImageTest", "[image]") {
+    auto dev= DeviceManager::instance().get_device("CUDA");
+    LOG_DEBUG("Creating image on device: ", dev->name());
+    Image<double> image(*dev, 32, 64, 3);
+
+    REQUIRE(image.height() == 32);
+    REQUIRE(image.width() == 64);
+    REQUIRE(image.channels() == 3);
+    REQUIRE(image.stride() == 64 * 3 * sizeof(double));
+    REQUIRE(image.size() == 32 * 64 * 3 * sizeof(double));
+}
+#endif /* CUDA */
