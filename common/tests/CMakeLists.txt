@@ -23,7 +23,7 @@ target_link_libraries(common_tests
   PRIVATE
   logger
   common_lib
-  Catch2::Catch2WithMain   # supplies main()
+  Catch2::Catch2WithMain
 )
 
 target_include_directories(common_tests
@@ -41,4 +41,3 @@ endif()
 
 enable_cuda_for_target(common_tests)
 catch_discover_tests(common_tests)
-

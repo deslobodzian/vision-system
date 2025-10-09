@@ -56,9 +56,5 @@ add_subdirectory(third_party)
 add_subdirectory(common)
 add_subdirectory(vision-system)
 
-# add_subdirectory(vision-client)
-# add_subdirectory(vision-communication)
-
-# Enable testing
 enable_testing()
 add_subdirectory(common/tests)

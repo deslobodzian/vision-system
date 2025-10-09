@@ -9,7 +9,9 @@
 
 #include <cscore.h>
 #include <cscore_cv.h>
+#include <opencv2/core/types.hpp>
 #include <opencv2/imgproc.hpp>
+#include "tag_detector.h"
 
 int main() {
     logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
@@ -42,7 +44,7 @@ int main() {
     //     LOG_DEBUG("Image data {", w, "x", h, "}");
     //     std::this_thread::sleep_for(0.01s);
     // }
-
+    TagDetector detector;
 
     #ifdef CUDA
     LOG_INFO("CUDA enabled, initializing ZED camera...");
@@ -85,6 +87,17 @@ int main() {
     for (int i = 0; i < 10 / 0.01; i++) {
         cam->fetch_measurements(MeasurementType::IMAGE | MeasurementType::DEPTH | MeasurementType::POSE | MeasurementType::DEPTH_COLOR, sl::MEM::CPU);
         cv::Mat img = sl_to_cv(cam->get_measurements().left_image);
+        auto tags = detector.detect(img);
+
+        for (const auto& tag : tags) {
+            LOG_INFO("Tag ID: ", tag.id);    
+            LOG_INFO("Tag Decision margin: ", tag.decision_margin);    
+            for (int j = 0; j < 4; j++) {
+                cv::Point p1(tag.corners[j][0], tag.corners[j][1]);
+                cv::Point p2(tag.corners[(j+1)%4][0], tag.corners[(j+1)%4][1]);
+                cv::line(img, p1, p2, cv::Scalar(0, 255, 0), 2);
+            }
+        }
         rgb_source.PutFrame(img);
         cv::Mat depth = sl_to_cv(cam->get_measurements().depth_map);
         cv::Mat depth_normalized;

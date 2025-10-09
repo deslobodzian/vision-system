@@ -9,6 +9,7 @@ add_executable(vision-system
    src/system_container.cc
    src/zed.cc
    src/cv_camera.cc
+   src/tag_detector.cc
 )
 
 enable_cuda_for_target(vision-system)
@@ -22,21 +23,33 @@ message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 find_package(wpilib REQUIRED)
 
+# Need to disable shared libs, apriltags is breaking catch2 test discovery, dont know why?
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_PYTHON_WRAPPER OFF CACHE BOOL "" FORCE)
+
 FetchContent_Declare(
     apriltag
     GIT_REPOSITORY https://github.com/AprilRobotics/apriltag.git
     GIT_TAG v3.4.5
 )
+
 FetchContent_MakeAvailable(apriltag)
+
+# set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
 
 if(CUDA_AVAILABLE)
     if(MSVC)
-        target_compile_options(vision-system PRIVATE /wd4201 /wd4100 /wd4251 /wd4305 /wd5054)
+        target_compile_options(vision-system PRIVATE 
+            /wd4201 /wd4100 /wd4251 /wd4305 /wd5054
+            /wd4244  # conversion warnings from apriltag
+            /wd4996  # deprecated function warnings from apriltag
+        )
     endif()
     message("-- Using ZED Camera")
-    find_package(ZED 4 REQUIRED)
-    include_directories(${ZED_INCLUDE_DIRS})
-    link_directories(${ZED_LIBRARY_DIR})
+    find_package(ZED REQUIRED)
+    target_include_directories(vision-system PRIVATE ${ZED_INCLUDE_DIRS})
+    target_link_directories(vision-system PRIVATE ${ZED_LIBRARY_DIR})
+    
     set(ZED_LIBS ${ZED_LIBRARIES})
 endif()
 
