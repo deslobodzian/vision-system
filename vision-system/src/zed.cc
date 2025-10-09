@@ -73,10 +73,10 @@ const ZedMeasurements& ZedCamera::get_measurements() {
 }
 
 int ZedCamera::open(const sl::InitParameters& init_params, const sl::RuntimeParameters& runtime_params) {
-    init_params_ = init_params;
+
     runtime_params_ = runtime_params;
 
-    auto ret = zed_.open(init_params_);
+    auto ret = zed_.open(init_params);
     if (ret != sl::ERROR_CODE::SUCCESS) {
         LOG_ERROR("Failed to open ZED camera with error: ", sl::toVerbose(ret));
         return -1;  // Return error code

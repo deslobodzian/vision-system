@@ -13,7 +13,6 @@ FetchContent_MakeAvailable(Catch2)
 
 set(CATCH2_EXTRAS_DIR "${catch2_SOURCE_DIR}/extras" CACHE PATH "Catch2 extras")
 
-
 # FetchContent_Declare(
 #    wpilib
 #    GIT_REPOSITORY https://github.com/wpilibsuite/allwpilib.git

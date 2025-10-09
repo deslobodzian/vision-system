@@ -1,5 +1,6 @@
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(CUDAConfig)
+include(FetchContent)
 
 set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "" FORCE)
 
@@ -21,6 +22,13 @@ message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 find_package(wpilib REQUIRED)
 
+FetchContent_Declare(
+    apriltag
+    GIT_REPOSITORY https://github.com/AprilRobotics/apriltag.git
+    GIT_TAG v3.4.5
+)
+FetchContent_MakeAvailable(apriltag)
+
 if(CUDA_AVAILABLE)
     if(MSVC)
         target_compile_options(vision-system PRIVATE /wd4201 /wd4100 /wd4251 /wd4305 /wd5054)
@@ -40,7 +48,6 @@ target_include_directories(vision-system
         ${CMAKE_SOURCE_DIR}/common/include
 )
 
-
 if(CUDA_AVAILABLE)
     target_link_libraries(vision-system
         PRIVATE
@@ -49,6 +56,7 @@ if(CUDA_AVAILABLE)
             cscore
             ${ZED_LIBS}
             ${OpenCV_LIBS}
+            apriltag
     )
 else()
     target_link_libraries(vision-system
@@ -57,6 +65,7 @@ else()
             ntcore
             cscore
             ${OpenCV_LIBS}
+            apriltag
     )
 endif()
 

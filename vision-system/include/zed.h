@@ -63,7 +63,6 @@ private:
     std::string name_;
     sl::Camera zed_;
     ZedMeasurements measurements_;
-    sl::InitParameters init_params_;
     sl::RuntimeParameters runtime_params_;
 
     bool tracking_enabled_;

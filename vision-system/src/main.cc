@@ -10,6 +10,7 @@
 #include <cscore.h>
 #include <cscore_cv.h>
 #include <opencv2/imgproc.hpp>
+
 int main() {
     logger::Logger::instance().set_log_level(logger::LogLevel::DEBUG);
     using namespace std::chrono;
