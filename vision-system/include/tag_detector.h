@@ -1,6 +1,5 @@
 #pragma once
 #include "apriltag.h"
-#include "tag36h11.h"
 #include "common/zarray.h"
 #include <opencv2/opencv.hpp>
 #include <vector>

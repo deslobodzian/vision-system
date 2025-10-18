@@ -38,7 +38,7 @@ if(MSVC)
     if(NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "" FORCE)
     endif()
-    add_compile_options(/MD)  # Force the runtime library to match
+    add_compile_options(/MD) 
 endif()
 
 # Set the allowed values for CMAKE_BUILD_TYPE (optional)
@@ -54,7 +54,9 @@ endif()
 
 add_subdirectory(third_party)
 add_subdirectory(common)
+add_subdirectory(gpu-apriltags)
 add_subdirectory(vision-system)
 
 enable_testing()
 add_subdirectory(common/tests)
+add_subdirectory(gpu-apriltags/tests)

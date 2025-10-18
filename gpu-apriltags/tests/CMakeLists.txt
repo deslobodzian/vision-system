@@ -1,4 +1,4 @@
-project(common_tests)
+project(gpu_apriltag_tests)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(CUDAConfig)
@@ -11,25 +11,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 list(APPEND CMAKE_MODULE_PATH "${CATCH2_EXTRAS_DIR}")
 include(Catch)
 
-add_executable(common_tests
-  logger_test.cc
-  task_test.cc
-  zmq_tests.cc
-  device_tests.cc
-  image_tests.cc
+add_executable(gpu_apriltag_tests
+    test_test.cc
 )
 
-target_link_libraries(common_tests
+target_link_libraries(gpu_apriltag_tests
   PRIVATE
   logger
   common_lib
+  gpu_apriltags
   Catch2::Catch2WithMain
 )
 
-target_include_directories(common_tests
+target_include_directories(gpu_apriltag_tests
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
-enable_cuda_for_target(common_tests)
-catch_discover_tests(common_tests)
+enable_cuda_for_target(gpu_apriltag_tests)
+catch_discover_tests(gpu_apriltag_tests)

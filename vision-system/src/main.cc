@@ -1,6 +1,7 @@
 #include "logger.h"
 #include "zed.h"
 #include "system_container.h"
+#include <chrono>
 #include <cscore_oo.h>
 #include <memory>
 #include <networktables/NetworkTableInstance.h>
@@ -55,6 +56,7 @@ int main() {
     params.camera_resolution = sl::RESOLUTION::HD1080;
     params.coordinate_units = sl::UNIT::METER;
     params.depth_mode = sl::DEPTH_MODE::NEURAL;
+    params.camera_fps = 60;
     params.depth_stabilization = 1;
 
     int rgb_port = 1181;
@@ -87,7 +89,11 @@ int main() {
     for (int i = 0; i < 10 / 0.01; i++) {
         cam->fetch_measurements(MeasurementType::IMAGE | MeasurementType::DEPTH | MeasurementType::POSE | MeasurementType::DEPTH_COLOR, sl::MEM::CPU);
         cv::Mat img = sl_to_cv(cam->get_measurements().left_image);
+        auto start = std::chrono::high_resolution_clock::now();
         auto tags = detector.detect(img);
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+        LOG_INFO("Tag detection took: ", duration.count());
 
         for (const auto& tag : tags) {
             LOG_INFO("Tag ID: ", tag.id);    

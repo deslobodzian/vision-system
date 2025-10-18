@@ -1,6 +1,5 @@
 // tag_detector.cpp
 #include "tag_detector.h"
-#include "apriltag.h"
 #include "tag36h11.h"
 
 TagDetector::TagDetector() 
@@ -10,6 +9,10 @@ TagDetector::TagDetector()
     
     if (detector_ && tag_family_) {
         apriltag_detector_add_family(detector_, tag_family_);
+        detector_->nthreads = 16;
+        detector_->quad_decimate = 1.0;
+        detector_->refine_edges = false;
+        detector_->quad_sigma = 0.0;
     }
 }
 
